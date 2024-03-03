@@ -21,8 +21,9 @@ def test():
     for _ in trange(10000):
         base_values = getSH2DValues(sh2d_degree, phis)
 
-    print("speed getSH2DValuesC:")
     getSH2DValuesC = torch.compile(getSH2DValues)
+    base_values = getSH2DValuesC(sh2d_degree, phis)
+    print("speed getSH2DValuesC:")
     for _ in trange(10000):
         base_values = getSH2DValuesC(sh2d_degree, phis)
 
@@ -30,8 +31,9 @@ def test():
     for _ in trange(10000):
         base_values = getSH2DValues2(sh2d_degree, phis)
 
-    print("speed getSH2DValues2C:")
     getSH2DValues2C = torch.compile(getSH2DValues2)
+    base_values = getSH2DValues2C(sh2d_degree, phis)
+    print("speed getSH2DValues2C:")
     for _ in trange(10000):
         base_values = getSH2DValues2C(sh2d_degree, phis)
 
@@ -41,8 +43,9 @@ def test():
     for _ in trange(10000):
         sh2d_values = getSH2DModelValue(phi_idxs, params, base_values)
 
-    print("speed getSH2DModelValueC:")
     getSH2DModelValueC = torch.compile(getSH2DModelValue)
+    sh2d_values = getSH2DModelValueC(phi_idxs, params, base_values)
+    print("speed getSH2DModelValueC:")
     for _ in trange(10000):
         sh2d_values = getSH2DModelValueC(phi_idxs, params, base_values)
 
@@ -50,8 +53,9 @@ def test():
     for _ in trange(10000):
         sh2d_values = getSH2DModelValue2(phi_idxs, params, base_values)
 
-    print("speed getSH2DModelValue2C:")
     getSH2DModelValue2C = torch.compile(getSH2DModelValue2)
+    sh2d_values = getSH2DModelValue2C(phi_idxs, params, base_values)
+    print("speed getSH2DModelValue2C:")
     for _ in trange(10000):
         sh2d_values = getSH2DModelValue2C(phi_idxs, params, base_values)
 
