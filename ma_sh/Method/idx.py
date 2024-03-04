@@ -1,6 +1,7 @@
 import torch
 
 
+@torch.compile()
 def toStartIdxs(data_counts: torch.Tensor) -> torch.Tensor:
     start_idxs = torch.zeros(data_counts.shape[0] + 1).type(torch.int)
     for i in range(1, start_idxs.shape[0]):
