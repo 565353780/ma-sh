@@ -4,26 +4,28 @@ from tqdm import trange
 from ma_sh.Method.idx import toStartIdxs
 from ma_sh.Method.mask import getSH2DBaseValues, getSH2DValues
 
+def merge(sh2d_degree, params, phis, phi_idxs):
+    base_values = getSH2DBaseValues(sh2d_degree, phis)
+    sh2d_values = getSH2DValues(phi_idxs, params, base_values)
+    return True
+
 def test():
     anchor_num = 40
     sh2d_degree = 5
-    params = torch.randn([anchor_num, sh2d_degree * 2 + 1]).type(torch.float32)
+    #FIXME: why cpu is more faster than gpu?
+    device = 'cpu'
 
-    phi_sample_nums = torch.tensor([100, 50, 80, 40]).type(torch.int)
+    params = torch.randn([anchor_num, sh2d_degree * 2 + 1]).type(torch.float32).to(device)
+
+    phi_sample_nums = torch.tensor([1000, 500, 800, 400]).type(torch.int).to(device)
 
     phi_idxs = toStartIdxs(phi_sample_nums)
 
-    phis = torch.randn(phi_idxs[-1], requires_grad=True).type(torch.float32)
+    phis = torch.randn(phi_idxs[-1], requires_grad=True).type(torch.float32).to(device)
 
-    base_values = getSH2DBaseValues(sh2d_degree, phis)
-    sh2d_values = getSH2DValues(phi_idxs, params, base_values)
+    merge(sh2d_degree, params, phis, phi_idxs)
 
-    print("speed getSH2DBaseValues:")
     for _ in trange(10000):
-        base_values = getSH2DBaseValues(sh2d_degree, phis)
-
-    print("speed getSH2DValues:")
-    for _ in trange(10000):
-        sh2d_values = getSH2DValues(phi_idxs, params, base_values)
+        merge(sh2d_degree, params, phis, phi_idxs)
 
     return True
