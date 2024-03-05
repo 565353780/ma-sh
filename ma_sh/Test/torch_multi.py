@@ -4,7 +4,6 @@ from tqdm import trange
 from ma_sh.Method.idx import toBoundIdxs
 from ma_sh.Method.mask import getSH2DBaseValues, getSH2DValues
 
-print(torch.get_num_threads())
 import os
 from multiprocessing import cpu_count
 
@@ -15,9 +14,6 @@ os.environ ['MKL_NUM_THREADS'] = str(cpu_num)
 os.environ ['VECLIB_MAXIMUM_THREADS'] = str(cpu_num)
 os.environ ['NUMEXPR_NUM_THREADS'] = str(cpu_num)
 torch.set_num_threads(cpu_num)
-
-print(torch.get_num_threads())
-exit()
 
 
 def merge(sh2d_degree, params, phis, phi_idxs):
