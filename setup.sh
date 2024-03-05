@@ -7,4 +7,4 @@ cd pytorch3d
 rm -rf build
 pip install -e .
 
-pip install tqdm
+pip install pybind11 tqdm

@@ -1,8 +1,24 @@
 import torch
 from tqdm import trange
 
-from ma_sh.Method.idx import toStartIdxs
+from ma_sh.Method.idx import toBoundIdxs
 from ma_sh.Method.mask import getSH2DBaseValues, getSH2DValues
+
+print(torch.get_num_threads())
+import os
+from multiprocessing import cpu_count
+
+cpu_num = cpu_count() # 自动获取最大核心数目
+os.environ ['OMP_NUM_THREADS'] = str(cpu_num)
+os.environ ['OPENBLAS_NUM_THREADS'] = str(cpu_num)
+os.environ ['MKL_NUM_THREADS'] = str(cpu_num)
+os.environ ['VECLIB_MAXIMUM_THREADS'] = str(cpu_num)
+os.environ ['NUMEXPR_NUM_THREADS'] = str(cpu_num)
+torch.set_num_threads(cpu_num)
+
+print(torch.get_num_threads())
+exit()
+
 
 def merge(sh2d_degree, params, phis, phi_idxs):
     base_values = getSH2DBaseValues(sh2d_degree, phis)
@@ -19,7 +35,7 @@ def test():
 
     phi_sample_nums = torch.tensor([1000, 500, 800, 400]).type(torch.int).to(device)
 
-    phi_idxs = toStartIdxs(phi_sample_nums)
+    phi_idxs = toBoundIdxs(phi_sample_nums)
 
     phis = torch.randn(phi_idxs[-1], requires_grad=True).type(torch.float32).to(device)
 

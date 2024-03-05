@@ -1,6 +1,10 @@
 # compiled
 __pycache__
+build
 
 # output
 logs
 output
+
+# git clone
+ma_sh/Cpp/pybind11
