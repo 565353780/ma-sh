@@ -3,11 +3,20 @@ from tqdm import trange
 
 import mash_cpp
 
-from ma_sh.Method.mask import getSH2DBaseValues, getSH2DValues
+from ma_sh.Method.mask import getMaskBaseValues, getSH2DValues
 
 
 def merge(sh2d_degree, params, phis, phi_idxs):
-    base_values = getSH2DBaseValues(sh2d_degree, phis)
+    base_values = getMaskBaseValues(sh2d_degree, phis)
+    base_values2 = mash_cpp.getMaskBaseValues(sh2d_degree, phis)
+
+    for _ in trange(10000):
+        base_values = getMaskBaseValues(sh2d_degree, phis)
+
+    for _ in trange(10000):
+        base_values = mash_cpp.getMaskBaseValues(sh2d_degree, phis)
+    exit()
+
     sh2d_values = getSH2DValues(phi_idxs, params, base_values)
     return True
 

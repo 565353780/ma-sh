@@ -10,12 +10,17 @@ root_path = os.getcwd() + '/../ma-sh/ma_sh/Cpp/'
 sources = [
     root_path + 'src/add.cpp',
     root_path + 'src/idx.cpp',
+    root_path + 'src/mask.cpp',
     root_path + 'main.cpp',
 ]
 
 include_dirs = [root_path + 'include']
 
-extra_compile_args=['-std=c++23', '-O3']
+extra_compile_args=[
+    '-std=c++23',
+    '-O3',
+    '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON'
+]
 
 if torch.cuda.is_available():
     module = CUDAExtension(

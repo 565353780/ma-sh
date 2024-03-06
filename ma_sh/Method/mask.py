@@ -2,7 +2,7 @@ import torch
 
 
 @torch.compile()
-def getSH2DBaseValues(degree_max: int, phis: torch.Tensor) -> torch.Tensor:
+def getMaskBaseValues(degree_max: int, phis: torch.Tensor) -> torch.Tensor:
     base_values = [torch.ones_like(phis)]
 
     for degree in range(1, degree_max + 1):
