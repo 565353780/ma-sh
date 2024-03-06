@@ -11,8 +11,7 @@ def getMaskBaseValues(degree_max: int, phis: torch.Tensor) -> torch.Tensor:
     return torch.vstack(base_values)
 
 
-# FIXME: why compile will be slow?
-def getSH2DValues(
+def getMaskValues(
     phi_idxs: torch.Tensor, params: torch.Tensor, base_values: torch.Tensor
 ) -> torch.Tensor:
     values = []

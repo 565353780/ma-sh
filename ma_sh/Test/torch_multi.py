@@ -1,15 +1,16 @@
 import torch
 from tqdm import trange
 
-from ma_sh.Method.kernel import toBoundIdxs, getMaskBaseValues
+from ma_sh.Method.kernel import (
+    toBoundIdxs,
+    getMaskBaseValues,
+    getMaskValues,
+)
 
 
 def merge(sh2d_degree, params, phis, phi_idxs):
-    for _ in trange(10000):
-        base_values = getMaskBaseValues(sh2d_degree, phis)
-    exit()
-
-    sh2d_values = getSH2DValues(phi_idxs, params, base_values)
+    base_values = getMaskBaseValues(sh2d_degree, phis)
+    mask_values = getMaskValues(phi_idxs, params, base_values)
     return True
 
 def test():
@@ -27,6 +28,7 @@ def test():
     phis = torch.randn(phi_idxs[-1], requires_grad=True).type(torch.float32).to(device)
 
     base_values = getMaskBaseValues(sh2d_degree, phis)
+    mask_values = getMaskValues(phi_idxs, params, base_values)
 
     merge(sh2d_degree, params, phis, phi_idxs)
 
