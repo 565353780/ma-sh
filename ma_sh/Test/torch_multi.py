@@ -1,20 +1,12 @@
 import torch
 from tqdm import trange
 
-import mash_cpp
-
-from ma_sh.Method.mask import getMaskBaseValues, getSH2DValues
+from ma_sh.Method.kernel import toBoundIdxs, getMaskBaseValues
 
 
 def merge(sh2d_degree, params, phis, phi_idxs):
-    base_values = getMaskBaseValues(sh2d_degree, phis)
-    base_values2 = mash_cpp.getMaskBaseValues(sh2d_degree, phis)
-
     for _ in trange(10000):
         base_values = getMaskBaseValues(sh2d_degree, phis)
-
-    for _ in trange(10000):
-        base_values = mash_cpp.getMaskBaseValues(sh2d_degree, phis)
     exit()
 
     sh2d_values = getSH2DValues(phi_idxs, params, base_values)
@@ -30,9 +22,11 @@ def test():
 
     phi_sample_nums = torch.tensor([1000, 500, 800, 400]).type(torch.int).to(device)
 
-    phi_idxs = mash_cpp.toBoundIdxs(phi_sample_nums)
+    phi_idxs = toBoundIdxs(phi_sample_nums)
 
     phis = torch.randn(phi_idxs[-1], requires_grad=True).type(torch.float32).to(device)
+
+    base_values = getMaskBaseValues(sh2d_degree, phis)
 
     merge(sh2d_degree, params, phis, phi_idxs)
 

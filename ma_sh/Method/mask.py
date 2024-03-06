@@ -1,7 +1,6 @@
 import torch
 
 
-@torch.compile()
 def getMaskBaseValues(degree_max: int, phis: torch.Tensor) -> torch.Tensor:
     base_values = [torch.ones_like(phis)]
 
@@ -13,7 +12,6 @@ def getMaskBaseValues(degree_max: int, phis: torch.Tensor) -> torch.Tensor:
 
 
 # FIXME: why compile will be slow?
-# @torch.compile()
 def getSH2DValues(
     phi_idxs: torch.Tensor, params: torch.Tensor, base_values: torch.Tensor
 ) -> torch.Tensor:
