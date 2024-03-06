@@ -3,6 +3,7 @@ __pycache__
 build
 .cache
 *.egg-info
+*.so
 
 # output
 logs

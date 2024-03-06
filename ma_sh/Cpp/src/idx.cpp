@@ -1,6 +1,6 @@
 #include "idx.h"
 
-torch::Tensor toBoundIdxs(const torch::Tensor &data_counts) {
+const torch::Tensor toBoundIdxs(const torch::Tensor &data_counts) {
   torch::Tensor bound_idxs = torch::zeros(data_counts.sizes()[0] + 1)
                                  .toType(data_counts.scalar_type())
                                  .to(data_counts.device());
