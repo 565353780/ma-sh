@@ -1,6 +1,4 @@
-import sys
-sys.path.append('./build')
-
+import torch
 import mash_cpp
 
 def test():

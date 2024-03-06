@@ -1,6 +1,8 @@
 # compiled
 __pycache__
 build
+.cache
+*.egg-info
 
 # output
 logs
