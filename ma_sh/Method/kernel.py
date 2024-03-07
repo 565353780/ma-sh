@@ -6,6 +6,7 @@ from ma_sh.Config.kernel import (
     toMaskBaseValuesDict, 
     toMaskValuesDict,
     toMaskBoundaryMaxThetasDict,
+    toInMaskSamplePolarIdxsDict,
 )
 
 test_mode = 'c'
@@ -17,6 +18,7 @@ toMaskBoundaryPhis = toMaskBoundaryPhisDict[test_mode]
 toMaskBaseValues = toMaskBaseValuesDict[test_mode]
 toMaskValues = toMaskValuesDict[test_mode]
 toMaskBoundaryMaxThetas = toMaskBoundaryMaxThetasDict[test_mode]
+toInMaskSamplePolarIdxs = toInMaskSamplePolarIdxsDict['c']
 
 if False:
     toUniformSamplePhis = toUniformSamplePhisDict['c']
@@ -26,3 +28,4 @@ if False:
     toMaskBaseValues = toMaskBaseValuesDict['p+']
     toMaskValues = toMaskValuesDict['c']
     toMaskBoundaryMaxThetas = toMaskBoundaryMaxThetasDict['c']
+    toInMaskSamplePolarIdxs = toInMaskSamplePolarIdxsDict['p']

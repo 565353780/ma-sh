@@ -10,7 +10,8 @@ from ma_sh.Method.kernel import (
     toMaskBoundaryPhis,
     toMaskBaseValues,
     toMaskValues,
-    toMaskBoundaryMaxThetas
+    toMaskBoundaryMaxThetas,
+    toInMaskSamplePolarIdxs
 )
 
 def testPreLoadUniformSample(sample_polar_num, dtype=torch.float32, device='cpu'):
@@ -32,7 +33,7 @@ def testMaskBoundary(mask_degree_max, mask_params, mask_boundary_phis, mask_boun
 def test():
     # setThread()
 
-    sample_polar_num = 10000
+    sample_polar_num = 100
     anchor_num = 4
     mask_degree_max = 5
     mask_boundary_sample_num = 10
@@ -73,6 +74,9 @@ def test():
 
     mask_boundary_max_thetas = toMaskBoundaryMaxThetas(mask_boundary_thetas, mask_boundary_phi_idxs)
     assert checkFormat(mask_boundary_max_thetas, dtype, device, [anchor_num])
+
+    in_mask_sample_polar_idxs = toInMaskSamplePolarIdxs(sample_thetas, mask_boundary_max_thetas)
+    print(in_mask_sample_polar_idxs)
     exit()
 
     # Speed
