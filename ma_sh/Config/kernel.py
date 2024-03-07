@@ -3,11 +3,24 @@ import mash_cpp
 from torch import compile
 
 from ma_sh.Method import (
+    sample,
     idx,
-    mask
+    mask,
 )
 
 compile_mode = 'max-autotune'
+
+getUniformSamplePhisDict = {
+    # 'c': mash_cpp.getUniformSamplePhis,
+    'p': sample.getUniformSamplePhis,
+    'p+': compile(sample.getUniformSamplePhis, mode=compile_mode),
+}
+
+getUniformSampleThetasDict = {
+    # 'c': mash_cpp.getUniformSampleThetas,
+    'p': sample.getUniformSampleThetas,
+    'p+': compile(sample.getUniformSampleThetas, mode=compile_mode),
+}
 
 toBoundIdxsDict = {
     'c': mash_cpp.toBoundIdxs,

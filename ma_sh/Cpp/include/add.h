@@ -1,3 +1,3 @@
 #pragma once
 
-int add(const int &i, const int &j);
+int add(const int &a, const int &b);
