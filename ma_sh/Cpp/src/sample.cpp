@@ -1,8 +1,6 @@
 #include "sample.h"
-#include "c10/core/DeviceType.h"
-#include "torch/types.h"
-#define _USE_MATH_DEFINES
-#include <cmath>
+#include <c10/core/DeviceType.h>
+#include <torch/types.h>
 
 const torch::Tensor getUniformSamplePhis(const int &point_num) {
   std::vector<float> phis_vec;
