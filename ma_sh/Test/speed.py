@@ -10,6 +10,7 @@ from ma_sh.Method.kernel import (
     toMaskBoundaryPhis,
     toMaskBaseValues,
     toMaskValues,
+    toMaskBoundaryMaxThetas
 )
 
 def testPreLoadUniformSample(sample_polar_num, dtype=torch.float32, device='cpu'):
@@ -24,8 +25,8 @@ def testPreLoadMaskBoundary(anchor_num, mask_boundary_sample_num, idx_dtype, dty
     return
 
 def testMaskBoundary(mask_degree_max, mask_params, mask_boundary_phis, mask_boundary_phi_idxs):
-    mask_boundary_base_values = toMaskBaseValues(mask_degree_max, mask_boundary_phis)
-    mask_boundary_thetas = toMaskValues(mask_boundary_phi_idxs, mask_params, mask_boundary_base_values)
+    mask_boundary_base_values = toMaskBaseValues(mask_boundary_phis, mask_degree_max)
+    mask_boundary_thetas = toMaskValues(mask_params, mask_boundary_base_values, mask_boundary_phi_idxs)
     return
 
 def test():
@@ -64,11 +65,15 @@ def test():
     assert checkFormat(mask_boundary_phis, dtype, device, [anchor_num * mask_boundary_sample_num])
 
     # Mask Boundary
-    mask_boundary_base_values = toMaskBaseValues(mask_degree_max, mask_boundary_phis)
+    mask_boundary_base_values = toMaskBaseValues(mask_boundary_phis, mask_degree_max)
     assert checkFormat(mask_boundary_base_values, dtype, device, [mask_degree_max * 2 + 1, anchor_num * mask_boundary_sample_num])
 
-    mask_boundary_thetas = toMaskValues(mask_boundary_phi_idxs, mask_params, mask_boundary_base_values)
+    mask_boundary_thetas = toMaskValues(mask_params, mask_boundary_base_values, mask_boundary_phi_idxs)
     assert checkFormat(mask_boundary_thetas, dtype, device, [anchor_num * mask_boundary_sample_num])
+
+    mask_boundary_max_thetas = toMaskBoundaryMaxThetas(mask_boundary_thetas, mask_boundary_phi_idxs)
+    assert checkFormat(mask_boundary_max_thetas, dtype, device, [anchor_num])
+    exit()
 
     # Speed
     test_num = 1000

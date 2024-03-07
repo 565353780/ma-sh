@@ -1,4 +1,5 @@
 #include "add.h"
+#include "filter.h"
 #include "idx.h"
 #include "mask.h"
 #include "sample.h"
@@ -14,4 +15,6 @@ PYBIND11_MODULE(mash_cpp, m) {
   m.def("toUniformSamplePhis", &toUniformSamplePhis, "toUniformSamplePhis");
   m.def("toUniformSampleThetas", &toUniformSampleThetas,
         "toUniformSampleThetas");
+  m.def("toMaskBoundaryMaxThetas", &toMaskBoundaryMaxThetas,
+        "toMaskBoundaryMaxThetas");
 }

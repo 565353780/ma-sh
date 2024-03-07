@@ -6,6 +6,7 @@ from ma_sh.Method import (
     sample,
     idx,
     mask,
+    filter,
 )
 
 compile_mode = 'max-autotune'
@@ -44,4 +45,10 @@ toMaskValuesDict = {
     'c': mash_cpp.toMaskValues,
     'p': mask.toMaskValues,
     'p+': compile(mask.toMaskValues, mode=compile_mode),
+}
+
+toMaskBoundaryMaxThetasDict = {
+    'c': mash_cpp.toMaskBoundaryMaxThetas,
+    'p': filter.toMaskBoundaryMaxThetas,
+    'p+': compile(filter.toMaskBoundaryMaxThetas, mode=compile_mode),
 }

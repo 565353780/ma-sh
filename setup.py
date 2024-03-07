@@ -12,6 +12,7 @@ sources = [
     root_path + 'src/idx.cpp',
     root_path + 'src/mask.cpp',
     root_path + 'src/sample.cpp',
+    root_path + 'src/filter.cpp',
     root_path + 'main.cpp',
 ]
 
