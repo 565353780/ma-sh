@@ -8,4 +8,5 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def("add", &add, "A function which adds two numbers");
   m.def("toBoundIdxs", &toBoundIdxs, "toBoundIdxs");
   m.def("getMaskBaseValues", &getMaskBaseValues, "getMaskBaseValues");
+  m.def("getMaskValues", &getMaskValues, "getMaskValues");
 }

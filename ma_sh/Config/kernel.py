@@ -22,7 +22,7 @@ getMaskBaseValuesDict = {
 }
 
 getMaskValuesDict = {
-    # 'c': mash_cpp.getMaskValues,
+    'c': mash_cpp.getMaskValues,
     'p': mask.getMaskValues,
     'p+': compile(mask.getMaskValues, mode=compile_mode),
 }

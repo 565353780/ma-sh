@@ -6,4 +6,4 @@ from ma_sh.Config.kernel import (
 
 toBoundIdxs = toBoundIdxsDict['c']
 getMaskBaseValues = getMaskBaseValuesDict['p+']
-getMaskValues = getMaskValuesDict['p']
+getMaskValues = getMaskValuesDict['c']
