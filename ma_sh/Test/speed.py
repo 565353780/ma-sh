@@ -9,8 +9,8 @@ from ma_sh.Method.kernel import (
 )
 
 
-def testMask(sh2d_degree, params, phis, phi_idxs):
-    base_values = getMaskBaseValues(sh2d_degree, phis)
+def testMask(degree_max, params, phis, phi_idxs):
+    base_values = getMaskBaseValues(degree_max, phis)
     assert base_values.shape[0] == params.shape[1]
     assert base_values.shape[1] == phi_idxs[-1].item()
 
@@ -18,8 +18,8 @@ def testMask(sh2d_degree, params, phis, phi_idxs):
     assert mask_values.shape[0] == phi_idxs[-1].item()
     return True
 
-def testMaskSpeed(sh2d_degree, params, phis, phi_idxs):
-    base_values = getMaskBaseValues(sh2d_degree, phis)
+def testMaskSpeed(degree_max, params, phis, phi_idxs):
+    base_values = getMaskBaseValues(degree_max, phis)
     mask_values = getMaskValues(phi_idxs, params, base_values)
     return mask_values
 
@@ -30,7 +30,7 @@ def test():
     sh2d_degree = 5
     device = 'cpu'
 
-    params = torch.randn([anchor_num, sh2d_degree * 2 + 1]).type(torch.float32).to(device)
+    mask_params = torch.randn([anchor_num, sh2d_degree * 2 + 1]).type(torch.float32).to(device)
 
     phi_sample_nums = torch.randint(100, 1000, [anchor_num]).to(device)
 
@@ -38,8 +38,8 @@ def test():
 
     phis = torch.randn(phi_idxs[-1], requires_grad=True).type(torch.float32).to(device)
 
-    testMask(sh2d_degree, params, phis, phi_idxs)
+    testMask(sh2d_degree, mask_params, phis, phi_idxs)
 
     for _ in trange(10000):
-        testMaskSpeed(sh2d_degree, params, phis, phi_idxs)
+        testMaskSpeed(sh2d_degree, mask_params, phis, phi_idxs)
     return True
