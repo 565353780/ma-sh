@@ -4,7 +4,7 @@
 #include "sample.h"
 #include <pybind11/pybind11.h>
 
-PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
+PYBIND11_MODULE(mash_cpp, m) {
   m.doc() = "pybind11 mash cpp plugin";
   m.def("add", &add, "A function which adds two numbers");
   m.def("toBoundIdxs", &toBoundIdxs, "toBoundIdxs");

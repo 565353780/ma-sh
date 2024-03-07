@@ -8,6 +8,6 @@ rm -rf build
 pip install -e .
 
 cd ../ma-sh
-pip install -e .
+pip install .
 
 pip install tqdm

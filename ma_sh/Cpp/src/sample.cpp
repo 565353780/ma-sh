@@ -1,9 +1,10 @@
 #include "sample.h"
+#include <ATen/core/ATen_fwd.h>
+#include <c10/core/TensorOptions.h>
+#define _USE_MATH_DEFINES
 #include <cmath>
 
-const torch::Tensor getUniformSamplePhis(const int &point_num,
-                                         const torch::Dtype &dtype,
-                                         const torch::Device &device) {
+const torch::Tensor getUniformSamplePhis(const int &point_num) {
   std::vector<float> phis_vec;
   phis_vec.reserve(point_num);
 
@@ -11,8 +12,11 @@ const torch::Tensor getUniformSamplePhis(const int &point_num,
     phis_vec[i] = (2.0 * i + 1.0) / point_num - 1.0;
   }
 
+  const torch::TensorOptions opts =
+      torch::TensorOptions().dtype(torch::kFloat32).device(torch::kCPU);
+
   const torch::Tensor phis =
-      torch::from_blob(phis_vec.data(), {point_num}, dtype).clone().to(device);
+      torch::from_blob(phis_vec.data(), {point_num}, opts).clone();
 
   return phis;
 }

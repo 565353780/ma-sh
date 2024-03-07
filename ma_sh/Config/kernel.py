@@ -11,13 +11,13 @@ from ma_sh.Method import (
 compile_mode = 'max-autotune'
 
 getUniformSamplePhisDict = {
-    # 'c': mash_cpp.getUniformSamplePhis,
+    'c': mash_cpp.getUniformSamplePhis,
     'p': sample.getUniformSamplePhis,
     'p+': compile(sample.getUniformSamplePhis, mode=compile_mode),
 }
 
 getUniformSampleThetasDict = {
-    # 'c': mash_cpp.getUniformSampleThetas,
+    'c': mash_cpp.getUniformSampleThetas,
     'p': sample.getUniformSampleThetas,
     'p+': compile(sample.getUniformSampleThetas, mode=compile_mode),
 }

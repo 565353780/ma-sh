@@ -17,9 +17,11 @@ sources = [
 include_dirs = [root_path + 'include']
 
 extra_compile_args=[
-    '-std=c++23',
+    '-std=c++17',
     '-O3',
-    '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON'
+    '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
+    '-D_GLIBCXX_USE_CXX11_ABI=0',
+    '-DCMAKE_BUILD_TYPE Release'
 ]
 
 if torch.cuda.is_available():

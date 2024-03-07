@@ -4,6 +4,7 @@ build
 .cache
 *.egg-info
 *.so
+compile_commands.json
 
 # output
 logs
