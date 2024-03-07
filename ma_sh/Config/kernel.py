@@ -10,16 +10,16 @@ from ma_sh.Method import (
 
 compile_mode = 'max-autotune'
 
-getUniformSamplePhisDict = {
-    'c': mash_cpp.getUniformSamplePhis,
-    'p': sample.getUniformSamplePhis,
-    'p+': compile(sample.getUniformSamplePhis, mode=compile_mode),
+toUniformSamplePhisDict = {
+    'c': mash_cpp.toUniformSamplePhis,
+    'p': sample.toUniformSamplePhis,
+    'p+': compile(sample.toUniformSamplePhis, mode=compile_mode),
 }
 
-getUniformSampleThetasDict = {
-    'c': mash_cpp.getUniformSampleThetas,
-    'p': sample.getUniformSampleThetas,
-    'p+': compile(sample.getUniformSampleThetas, mode=compile_mode),
+toUniformSampleThetasDict = {
+    'c': mash_cpp.toUniformSampleThetas,
+    'p': sample.toUniformSampleThetas,
+    'p+': compile(sample.toUniformSampleThetas, mode=compile_mode),
 }
 
 toBoundIdxsDict = {
@@ -30,18 +30,18 @@ toBoundIdxsDict = {
 
 toMaskBoundaryPhisDict = {
     'c': mash_cpp.toMaskBoundaryPhis,
-    'p': idx.toMaskBoundaryPhis,
-    'p+': compile(idx.toMaskBoundaryPhis, mode=compile_mode),
+    'p': sample.toMaskBoundaryPhis,
+    'p+': compile(sample.toMaskBoundaryPhis, mode=compile_mode),
 }
 
-getMaskBaseValuesDict = {
-    'c': mash_cpp.getMaskBaseValues,
-    'p': mask.getMaskBaseValues,
-    'p+': compile(mask.getMaskBaseValues, mode=compile_mode),
+toMaskBaseValuesDict = {
+    'c': mash_cpp.toMaskBaseValues,
+    'p': mask.toMaskBaseValues,
+    'p+': compile(mask.toMaskBaseValues, mode=compile_mode),
 }
 
-getMaskValuesDict = {
-    'c': mash_cpp.getMaskValues,
-    'p': mask.getMaskValues,
-    'p+': compile(mask.getMaskValues, mode=compile_mode),
+toMaskValuesDict = {
+    'c': mash_cpp.toMaskValues,
+    'p': mask.toMaskValues,
+    'p+': compile(mask.toMaskValues, mode=compile_mode),
 }

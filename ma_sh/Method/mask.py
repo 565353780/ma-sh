@@ -1,7 +1,7 @@
 import torch
 
 
-def getMaskBaseValues(degree_max: int, phis: torch.Tensor) -> torch.Tensor:
+def toMaskBaseValues(degree_max: int, phis: torch.Tensor) -> torch.Tensor:
     base_values_list = [torch.ones_like(phis)]
 
     for degree in range(1, degree_max + 1):
@@ -13,7 +13,7 @@ def getMaskBaseValues(degree_max: int, phis: torch.Tensor) -> torch.Tensor:
     return base_values
 
 
-def getMaskValues(
+def toMaskValues(
     phi_idxs: torch.Tensor, params: torch.Tensor, base_values: torch.Tensor
 ) -> torch.Tensor:
     values_list = []

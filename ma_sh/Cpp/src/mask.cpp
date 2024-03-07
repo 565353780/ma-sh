@@ -4,8 +4,8 @@
 
 using namespace torch::indexing;
 
-const torch::Tensor getMaskBaseValues(const int &degree_max,
-                                      const torch::Tensor &phis) {
+const torch::Tensor toMaskBaseValues(const int &degree_max,
+                                     const torch::Tensor &phis) {
   std::vector<torch::Tensor> base_values_vec;
   base_values_vec.reserve(2 * degree_max + 1);
 
@@ -22,9 +22,9 @@ const torch::Tensor getMaskBaseValues(const int &degree_max,
   return base_values;
 }
 
-const torch::Tensor getMaskValues(const torch::Tensor &phi_idxs,
-                                  const torch::Tensor &params,
-                                  const torch::Tensor &base_values) {
+const torch::Tensor toMaskValues(const torch::Tensor &phi_idxs,
+                                 const torch::Tensor &params,
+                                 const torch::Tensor &base_values) {
   std::vector<torch::Tensor> values_vec;
 
   const int crop_num = phi_idxs.sizes()[0] - 1;

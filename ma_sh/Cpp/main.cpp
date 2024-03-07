@@ -9,9 +9,9 @@ PYBIND11_MODULE(mash_cpp, m) {
   m.def("add", &add, "A function which adds two numbers");
   m.def("toBoundIdxs", &toBoundIdxs, "toBoundIdxs");
   m.def("toMaskBoundaryPhis", &toMaskBoundaryPhis, "toMaskBoundaryPhis");
-  m.def("getMaskBaseValues", &getMaskBaseValues, "getMaskBaseValues");
-  m.def("getMaskValues", &getMaskValues, "getMaskValues");
-  m.def("getUniformSamplePhis", &getUniformSamplePhis, "getUniformSamplePhis");
-  m.def("getUniformSampleThetas", &getUniformSampleThetas,
-        "getUniformSampleThetas");
+  m.def("toMaskBaseValues", &toMaskBaseValues, "toMaskBaseValues");
+  m.def("toMaskValues", &toMaskValues, "toMaskValues");
+  m.def("toUniformSamplePhis", &toUniformSamplePhis, "toUniformSamplePhis");
+  m.def("toUniformSampleThetas", &toUniformSampleThetas,
+        "toUniformSampleThetas");
 }
