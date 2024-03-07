@@ -5,5 +5,6 @@ def test():
     a = 1
     b = 2
     c = mash_cpp.add(a, b)
-    print(c)
+
+    assert c == a + b
     return True
