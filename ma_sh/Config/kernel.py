@@ -28,6 +28,12 @@ toBoundIdxsDict = {
     'p+': compile(idx.toBoundIdxs, mode=compile_mode),
 }
 
+toMaskBoundaryPhisDict = {
+    'c': mash_cpp.toMaskBoundaryPhis,
+    'p': idx.toMaskBoundaryPhis,
+    'p+': compile(idx.toMaskBoundaryPhis, mode=compile_mode),
+}
+
 getMaskBaseValuesDict = {
     'c': mash_cpp.getMaskBaseValues,
     'p': mask.getMaskBaseValues,

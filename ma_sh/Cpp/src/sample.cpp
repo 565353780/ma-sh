@@ -20,7 +20,9 @@ const torch::Tensor getUniformSamplePhis(const int &point_num) {
 }
 
 const torch::Tensor getUniformSampleThetas(const torch::Tensor &phis) {
-  const torch::Tensor thetas = std::sqrt(phis.sizes()[0] * M_PI) * phis;
+  const float weight = std::sqrt(phis.sizes()[0] * M_PI);
+
+  const torch::Tensor thetas = weight * phis;
 
   return thetas;
 }
