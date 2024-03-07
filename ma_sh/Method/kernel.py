@@ -6,7 +6,7 @@ from ma_sh.Config.kernel import (
     getMaskValuesDict,
 )
 
-test_mode = 'p'
+test_mode = 'c'
 
 getUniformSamplePhis = getUniformSamplePhisDict[test_mode]
 getUniformSampleThetas = getUniformSampleThetasDict[test_mode]

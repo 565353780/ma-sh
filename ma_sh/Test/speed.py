@@ -17,7 +17,7 @@ def testMask(degree_max, params, phis, phi_idxs):
     return mask_values
 
 def testSamplePolars(sample_polar_num, dtype=torch.float32, device='cpu'):
-    phis = getUniformSamplePhis(sample_polar_num, dtype, torch.device(device))
+    phis = getUniformSamplePhis(sample_polar_num).type(dtype).to(device)
     thetas = getUniformSampleThetas(phis)
     return phis, thetas
 
@@ -28,33 +28,33 @@ def test():
     anchor_num = 40
     mask_degree_max = 5
     dtype = torch.float32
-    device = torch.device('cpu')
+    device = 'cpu'
 
     mask_params = torch.randn([anchor_num, mask_degree_max * 2 + 1]).type(dtype).to(device)
     assert mask_params.dtype == dtype
-    assert mask_params.device == device
+    assert mask_params.device.type == device
 
     phi_sample_nums = torch.randint(100, 1000, [anchor_num]).to(device)
     assert phi_sample_nums.dtype == torch.int64
-    assert phi_sample_nums.device == device
+    assert phi_sample_nums.device.type == device
 
     phi_idxs = toBoundIdxs(phi_sample_nums)
     assert phi_idxs.dtype == phi_sample_nums.dtype
-    assert phi_idxs.device == device
+    assert phi_idxs.device.type == device
 
     phis = torch.randn(phi_idxs[-1], requires_grad=True).type(dtype).to(device)
     assert phis.dtype == dtype
-    assert phis.device == device
+    assert phis.device.type == device
     assert phis.requires_grad
 
     # Uniform Sample
-    sample_phis = getUniformSamplePhis(sample_polar_num, dtype, torch.device(device))
+    sample_phis = getUniformSamplePhis(sample_polar_num).type(dtype).to(device)
     assert sample_phis.dtype == dtype
-    assert sample_phis.device == device
+    assert sample_phis.device.type == device
 
     sample_thetas = getUniformSampleThetas(sample_phis)
     assert sample_thetas.dtype == dtype
-    assert sample_thetas.device == device
+    assert sample_thetas.device.type == device
 
     # Mask
     base_values = getMaskBaseValues(mask_degree_max, phis)

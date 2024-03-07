@@ -1,6 +1,6 @@
 #include "sample.h"
-#include <ATen/core/ATen_fwd.h>
-#include <c10/core/TensorOptions.h>
+#include "c10/core/DeviceType.h"
+#include "torch/types.h"
 #define _USE_MATH_DEFINES
 #include <cmath>
 
