@@ -2,6 +2,7 @@ import torch
 from tqdm import trange
 
 from ma_sh.Method.torch_thread import setThread
+from ma_sh.Method.check import checkFormat
 from ma_sh.Method.kernel import (
     getUniformSamplePhis,
     getUniformSampleThetas,
@@ -10,16 +11,15 @@ from ma_sh.Method.kernel import (
     getMaskValues,
 )
 
+def testSamplePolars(sample_polar_num, dtype=torch.float32, device='cpu'):
+    phis = getUniformSamplePhis(sample_polar_num).type(dtype).to(device)
+    thetas = getUniformSampleThetas(phis)
+    return phis, thetas
 
 def testMask(degree_max, params, phis, phi_idxs):
     base_values = getMaskBaseValues(degree_max, phis)
     mask_values = getMaskValues(phi_idxs, params, base_values)
     return mask_values
-
-def testSamplePolars(sample_polar_num, dtype=torch.float32, device='cpu'):
-    phis = getUniformSamplePhis(sample_polar_num).type(dtype).to(device)
-    thetas = getUniformSampleThetas(phis)
-    return phis, thetas
 
 def test():
     # setThread()
@@ -31,38 +31,30 @@ def test():
     device = 'cpu'
 
     mask_params = torch.randn([anchor_num, mask_degree_max * 2 + 1]).type(dtype).to(device)
-    assert mask_params.dtype == dtype
-    assert mask_params.device.type == device
+    assert checkFormat(mask_params, dtype, device)
 
     phi_sample_nums = torch.randint(100, 1000, [anchor_num]).to(device)
-    assert phi_sample_nums.dtype == torch.int64
-    assert phi_sample_nums.device.type == device
+    assert checkFormat(phi_sample_nums, torch.int64, device)
 
     phi_idxs = toBoundIdxs(phi_sample_nums)
-    assert phi_idxs.dtype == phi_sample_nums.dtype
-    assert phi_idxs.device.type == device
+    assert checkFormat(phi_idxs, phi_sample_nums.dtype, device)
 
     phis = torch.randn(phi_idxs[-1], requires_grad=True).type(dtype).to(device)
-    assert phis.dtype == dtype
-    assert phis.device.type == device
-    assert phis.requires_grad
+    assert checkFormat(phis, dtype, device)
 
     # Uniform Sample
     sample_phis = getUniformSamplePhis(sample_polar_num).type(dtype).to(device)
-    assert sample_phis.dtype == dtype
-    assert sample_phis.device.type == device
+    assert checkFormat(sample_phis, dtype, device, [sample_polar_num])
 
     sample_thetas = getUniformSampleThetas(sample_phis)
-    assert sample_thetas.dtype == dtype
-    assert sample_thetas.device.type == device
+    assert checkFormat(sample_thetas, dtype, device, [sample_polar_num])
 
     # Mask
     base_values = getMaskBaseValues(mask_degree_max, phis)
-    assert base_values.shape[0] == mask_params.shape[1]
-    assert base_values.shape[1] == phi_idxs[-1].item()
+    assert checkFormat(base_values, dtype, device, [mask_params.shape[1], phi_idxs[-1].item()])
 
     mask_values = getMaskValues(phi_idxs, mask_params, base_values)
-    assert mask_values.shape[0] == phi_idxs[-1].item()
+    assert checkFormat(mask_values, dtype, device, [phi_idxs[-1].item()])
 
     # Speed
     for _ in trange(1000):
