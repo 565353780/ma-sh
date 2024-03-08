@@ -83,6 +83,11 @@ def test():
     in_mask_sample_polar_counts = toInMaskSamplePolarCounts(in_mask_sample_polar_idxs_list)
     assert checkFormat(in_mask_sample_polar_counts, idx_dtype, device, [anchor_num])
 
+    in_mask_sample_polar_idxs = toBoundIdxs(in_mask_sample_polar_counts)
+    assert checkFormat(mask_boundary_phi_idxs, idx_dtype, device, [anchor_num + 1])
+    print(in_mask_sample_polar_idxs)
+    exit()
+
     # Speed
     test_num = 1000
 
