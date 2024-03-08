@@ -7,8 +7,13 @@
 
 PYBIND11_MODULE(mash_cpp, m) {
   m.doc() = "pybind11 mash cpp plugin";
-  m.def("add", &add, "A function which adds two numbers");
-  m.def("toBoundIdxs", &toBoundIdxs, "toBoundIdxs");
+
+  m.def("add", &add, "add.add");
+
+  m.def("toCounts", &toCounts, "idx.toCounts");
+  m.def("toBoundIdxs", &toBoundIdxs, "idx.toBoundIdxs");
+  m.def("toLowerIdxsVec", &toLowerIdxsVec, "idx.toLowerIdxsVec");
+
   m.def("toMaskBoundaryPhis", &toMaskBoundaryPhis, "toMaskBoundaryPhis");
   m.def("toMaskBaseValues", &toMaskBaseValues, "toMaskBaseValues");
   m.def("toMaskValues", &toMaskValues, "toMaskValues");
@@ -17,8 +22,4 @@ PYBIND11_MODULE(mash_cpp, m) {
         "toUniformSampleThetas");
   m.def("toMaskBoundaryMaxThetas", &toMaskBoundaryMaxThetas,
         "toMaskBoundaryMaxThetas");
-  m.def("toInMaxMaskSamplePolarIdxsVec", &toInMaxMaskSamplePolarIdxsVec,
-        "toInMaxMaskSamplePolarIdxsVec");
-  m.def("toInMaskSamplePolarCounts", &toInMaskSamplePolarCounts,
-        "toInMaskSamplePolarCounts");
 }
