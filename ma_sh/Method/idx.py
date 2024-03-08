@@ -15,3 +15,15 @@ def toInMaskSamplePolarIdxsList(sample_thetas: torch.Tensor, mask_boundary_max_t
         in_mask_sample_polar_idxs_list.append(current_in_mask_sample_polar_idxs)
 
     return in_mask_sample_polar_idxs_list
+
+def toInMaskSamplePolarCounts(in_mask_sample_polar_idxs_list: list) -> torch.Tensor:
+    in_mask_sample_polar_counts_list = []
+
+    for i in range(len(in_mask_sample_polar_idxs_list)):
+        in_mask_sample_polar_counts_list.append(in_mask_sample_polar_idxs_list[i].shape[0])
+
+    in_mask_sample_polar_counts = torch.tensor(in_mask_sample_polar_counts_list).type(
+        in_mask_sample_polar_idxs_list[0].dtype).to(
+        in_mask_sample_polar_idxs_list[0].device)
+
+    return in_mask_sample_polar_counts

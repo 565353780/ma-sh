@@ -12,6 +12,7 @@ from ma_sh.Method.kernel import (
     toMaskValues,
     toMaskBoundaryMaxThetas,
     toInMaskSamplePolarIdxsList,
+    toInMaskSamplePolarCounts,
 )
 
 def testPreLoadUniformSample(sample_polar_num, dtype=torch.float32, device='cpu'):
@@ -78,6 +79,9 @@ def test():
     #FIXME: may need to make dtype controllable in the future, now can only be torch.int64
     in_mask_sample_polar_idxs_list = toInMaskSamplePolarIdxsList(sample_thetas, mask_boundary_max_thetas)
     assert checkFormat(in_mask_sample_polar_idxs_list[0], idx_dtype, device)
+
+    in_mask_sample_polar_counts = toInMaskSamplePolarCounts(in_mask_sample_polar_idxs_list)
+    assert checkFormat(in_mask_sample_polar_counts, idx_dtype, device, [anchor_num])
 
     # Speed
     test_num = 1000

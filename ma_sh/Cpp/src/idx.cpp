@@ -1,6 +1,4 @@
 #include "idx.h"
-#include <c10/core/DeviceType.h>
-#include <torch/types.h>
 
 const torch::Tensor toBoundIdxs(const torch::Tensor &data_counts) {
   torch::Tensor bound_idxs = torch::zeros(data_counts.sizes()[0] + 1)
@@ -33,16 +31,18 @@ toInMaskSamplePolarIdxsVec(const torch::Tensor &sample_thetas,
 
 const torch::Tensor toInMaskSamplePolarCounts(
     const std::vector<torch::Tensor> &in_mask_sample_polar_idxs_vec) {
-  std::vector<int> in_mask_sample_polar_counts_vec;
+  std::vector<long> in_mask_sample_polar_counts_vec;
   in_mask_sample_polar_counts_vec.reserve(in_mask_sample_polar_idxs_vec.size());
 
   for (size_t i = 0; i < in_mask_sample_polar_idxs_vec.size(); ++i) {
-    in_mask_sample_polar_counts_vec[i] =
-        in_mask_sample_polar_idxs_vec[i].sizes()[0];
+    in_mask_sample_polar_counts_vec.emplace_back(
+        in_mask_sample_polar_idxs_vec[i].sizes()[0]);
   }
 
   const torch::TensorOptions opts =
-      torch::TensorOptions().dtype(torch::kInt64).device(torch::kCPU);
+      torch::TensorOptions()
+          .dtype(in_mask_sample_polar_idxs_vec[0].dtype())
+          .device(in_mask_sample_polar_idxs_vec[0].device());
 
   const torch::Tensor in_mask_sample_polar_counts =
       torch::from_blob(in_mask_sample_polar_counts_vec.data(),

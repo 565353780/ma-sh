@@ -58,3 +58,9 @@ toInMaskSamplePolarIdxsListDict = {
     'p': idx.toInMaskSamplePolarIdxsList,
     'p+': compile(idx.toInMaskSamplePolarIdxsList, mode=compile_mode),
 }
+
+toInMaskSamplePolarCountsDict = {
+    'c': mash_cpp.toInMaskSamplePolarCounts,
+    'p': idx.toInMaskSamplePolarCounts,
+    'p+': compile(idx.toInMaskSamplePolarCounts, mode=compile_mode),
+}
