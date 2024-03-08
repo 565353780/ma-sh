@@ -17,8 +17,8 @@ PYBIND11_MODULE(mash_cpp, m) {
         "toUniformSampleThetas");
   m.def("toMaskBoundaryMaxThetas", &toMaskBoundaryMaxThetas,
         "toMaskBoundaryMaxThetas");
-  m.def("toInMaskSamplePolarIdxsVec", &toInMaskSamplePolarIdxsVec,
-        "toInMaskSamplePolarIdxsVec");
+  m.def("toInMaxMaskSamplePolarIdxsVec", &toInMaxMaskSamplePolarIdxsVec,
+        "toInMaxMaskSamplePolarIdxsVec");
   m.def("toInMaskSamplePolarCounts", &toInMaskSamplePolarCounts,
         "toInMaskSamplePolarCounts");
 }

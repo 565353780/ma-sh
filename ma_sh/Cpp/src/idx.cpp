@@ -13,8 +13,8 @@ const torch::Tensor toBoundIdxs(const torch::Tensor &data_counts) {
 }
 
 const std::vector<torch::Tensor>
-toInMaskSamplePolarIdxsVec(const torch::Tensor &sample_thetas,
-                           const torch::Tensor &mask_boundary_max_thetas) {
+toInMaxMaskSamplePolarIdxsVec(const torch::Tensor &sample_thetas,
+                              const torch::Tensor &mask_boundary_max_thetas) {
   std::vector<torch::Tensor> in_mask_sample_polar_idxs_vec;
   in_mask_sample_polar_idxs_vec.reserve(mask_boundary_max_thetas.sizes()[0]);
 
