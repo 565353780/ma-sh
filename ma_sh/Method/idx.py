@@ -6,12 +6,12 @@ def toBoundIdxs(data_counts: torch.Tensor) -> torch.Tensor:
         bound_idxs[i] = data_counts[i - 1] + bound_idxs[i - 1]
     return bound_idxs
 
-def toInMaskSamplePolarIdxs(sample_thetas: torch.Tensor, mask_boundary_max_thetas: torch.Tensor) -> list:
-    in_mask_idxs_list = []
+def toLowerValueIdxsList(values: torch.Tensor, max_bounds: torch.Tensor) -> list:
+    lower_value_idxs_list = []
 
-    for i in range(mask_boundary_max_thetas.shape[0]):
-        current_in_mask_idxs = torch.where(sample_thetas <= mask_boundary_max_thetas[i])[0]
+    for i in range(max_bounds.shape[0]):
+        current_lower_value_idxs = torch.where(values <= max_bounds[i])[0]
 
-        in_mask_idxs_list.append(current_in_mask_idxs)
+        lower_value_idxs_list.append(current_lower_value_idxs)
 
-    return in_mask_idxs_list
+    return lower_value_idxs_list
