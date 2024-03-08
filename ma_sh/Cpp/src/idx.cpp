@@ -15,19 +15,20 @@ const torch::Tensor toBoundIdxs(const torch::Tensor &data_counts) {
 }
 
 const std::vector<torch::Tensor>
-toLowerValueIdxsVec(const torch::Tensor &values,
-                    const torch::Tensor &max_bounds) {
-  std::vector<torch::Tensor> lower_value_idxs_vec;
-  lower_value_idxs_vec.reserve(max_bounds.sizes()[0]);
+toInMaskSamplePolarIdxsVec(const torch::Tensor &sample_thetas,
+                           const torch::Tensor &mask_boundary_max_thetas) {
+  std::vector<torch::Tensor> in_mask_sample_polar_idxs_vec;
+  in_mask_sample_polar_idxs_vec.reserve(mask_boundary_max_thetas.sizes()[0]);
 
-  for (int i = 0; i < max_bounds.sizes()[0]; ++i) {
-    const torch::Tensor current_lower_value_idxs =
-        torch::where(values <= max_bounds[i])[0];
+  for (int i = 0; i < mask_boundary_max_thetas.sizes()[0]; ++i) {
+    const torch::Tensor current_in_mask_sample_polar_idxs =
+        torch::where(sample_thetas <= mask_boundary_max_thetas[i])[0];
 
-    lower_value_idxs_vec.emplace_back(current_lower_value_idxs);
+    in_mask_sample_polar_idxs_vec.emplace_back(
+        current_in_mask_sample_polar_idxs);
   }
 
-  return lower_value_idxs_vec;
+  return in_mask_sample_polar_idxs_vec;
 }
 
 const torch::Tensor toInMaskSamplePolarCounts(

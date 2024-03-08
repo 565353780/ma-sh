@@ -53,8 +53,8 @@ toMaskBoundaryMaxThetasDict = {
     'p+': compile(filter.toMaskBoundaryMaxThetas, mode=compile_mode),
 }
 
-toLowerValueIdxsListDict = {
-    'c': mash_cpp.toLowerValueIdxsVec,
-    'p': idx.toLowerValueIdxsList,
-    'p+': compile(idx.toLowerValueIdxsList, mode=compile_mode),
+toInMaskSamplePolarIdxsListDict = {
+    'c': mash_cpp.toInMaskSamplePolarIdxsVec,
+    'p': idx.toInMaskSamplePolarIdxsList,
+    'p+': compile(idx.toInMaskSamplePolarIdxsList, mode=compile_mode),
 }
