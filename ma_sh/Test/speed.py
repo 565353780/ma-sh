@@ -83,15 +83,14 @@ def test():
 
     mask_params.requires_grad_(True)
 
-    # Pre Load
-    # Uniform Sample
+    # Pre Load Uniform Sample
     sample_phis = toUniformSamplePhis(sample_polar_num).type(dtype).to(device)
     assert checkFormat(sample_phis, dtype, device, [sample_polar_num])
 
     sample_thetas = toUniformSampleThetas(sample_phis)
     assert checkFormat(sample_thetas, dtype, device, [sample_polar_num])
 
-    # Mask Boundary
+    ## Pre Load Mask Boundary
     mask_boundary_sample_nums = (
         torch.ones(anchor_num).type(idx_dtype).to(device) * mask_boundary_sample_num
     )
@@ -167,6 +166,22 @@ def test():
         dtype,
         device,
         [in_max_mask_sample_polar_bound_idxs[-1].item()],
+    )
+
+    # In Mask Sample Polars
+    in_mask_base_values = toMaskBaseValues(in_max_mask_sample_phis, mask_degree_max)
+    assert checkFormat(
+        in_mask_base_values,
+        dtype,
+        device,
+        [mask_degree_max * 2 + 1, in_max_mask_sample_polar_bound_idxs[-1].item()],
+    )
+
+    in_mask_thetas = toMaskValues(
+        mask_params, in_mask_base_values, in_max_mask_sample_polar_bound_idxs
+    )
+    assert checkFormat(
+        in_mask_thetas, dtype, device, [in_max_mask_sample_polar_bound_idxs[-1].item()]
     )
 
     # Speed
