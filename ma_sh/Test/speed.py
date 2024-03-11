@@ -1,5 +1,4 @@
 import torch
-import numpy as np
 from tqdm import trange
 
 from ma_sh.Method.torch_thread import setThread
@@ -13,7 +12,7 @@ from ma_sh.Method.kernel import (
     toLowerIdxsList,
     toMaxValues,
     toMaskBaseValues,
-    toMaskValues,
+    toValues,
 )
 
 
@@ -40,7 +39,7 @@ def testMaskBoundary(
     mask_degree_max, mask_params, mask_boundary_phis, mask_boundary_phi_idxs
 ):
     mask_boundary_base_values = toMaskBaseValues(mask_boundary_phis, mask_degree_max)
-    mask_boundary_thetas = toMaskValues(
+    mask_boundary_thetas = toValues(
         mask_params, mask_boundary_base_values, mask_boundary_phi_idxs
     )
     return
@@ -67,7 +66,7 @@ def testInMaskSamplePolars(
     mask_degree_max, mask_params, in_max_mask_sample_phis, in_max_mask_sample_polar_idxs
 ):
     in_mask_base_values = toMaskBaseValues(in_max_mask_sample_phis, mask_degree_max)
-    in_mask_thetas = toMaskValues(
+    in_mask_thetas = toValues(
         mask_params, in_mask_base_values, in_max_mask_sample_polar_idxs
     )
     return
@@ -133,7 +132,7 @@ def test():
         [mask_degree_max * 2 + 1, anchor_num * mask_boundary_sample_num],
     )
 
-    mask_boundary_thetas = toMaskValues(
+    mask_boundary_thetas = toValues(
         mask_params, mask_boundary_base_values, mask_boundary_phi_idxs
     )
     assert checkFormat(
@@ -189,7 +188,7 @@ def test():
         [mask_degree_max * 2 + 1, in_max_mask_sample_phis.shape[0]],
     )
 
-    in_max_mask_thetas = toMaskValues(
+    in_max_mask_thetas = toValues(
         mask_params, in_max_mask_base_values, in_max_mask_sample_polar_idxs
     )
     assert checkFormat(

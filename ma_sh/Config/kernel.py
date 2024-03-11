@@ -3,10 +3,11 @@ import mash_cpp
 from torch import compile
 
 from ma_sh.Method import (
-    sample,
+    filter,
     idx,
     mask,
-    filter,
+    sample,
+    value,
 )
 
 compile_mode = "max-autotune"
@@ -61,8 +62,8 @@ toMaskBaseValuesDict = {
     "p+": compile(mask.toMaskBaseValues, mode=compile_mode),
 }
 
-toMaskValuesDict = {
-    "c": mash_cpp.toMaskValues,
-    "p": mask.toMaskValues,
-    "p+": compile(mask.toMaskValues, mode=compile_mode),
+toValuesDict = {
+    "c": mash_cpp.toValues,
+    "p": value.toValues,
+    "p+": compile(value.toValues, mode=compile_mode),
 }

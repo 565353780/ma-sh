@@ -3,6 +3,7 @@
 #include "idx.h"
 #include "mask.h"
 #include "sample.h"
+#include "value.h"
 #include <pybind11/pybind11.h>
 
 PYBIND11_MODULE(mash_cpp, m) {
@@ -23,5 +24,6 @@ PYBIND11_MODULE(mash_cpp, m) {
   m.def("toMaskBoundaryPhis", &toMaskBoundaryPhis, "sample.toMaskBoundaryPhis");
 
   m.def("toMaskBaseValues", &toMaskBaseValues, "mask.toMaskBaseValues");
-  m.def("toMaskValues", &toMaskValues, "mask.toMaskValues");
+
+  m.def("toValues", &toValues, "value.toValues");
 }

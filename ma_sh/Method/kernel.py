@@ -7,7 +7,7 @@ from ma_sh.Config.kernel import (
     toLowerIdxsListDict,
     toMaxValuesDict,
     toMaskBaseValuesDict,
-    toMaskValuesDict,
+    toValuesDict,
 )
 
 test_mode = "c"
@@ -22,7 +22,7 @@ toLowerIdxsList = toLowerIdxsListDict[test_mode]
 toMaxValues = toMaxValuesDict[test_mode]
 
 toMaskBaseValues = toMaskBaseValuesDict[test_mode]
-toMaskValues = toMaskValuesDict[test_mode]
+toValues = toValuesDict[test_mode]
 
 if False:
     toUniformSamplePhis = toUniformSamplePhisDict["c"]
@@ -35,4 +35,5 @@ if False:
     toMaxValues = toMaxValuesDict["c"]
 
     toMaskBaseValues = toMaskBaseValuesDict["p+"]
-    toMaskValues = toMaskValuesDict["c"]
+
+    toValues = toValuesDict["c"]
