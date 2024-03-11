@@ -6,13 +6,13 @@ from ma_sh.Method.check import checkFormat
 from ma_sh.Method.kernel import (
     toUniformSamplePhis,
     toUniformSampleThetas,
+    toMaskBoundaryPhis,
     toCounts,
     toIdxs,
     toLowerIdxsList,
-    toMaskBoundaryPhis,
+    toMaxValues,
     toMaskBaseValues,
     toMaskValues,
-    toMaskBoundaryMaxThetas,
 )
 
 
@@ -91,12 +91,12 @@ def test():
     assert checkFormat(sample_thetas, dtype, device, [sample_polar_num])
 
     ## Pre Load Mask Boundary
-    mask_boundary_sample_counts = (
+    mask_boundary_phi_counts = (
         torch.ones(anchor_num).type(idx_dtype).to(device) * mask_boundary_sample_num
     )
-    assert checkFormat(mask_boundary_sample_counts, idx_dtype, device, [anchor_num])
+    assert checkFormat(mask_boundary_phi_counts, idx_dtype, device, [anchor_num])
 
-    mask_boundary_phi_idxs = toIdxs(mask_boundary_sample_counts)
+    mask_boundary_phi_idxs = toIdxs(mask_boundary_phi_counts)
     assert checkFormat(
         mask_boundary_phi_idxs,
         idx_dtype,
@@ -128,9 +128,7 @@ def test():
     )
 
     # In Max Mask Sample Polars
-    mask_boundary_max_thetas = toMaskBoundaryMaxThetas(
-        mask_boundary_thetas, mask_boundary_phi_idxs
-    )
+    mask_boundary_max_thetas = toMaxValues(mask_boundary_thetas, mask_boundary_phi_idxs)
     assert checkFormat(mask_boundary_max_thetas, dtype, device, [anchor_num])
 
     # FIXME: may need to make dtype controllable in the future, now can only be torch.int64

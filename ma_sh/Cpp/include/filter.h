@@ -2,6 +2,5 @@
 
 #include <torch/extension.h>
 
-const torch::Tensor
-toMaskBoundaryMaxThetas(const torch::Tensor &mask_boundary_thetas,
-                        const torch::Tensor &mask_boundary_phi_idxs);
+const torch::Tensor toMaxValues(const torch::Tensor &data,
+                                const torch::Tensor &data_idxs);

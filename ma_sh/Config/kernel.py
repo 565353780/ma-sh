@@ -23,6 +23,12 @@ toUniformSampleThetasDict = {
     "p+": compile(sample.toUniformSampleThetas, mode=compile_mode),
 }
 
+toMaskBoundaryPhisDict = {
+    "c": mash_cpp.toMaskBoundaryPhis,
+    "p": sample.toMaskBoundaryPhis,
+    "p+": compile(sample.toMaskBoundaryPhis, mode=compile_mode),
+}
+
 toCountsDict = {
     "c": mash_cpp.toCounts,
     "p": idx.toCounts,
@@ -35,17 +41,19 @@ toIdxsDict = {
     "p+": compile(idx.toIdxs, mode=compile_mode),
 }
 
+
 toLowerIdxsListDict = {
     "c": mash_cpp.toLowerIdxsVec,
     "p": idx.toLowerIdxsList,
     "p+": compile(idx.toLowerIdxsList, mode=compile_mode),
 }
 
-toMaskBoundaryPhisDict = {
-    "c": mash_cpp.toMaskBoundaryPhis,
-    "p": sample.toMaskBoundaryPhis,
-    "p+": compile(sample.toMaskBoundaryPhis, mode=compile_mode),
+toMaxValuesDict = {
+    "c": mash_cpp.toMaxValues,
+    "p": filter.toMaxValues,
+    "p+": compile(filter.toMaxValues, mode=compile_mode),
 }
+
 
 toMaskBaseValuesDict = {
     "c": mash_cpp.toMaskBaseValues,
@@ -57,10 +65,4 @@ toMaskValuesDict = {
     "c": mash_cpp.toMaskValues,
     "p": mask.toMaskValues,
     "p+": compile(mask.toMaskValues, mode=compile_mode),
-}
-
-toMaskBoundaryMaxThetasDict = {
-    "c": mash_cpp.toMaskBoundaryMaxThetas,
-    "p": filter.toMaskBoundaryMaxThetas,
-    "p+": compile(filter.toMaskBoundaryMaxThetas, mode=compile_mode),
 }

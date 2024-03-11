@@ -1,11 +1,18 @@
 import torch
 
-def toMaskBoundaryMaxThetas(mask_boundary_thetas: torch.Tensor, mask_boundary_phi_idxs: torch.Tensor) -> torch.Tensor:
-    max_thetas_list = []
 
-    for i in range(mask_boundary_phi_idxs.shape[0] - 1):
-        current_max_phi = torch.max(mask_boundary_thetas[mask_boundary_phi_idxs[i]:mask_boundary_phi_idxs[i + 1]])
-        max_thetas_list.append(current_max_phi)
+def toMaxValues(data: torch.Tensor, data_idxs: torch.Tensor) -> torch.Tensor:
+    max_values_list = []
 
-    max_thetas = torch.hstack(max_thetas_list)
-    return max_thetas
+    unique_idxs = torch.unique(data_idxs)
+
+    for i in range(unique_idxs.shape[0]):
+        current_idx = unique_idxs[i]
+
+        current_max_value = torch.max(data[data_idxs == current_idx])
+
+        max_values_list.append(current_max_value)
+
+    max_values = torch.hstack(max_values_list)
+
+    return max_values

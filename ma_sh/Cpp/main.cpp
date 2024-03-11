@@ -14,12 +14,14 @@ PYBIND11_MODULE(mash_cpp, m) {
   m.def("toIdxs", &toIdxs, "idx.toIdxs");
   m.def("toLowerIdxsVec", &toLowerIdxsVec, "idx.toLowerIdxsVec");
 
-  m.def("toMaskBoundaryPhis", &toMaskBoundaryPhis, "toMaskBoundaryPhis");
-  m.def("toMaskBaseValues", &toMaskBaseValues, "toMaskBaseValues");
-  m.def("toMaskValues", &toMaskValues, "toMaskValues");
-  m.def("toUniformSamplePhis", &toUniformSamplePhis, "toUniformSamplePhis");
+  m.def("toMaxValues", &toMaxValues, "filter.toMaxValues");
+
+  m.def("toUniformSamplePhis", &toUniformSamplePhis,
+        "sample.toUniformSamplePhis");
   m.def("toUniformSampleThetas", &toUniformSampleThetas,
-        "toUniformSampleThetas");
-  m.def("toMaskBoundaryMaxThetas", &toMaskBoundaryMaxThetas,
-        "toMaskBoundaryMaxThetas");
+        "sample.toUniformSampleThetas");
+  m.def("toMaskBoundaryPhis", &toMaskBoundaryPhis, "sample.toMaskBoundaryPhis");
+
+  m.def("toMaskBaseValues", &toMaskBaseValues, "mask.toMaskBaseValues");
+  m.def("toMaskValues", &toMaskValues, "mask.toMaskValues");
 }
