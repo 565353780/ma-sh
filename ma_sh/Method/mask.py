@@ -14,14 +14,14 @@ def toMaskBaseValues(phis: torch.Tensor, degree_max: int) -> torch.Tensor:
 
 
 def toMaskValues(
-    params: torch.Tensor, base_values: torch.Tensor, phi_idxs: torch.Tensor
+    params: torch.Tensor,
+    base_values: torch.Tensor,
+    phi_idxs: torch.Tensor,
 ) -> torch.Tensor:
-    values_list = []
+    repeat_params = params[phi_idxs]
 
-    for i in range(phi_idxs.shape[0] - 1):
-        crop_base_values = base_values[:, phi_idxs[i]: phi_idxs[i + 1]]
-        crop_values = torch.matmul(params[i], crop_base_values)
-        values_list.append(crop_values)
+    values_matrix = repeat_params * base_values.transpose(1, 0)
 
-    values = torch.hstack(values_list)
+    values = torch.sum(values_matrix, dim=1)
+
     return values

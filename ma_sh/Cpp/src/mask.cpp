@@ -25,28 +25,12 @@ const torch::Tensor toMaskBaseValues(const torch::Tensor &phis,
 const torch::Tensor toMaskValues(const torch::Tensor &params,
                                  const torch::Tensor &base_values,
                                  const torch::Tensor &phi_idxs) {
-  std::vector<torch::Tensor> values_vec;
+  const torch::Tensor repeat_params = params.index({phi_idxs});
 
-  const int crop_num = phi_idxs.sizes()[0] - 1;
+  const torch::Tensor values_matrix =
+      repeat_params * base_values.transpose(1, 0);
 
-  values_vec.reserve(crop_num);
-
-  const Slice slice_all(None);
-
-  for (int i = 0; i < crop_num; ++i) {
-    const Slice slice_crop =
-        Slice(phi_idxs[i].item<int>(), phi_idxs[i + 1].item<int>());
-
-    const torch::Tensor crop_base_values =
-        base_values.index({slice_all, slice_crop});
-
-    const torch::Tensor crop_values =
-        torch::matmul(params[i], crop_base_values);
-
-    values_vec.emplace_back(crop_values);
-  }
-
-  const torch::Tensor values = torch::hstack(values_vec);
+  const torch::Tensor values = torch::sum(values_matrix, 1);
 
   return values;
 }

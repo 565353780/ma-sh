@@ -1,4 +1,5 @@
 #include "idx.h"
+#include <cstdint>
 
 const torch::Tensor toCounts(const std::vector<torch::Tensor> &data_vec) {
   std::vector<long> counts_vec;
@@ -8,9 +9,8 @@ const torch::Tensor toCounts(const std::vector<torch::Tensor> &data_vec) {
     counts_vec.emplace_back(data_vec[i].sizes()[0]);
   }
 
-  const torch::TensorOptions opts = torch::TensorOptions()
-                                        .dtype(data_vec[0].dtype())
-                                        .device(data_vec[0].device());
+  const torch::TensorOptions opts =
+      torch::TensorOptions().dtype(torch::kInt64).device(data_vec[0].device());
 
   const torch::Tensor counts =
       torch::from_blob(counts_vec.data(), {long(counts_vec.size())}, opts)
@@ -19,16 +19,23 @@ const torch::Tensor toCounts(const std::vector<torch::Tensor> &data_vec) {
   return counts;
 }
 
-const torch::Tensor toBoundIdxs(const torch::Tensor &data_counts) {
-  torch::Tensor bound_idxs = torch::zeros(data_counts.sizes()[0] + 1)
-                                 .toType(data_counts.scalar_type())
-                                 .to(data_counts.device());
+const torch::Tensor toIdxs(const torch::Tensor &data_counts) {
+  std::vector<torch::Tensor> idxs_vec;
 
-  for (int i = 1; i < bound_idxs.sizes()[0]; ++i) {
-    bound_idxs[i] = data_counts[i - 1] + bound_idxs[i - 1];
+  const torch::TensorOptions opts = torch::TensorOptions()
+                                        .dtype(data_counts.dtype())
+                                        .device(data_counts.device());
+
+  for (int i = 0; i < data_counts.sizes()[0]; ++i) {
+    const torch::Tensor current_idxs =
+        torch::ones(data_counts[i].item<std::int64_t>(), opts) * i;
+
+    idxs_vec.emplace_back(current_idxs);
   }
 
-  return bound_idxs;
+  const torch::Tensor idxs = torch::hstack(idxs_vec);
+
+  return idxs;
 }
 
 const std::vector<torch::Tensor>

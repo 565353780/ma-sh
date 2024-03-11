@@ -7,7 +7,7 @@ from ma_sh.Method.kernel import (
     toUniformSamplePhis,
     toUniformSampleThetas,
     toCounts,
-    toBoundIdxs,
+    toIdxs,
     toLowerIdxsList,
     toMaskBoundaryPhis,
     toMaskBaseValues,
@@ -28,7 +28,7 @@ def testPreLoadMaskBoundary(
     mask_boundary_sample_nums = (
         torch.ones(anchor_num).type(idx_dtype).to(device) * mask_boundary_sample_num
     )
-    mask_boundary_phi_bound_idxs = toBoundIdxs(mask_boundary_sample_nums)
+    mask_boundary_phi_idxs = toIdxs(mask_boundary_sample_nums)
     mask_boundary_phis = (
         toMaskBoundaryPhis(anchor_num, mask_boundary_sample_num).type(dtype).to(device)
     )
@@ -65,7 +65,7 @@ def testInMaxMaskSamplePolars(
 def test():
     # setThread()
 
-    sample_polar_num = 100
+    sample_polar_num = 10
     anchor_num = 4
     mask_degree_max = 5
     mask_boundary_sample_num = 10
@@ -91,14 +91,17 @@ def test():
     assert checkFormat(sample_thetas, dtype, device, [sample_polar_num])
 
     ## Pre Load Mask Boundary
-    mask_boundary_sample_nums = (
+    mask_boundary_sample_counts = (
         torch.ones(anchor_num).type(idx_dtype).to(device) * mask_boundary_sample_num
     )
-    assert checkFormat(mask_boundary_sample_nums, idx_dtype, device, [anchor_num])
+    assert checkFormat(mask_boundary_sample_counts, idx_dtype, device, [anchor_num])
 
-    mask_boundary_phi_bound_idxs = toBoundIdxs(mask_boundary_sample_nums)
+    mask_boundary_phi_idxs = toIdxs(mask_boundary_sample_counts)
     assert checkFormat(
-        mask_boundary_phi_bound_idxs, idx_dtype, device, [anchor_num + 1]
+        mask_boundary_phi_idxs,
+        idx_dtype,
+        device,
+        [anchor_num * mask_boundary_sample_num],
     )
 
     mask_boundary_phis = (
@@ -118,7 +121,7 @@ def test():
     )
 
     mask_boundary_thetas = toMaskValues(
-        mask_params, mask_boundary_base_values, mask_boundary_phi_bound_idxs
+        mask_params, mask_boundary_base_values, mask_boundary_phi_idxs
     )
     assert checkFormat(
         mask_boundary_thetas, dtype, device, [anchor_num * mask_boundary_sample_num]
@@ -126,7 +129,7 @@ def test():
 
     # In Max Mask Sample Polars
     mask_boundary_max_thetas = toMaskBoundaryMaxThetas(
-        mask_boundary_thetas, mask_boundary_phi_bound_idxs
+        mask_boundary_thetas, mask_boundary_phi_idxs
     )
     assert checkFormat(mask_boundary_max_thetas, dtype, device, [anchor_num])
 

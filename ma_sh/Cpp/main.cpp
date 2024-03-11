@@ -11,7 +11,7 @@ PYBIND11_MODULE(mash_cpp, m) {
   m.def("add", &add, "add.add");
 
   m.def("toCounts", &toCounts, "idx.toCounts");
-  m.def("toBoundIdxs", &toBoundIdxs, "idx.toBoundIdxs");
+  m.def("toIdxs", &toIdxs, "idx.toIdxs");
   m.def("toLowerIdxsVec", &toLowerIdxsVec, "idx.toLowerIdxsVec");
 
   m.def("toMaskBoundaryPhis", &toMaskBoundaryPhis, "toMaskBoundaryPhis");

@@ -2,7 +2,7 @@ from ma_sh.Config.kernel import (
     toUniformSamplePhisDict,
     toUniformSampleThetasDict,
     toCountsDict,
-    toBoundIdxsDict,
+    toIdxsDict,
     toLowerIdxsListDict,
     toMaskBoundaryPhisDict,
     toMaskBaseValuesDict,
@@ -15,7 +15,7 @@ test_mode = "c"
 toUniformSamplePhis = toUniformSamplePhisDict[test_mode]
 toUniformSampleThetas = toUniformSampleThetasDict[test_mode]
 toCounts = toCountsDict[test_mode]
-toBoundIdxs = toBoundIdxsDict[test_mode]
+toIdxs = toIdxsDict[test_mode]
 toLowerIdxsList = toLowerIdxsListDict[test_mode]
 toMaskBoundaryPhis = toMaskBoundaryPhisDict[test_mode]
 toMaskBaseValues = toMaskBaseValuesDict[test_mode]
@@ -26,7 +26,7 @@ if False:
     toUniformSamplePhis = toUniformSamplePhisDict["c"]
     toUniformSampleThetas = toUniformSampleThetasDict["c"]
     toCounts = toCountsDict["c"]
-    toBoundIdxs = toBoundIdxsDict["c"]
+    toIdxs = toIdxsDict["c"]
     toLowerIdxsList = toLowerIdxsListDict["c"]
     toMaskBoundaryPhis = toMaskBoundaryPhisDict["p+"]
     toMaskBaseValues = toMaskBaseValuesDict["p+"]

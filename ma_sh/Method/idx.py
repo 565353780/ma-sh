@@ -12,15 +12,19 @@ def toCounts(data_list: list) -> torch.Tensor:
     return counts
 
 
-def toBoundIdxs(data_counts: torch.Tensor) -> torch.Tensor:
-    bound_idxs = (
-        torch.zeros(data_counts.shape[0] + 1)
-        .type(data_counts.dtype)
-        .to(data_counts.device)
-    )
-    for i in range(1, bound_idxs.shape[0]):
-        bound_idxs[i] = data_counts[i - 1] + bound_idxs[i - 1]
-    return bound_idxs
+def toIdxs(data_counts: torch.Tensor) -> torch.Tensor:
+    idxs_list = []
+
+    for i in range(data_counts.shape[0]):
+        current_idxs = (
+            torch.ones(data_counts[i], dtype=torch.int64).to(data_counts.device) * i
+        )
+
+        idxs_list.append(current_idxs)
+
+    idxs = torch.hstack(idxs_list)
+
+    return idxs
 
 
 def toLowerIdxsList(values: torch.Tensor, max_bounds: torch.Tensor) -> list:

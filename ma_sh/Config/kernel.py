@@ -29,10 +29,10 @@ toCountsDict = {
     "p+": compile(idx.toCounts, mode=compile_mode),
 }
 
-toBoundIdxsDict = {
-    "c": mash_cpp.toBoundIdxs,
-    "p": idx.toBoundIdxs,
-    "p+": compile(idx.toBoundIdxs, mode=compile_mode),
+toIdxsDict = {
+    "c": mash_cpp.toIdxs,
+    "p": idx.toIdxs,
+    "p+": compile(idx.toIdxs, mode=compile_mode),
 }
 
 toLowerIdxsListDict = {
