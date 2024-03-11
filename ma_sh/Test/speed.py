@@ -36,29 +36,36 @@ def testPreLoadMaskBoundary(
 
 
 def testMaskBoundary(
-    mask_degree_max, mask_params, mask_boundary_phis, mask_boundary_phi_bound_idxs
+    mask_degree_max, mask_params, mask_boundary_phis, mask_boundary_phi_idxs
 ):
     mask_boundary_base_values = toMaskBaseValues(mask_boundary_phis, mask_degree_max)
     mask_boundary_thetas = toMaskValues(
-        mask_params, mask_boundary_base_values, mask_boundary_phi_bound_idxs
+        mask_params, mask_boundary_base_values, mask_boundary_phi_idxs
     )
     return
 
 
 def testInMaxMaskSamplePolars(
-    sample_phis, sample_thetas, mask_boundary_thetas, mask_boundary_phi_bound_idxs
+    sample_phis, sample_thetas, mask_boundary_thetas, mask_boundary_phi_idxs
 ):
-    mask_boundary_max_thetas = toMaskBoundaryMaxThetas(
-        mask_boundary_thetas, mask_boundary_phi_bound_idxs
-    )
-    in_mask_sample_polar_idxs_list = toLowerIdxsList(
+    mask_boundary_max_thetas = toMaxValues(mask_boundary_thetas, mask_boundary_phi_idxs)
+    in_max_mask_sample_polar_idxs_list = toLowerIdxsList(
         sample_thetas, mask_boundary_max_thetas
     )
-    in_mask_sample_polar_counts = toCounts(in_mask_sample_polar_idxs_list)
-    in_mask_sample_polar_bound_idxs = toBoundIdxs(in_mask_sample_polar_counts)
-    in_mask_sample_polar_idxs = torch.hstack(in_mask_sample_polar_idxs_list)
-    in_mask_sample_phis = sample_phis[in_mask_sample_polar_idxs]
-    in_mask_sample_thetas = sample_thetas[in_mask_sample_polar_idxs]
+    in_max_mask_sample_polar_counts = toCounts(in_max_mask_sample_polar_idxs_list)
+    in_max_mask_sample_polar_idxs = toIdxs(in_max_mask_sample_polar_counts)
+    in_max_mask_sample_phis = sample_phis[in_max_mask_sample_polar_idxs]
+    in_max_mask_sample_thetas = sample_thetas[in_max_mask_sample_polar_idxs]
+    return
+
+
+def testInMaskSamplePolars(
+    mask_degree_max, mask_params, in_max_mask_sample_phis, in_max_mask_sample_polar_idxs
+):
+    in_mask_base_values = toMaskBaseValues(in_max_mask_sample_phis, mask_degree_max)
+    in_mask_thetas = toMaskValues(
+        mask_params, in_mask_base_values, in_max_mask_sample_polar_idxs
+    )
     return
 
 
@@ -140,17 +147,12 @@ def test():
     in_max_mask_sample_polar_counts = toCounts(in_max_mask_sample_polar_idxs_list)
     assert checkFormat(in_max_mask_sample_polar_counts, idx_dtype, device, [anchor_num])
 
-    in_max_mask_sample_polar_bound_idxs = toBoundIdxs(in_max_mask_sample_polar_counts)
-    assert checkFormat(
-        in_max_mask_sample_polar_bound_idxs, idx_dtype, device, [anchor_num + 1]
-    )
-
-    in_max_mask_sample_polar_idxs = torch.hstack(in_max_mask_sample_polar_idxs_list)
+    in_max_mask_sample_polar_idxs = toIdxs(in_max_mask_sample_polar_counts)
     assert checkFormat(
         in_max_mask_sample_polar_idxs,
         idx_dtype,
         device,
-        [in_max_mask_sample_polar_bound_idxs[-1].item()],
+        [torch.sum(in_max_mask_sample_polar_counts)],
     )
 
     in_max_mask_sample_phis = sample_phis[in_max_mask_sample_polar_idxs]
@@ -158,7 +160,7 @@ def test():
         in_max_mask_sample_phis,
         dtype,
         device,
-        [in_max_mask_sample_polar_bound_idxs[-1].item()],
+        [in_max_mask_sample_polar_idxs.shape[0]],
     )
 
     in_max_mask_sample_thetas = sample_thetas[in_max_mask_sample_polar_idxs]
@@ -166,7 +168,7 @@ def test():
         in_max_mask_sample_thetas,
         dtype,
         device,
-        [in_max_mask_sample_polar_bound_idxs[-1].item()],
+        [in_max_mask_sample_polar_idxs.shape[0]],
     )
 
     # In Mask Sample Polars
@@ -175,14 +177,14 @@ def test():
         in_mask_base_values,
         dtype,
         device,
-        [mask_degree_max * 2 + 1, in_max_mask_sample_polar_bound_idxs[-1].item()],
+        [mask_degree_max * 2 + 1, in_max_mask_sample_phis.shape[0]],
     )
 
     in_mask_thetas = toMaskValues(
-        mask_params, in_mask_base_values, in_max_mask_sample_polar_bound_idxs
+        mask_params, in_mask_base_values, in_max_mask_sample_polar_idxs
     )
     assert checkFormat(
-        in_mask_thetas, dtype, device, [in_max_mask_sample_polar_bound_idxs[-1].item()]
+        in_mask_thetas, dtype, device, [in_max_mask_sample_polar_idxs.shape[0]]
     )
 
     # Speed
@@ -206,16 +208,25 @@ def test():
             mask_degree_max,
             mask_params,
             mask_boundary_phis,
-            mask_boundary_phi_bound_idxs,
+            mask_boundary_phi_idxs,
         )
 
-    print("\t testInMaskSamplePolars")
+    print("\t testInMaxMaskSamplePolars")
     for _ in trange(test_num):
         testInMaxMaskSamplePolars(
             sample_phis,
             sample_thetas,
             mask_boundary_thetas,
-            mask_boundary_phi_bound_idxs,
+            mask_boundary_phi_idxs,
+        )
+
+    print("\t testInMaskSamplePolars")
+    for _ in trange(test_num):
+        testInMaskSamplePolars(
+            mask_degree_max,
+            mask_params,
+            in_max_mask_sample_phis,
+            in_max_mask_sample_polar_idxs,
         )
 
     return True
