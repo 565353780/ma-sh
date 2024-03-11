@@ -4,27 +4,40 @@
 
 using namespace torch::indexing;
 
-const torch::Tensor toUniformSamplePhis(const int &point_num) {
+const torch::Tensor toUniformSamplePhis(const int &sample_num) {
   std::vector<float> phis_vec;
-  phis_vec.reserve(point_num);
+  phis_vec.reserve(sample_num);
 
-  for (int i = 0; i < point_num; ++i) {
-    phis_vec[i] = (2.0 * i + 1.0) / point_num - 1.0;
+  const float phi_weight = M_PI * (1.0 + std::sqrt(5.0));
+
+  for (int i = 0; i < sample_num; ++i) {
+    phis_vec.emplace_back(phi_weight * (i + 0.5));
   }
 
   const torch::TensorOptions opts =
       torch::TensorOptions().dtype(torch::kFloat32).device(torch::kCPU);
 
   const torch::Tensor phis =
-      torch::from_blob(phis_vec.data(), {point_num}, opts).clone();
+      torch::from_blob(phis_vec.data(), {sample_num}, opts).clone();
 
   return phis;
 }
 
-const torch::Tensor toUniformSampleThetas(const torch::Tensor &phis) {
-  const float weight = std::sqrt(phis.sizes()[0] * M_PI);
+const torch::Tensor toUniformSampleThetas(const int &sample_num) {
+  std::vector<float> cos_thetas_vec;
+  cos_thetas_vec.reserve(sample_num);
 
-  const torch::Tensor thetas = weight * phis;
+  for (int i = 0; i < sample_num; ++i) {
+    cos_thetas_vec[i] = 1.0 - (2.0 * i + 1.0) / sample_num;
+  }
+
+  const torch::TensorOptions opts =
+      torch::TensorOptions().dtype(torch::kFloat32).device(torch::kCPU);
+
+  const torch::Tensor cos_thetas =
+      torch::from_blob(cos_thetas_vec.data(), {sample_num}, opts).clone();
+
+  const torch::Tensor thetas = torch::acos(cos_thetas);
 
   return thetas;
 }

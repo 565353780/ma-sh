@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 from tqdm import trange
 
 from ma_sh.Method.torch_thread import setThread
@@ -18,7 +19,7 @@ from ma_sh.Method.kernel import (
 
 def testPreLoadUniformSample(sample_polar_num, dtype=torch.float32, device="cpu"):
     sample_phis = toUniformSamplePhis(sample_polar_num).type(dtype).to(device)
-    sample_thetas = toUniformSampleThetas(sample_phis)
+    sample_thetas = toUniformSampleThetas(sample_polar_num).type(dtype).to(device)
     return
 
 
@@ -54,8 +55,11 @@ def testInMaxMaskSamplePolars(
     )
     in_max_mask_sample_polar_counts = toCounts(in_max_mask_sample_polar_idxs_list)
     in_max_mask_sample_polar_idxs = toIdxs(in_max_mask_sample_polar_counts)
-    in_max_mask_sample_phis = sample_phis[in_max_mask_sample_polar_idxs]
-    in_max_mask_sample_thetas = sample_thetas[in_max_mask_sample_polar_idxs]
+    in_max_mask_sample_polar_data_idxs = torch.hstack(
+        in_max_mask_sample_polar_idxs_list
+    )
+    in_max_mask_sample_phis = sample_phis[in_max_mask_sample_polar_data_idxs]
+    in_max_mask_sample_thetas = sample_thetas[in_max_mask_sample_polar_data_idxs]
     return
 
 
@@ -82,19 +86,21 @@ def test():
 
     # Params
     mask_params = (
-        torch.randn([anchor_num, mask_degree_max * 2 + 1]).type(dtype).to(device)
+        torch.zeros([anchor_num, mask_degree_max * 2 + 1]).type(dtype).to(device)
     )
     assert checkFormat(
         mask_params, dtype, device, [anchor_num, mask_degree_max * 2 + 1]
     )
 
+    for i in range(anchor_num):
+        mask_params[i, 0] = i + 1.0
     mask_params.requires_grad_(True)
 
     # Pre Load Uniform Sample
     sample_phis = toUniformSamplePhis(sample_polar_num).type(dtype).to(device)
     assert checkFormat(sample_phis, dtype, device, [sample_polar_num])
 
-    sample_thetas = toUniformSampleThetas(sample_phis)
+    sample_thetas = toUniformSampleThetas(sample_polar_num).type(dtype).to(device)
     assert checkFormat(sample_thetas, dtype, device, [sample_polar_num])
 
     ## Pre Load Mask Boundary
@@ -138,7 +144,6 @@ def test():
     mask_boundary_max_thetas = toMaxValues(mask_boundary_thetas, mask_boundary_phi_idxs)
     assert checkFormat(mask_boundary_max_thetas, dtype, device, [anchor_num])
 
-    # FIXME: may need to make dtype controllable in the future, now can only be torch.int64
     in_max_mask_sample_polar_idxs_list = toLowerIdxsList(
         sample_thetas, mask_boundary_max_thetas
     )
@@ -155,7 +160,11 @@ def test():
         [torch.sum(in_max_mask_sample_polar_counts)],
     )
 
-    in_max_mask_sample_phis = sample_phis[in_max_mask_sample_polar_idxs]
+    in_max_mask_sample_polar_data_idxs = torch.hstack(
+        in_max_mask_sample_polar_idxs_list
+    )
+
+    in_max_mask_sample_phis = sample_phis[in_max_mask_sample_polar_data_idxs]
     assert checkFormat(
         in_max_mask_sample_phis,
         dtype,
@@ -163,7 +172,7 @@ def test():
         [in_max_mask_sample_polar_idxs.shape[0]],
     )
 
-    in_max_mask_sample_thetas = sample_thetas[in_max_mask_sample_polar_idxs]
+    in_max_mask_sample_thetas = sample_thetas[in_max_mask_sample_polar_data_idxs]
     assert checkFormat(
         in_max_mask_sample_thetas,
         dtype,
@@ -172,19 +181,34 @@ def test():
     )
 
     # In Mask Sample Polars
-    in_mask_base_values = toMaskBaseValues(in_max_mask_sample_phis, mask_degree_max)
+    in_max_mask_base_values = toMaskBaseValues(in_max_mask_sample_phis, mask_degree_max)
     assert checkFormat(
-        in_mask_base_values,
+        in_max_mask_base_values,
         dtype,
         device,
         [mask_degree_max * 2 + 1, in_max_mask_sample_phis.shape[0]],
     )
 
-    in_mask_thetas = toMaskValues(
-        mask_params, in_mask_base_values, in_max_mask_sample_polar_idxs
+    in_max_mask_thetas = toMaskValues(
+        mask_params, in_max_mask_base_values, in_max_mask_sample_polar_idxs
     )
     assert checkFormat(
-        in_mask_thetas, dtype, device, [in_max_mask_sample_polar_idxs.shape[0]]
+        in_max_mask_thetas, dtype, device, [in_max_mask_sample_polar_idxs.shape[0]]
+    )
+
+    in_mask_sample_polar_mask = in_max_mask_sample_thetas <= in_max_mask_thetas
+
+    in_mask_sample_phis = in_max_mask_sample_phis[in_mask_sample_polar_mask]
+    assert checkFormat(in_mask_sample_phis, dtype, device)
+
+    in_mask_sample_thetas = in_max_mask_sample_thetas[in_mask_sample_polar_mask]
+    assert checkFormat(
+        in_mask_sample_thetas, dtype, device, [in_mask_sample_phis.shape[0]]
+    )
+
+    in_mask_sample_polar_idxs = in_max_mask_sample_polar_idxs[in_mask_sample_polar_mask]
+    assert checkFormat(
+        in_mask_sample_polar_idxs, idx_dtype, device, [in_mask_sample_phis.shape[0]]
     )
 
     # Speed

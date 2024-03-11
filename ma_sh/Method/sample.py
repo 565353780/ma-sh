@@ -1,23 +1,27 @@
 import torch
-from math import sqrt
 
-from ma_sh.Config.constant import PI, PI_2
+from ma_sh.Config.constant import PI_2, PHI_WEIGHT
 
-def toUniformSamplePhis(point_num: int) -> torch.Tensor:
-    phis_list = []
-    for i in range(point_num):
-        phis_list.append((2.0 * i + 1.0) / point_num - 1.0)
+
+def toUniformSamplePhis(sample_num: int) -> torch.Tensor:
+    phis_list = [PHI_WEIGHT * (i + 0.5) for i in range(sample_num)]
 
     phis = torch.tensor(phis_list)
 
     return phis
 
-def toUniformSampleThetas(phis: torch.Tensor) -> torch.Tensor:
-    weight = sqrt(phis.shape[0] * PI)
 
-    thetas = weight * phis
+def toUniformSampleThetas(sample_num: int) -> torch.Tensor:
+    cos_thetas_list = []
+    for i in range(sample_num):
+        cos_thetas_list.append(1.0 - (2.0 * i + 1.0) / sample_num)
+
+    cos_thetas = torch.tensor(cos_thetas_list)
+
+    thetas = torch.acos(cos_thetas)
 
     return thetas
+
 
 def toMaskBoundaryPhis(anchor_num: int, mask_boundary_sample_num: int) -> torch.Tensor:
     mask_boundary_phis = torch.zeros(anchor_num, mask_boundary_sample_num)
