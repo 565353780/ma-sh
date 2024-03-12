@@ -42,6 +42,6 @@ if False:
     toUniformSampleThetas = toUniformSampleThetasDict["c"]
     toMaskBoundaryPhis = toMaskBoundaryPhisDict["p+"]
 
-    toSHBaseValues = toSHBaseValuesDict["p+"]
+    toSHBaseValues = toSHBaseValuesDict["c"]
 
     toValues = toValuesDict["c"]

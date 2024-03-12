@@ -1,6 +1,6 @@
 import torch
 
-def checkFormat(data: torch.Tensor, dtype=torch.float32, device: str='cpu', shape=None) -> bool:
+def checkFormat(data: torch.Tensor, dtype=torch.float32, device: str='cpu', shape=None, have_grad=None) -> bool:
     if data.dtype != dtype:
         print('[WARN][check::checkFormat]')
         print('\t dtype not matched!')
@@ -26,5 +26,14 @@ def checkFormat(data: torch.Tensor, dtype=torch.float32, device: str='cpu', shap
                 print('\t shape dim not matched!')
                 print('\t', data.shape, '!=', shape)
                 return False
+
+    if have_grad is not None:
+        grad_state = data.grad_fn is not None
+
+        if grad_state != have_grad:
+            print('[WARN][check::checkFormat]')
+            print('\t grad state not matched!')
+            print('\t', grad_state, '!=', have_grad)
+            return False
 
     return True
