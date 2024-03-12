@@ -8,7 +8,7 @@ W1 = [
 ]
 
 W2 = [
-    0.25 * np.sqrt(5 / np.pi),
+    0.25 * np.sqrt(5.0 / np.pi),
     0.5 * np.sqrt(7.5 / np.pi),
     0.25 * np.sqrt(7.5 / np.pi),
 ]

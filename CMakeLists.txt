@@ -21,6 +21,7 @@ set(SRC
   ${CPP_ROOT_PATH}/src/idx.cpp
   ${CPP_ROOT_PATH}/src/mask.cpp
   ${CPP_ROOT_PATH}/src/sample.cpp
+  ${CPP_ROOT_PATH}/src/sh.cpp
   ${CPP_ROOT_PATH}/src/value.cpp
   ${CPP_ROOT_PATH}/main.cpp
 )

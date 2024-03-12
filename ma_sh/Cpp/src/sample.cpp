@@ -1,4 +1,5 @@
 #include "sample.h"
+#include "constant.h"
 #include <c10/core/DeviceType.h>
 #include <torch/types.h>
 
@@ -8,10 +9,8 @@ const torch::Tensor toUniformSamplePhis(const int &sample_num) {
   std::vector<float> phis_vec;
   phis_vec.reserve(sample_num);
 
-  const float phi_weight = M_PI * (1.0 + std::sqrt(5.0));
-
   for (int i = 0; i < sample_num; ++i) {
-    phis_vec.emplace_back(phi_weight * (i + 0.5));
+    phis_vec.emplace_back(PHI_WEIGHT * (i + 0.5));
   }
 
   const torch::TensorOptions opts =
@@ -50,7 +49,7 @@ const torch::Tensor toMaskBoundaryPhis(const int &anchor_num,
   const Slice slice_all(None);
 
   for (int i = 0; i < mask_boundary_sample_num; ++i) {
-    const float current_phi = 2.0 * M_PI * i / mask_boundary_sample_num;
+    const float current_phi = PI_2 * i / mask_boundary_sample_num;
 
     mask_boundary_phis.index_put_({slice_all, i}, current_phi);
   }

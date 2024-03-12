@@ -3,6 +3,7 @@
 #include "idx.h"
 #include "mask.h"
 #include "sample.h"
+#include "sh.h"
 #include "value.h"
 #include <pybind11/pybind11.h>
 
@@ -11,11 +12,13 @@ PYBIND11_MODULE(mash_cpp, m) {
 
   m.def("add", &add, "add.add");
 
+  m.def("toMaxValues", &toMaxValues, "filter.toMaxValues");
+
   m.def("toCounts", &toCounts, "idx.toCounts");
   m.def("toIdxs", &toIdxs, "idx.toIdxs");
   m.def("toLowerIdxsVec", &toLowerIdxsVec, "idx.toLowerIdxsVec");
 
-  m.def("toMaxValues", &toMaxValues, "filter.toMaxValues");
+  m.def("toMaskBaseValues", &toMaskBaseValues, "mask.toMaskBaseValues");
 
   m.def("toUniformSamplePhis", &toUniformSamplePhis,
         "sample.toUniformSamplePhis");
@@ -23,7 +26,7 @@ PYBIND11_MODULE(mash_cpp, m) {
         "sample.toUniformSampleThetas");
   m.def("toMaskBoundaryPhis", &toMaskBoundaryPhis, "sample.toMaskBoundaryPhis");
 
-  m.def("toMaskBaseValues", &toMaskBaseValues, "mask.toMaskBaseValues");
+  m.def("toSHBaseValues", &toSHBaseValues, "sh.toSHBaseValues");
 
   m.def("toValues", &toValues, "value.toValues");
 }

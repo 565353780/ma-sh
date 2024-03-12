@@ -7,10 +7,41 @@ from ma_sh.Method import (
     idx,
     mask,
     sample,
+    sh,
     value,
 )
 
 compile_mode = "max-autotune"
+
+toMaxValuesDict = {
+    "c": mash_cpp.toMaxValues,
+    "p": filter.toMaxValues,
+    "p+": compile(filter.toMaxValues, mode=compile_mode),
+}
+
+toCountsDict = {
+    "c": mash_cpp.toCounts,
+    "p": idx.toCounts,
+    "p+": compile(idx.toCounts, mode=compile_mode),
+}
+
+toIdxsDict = {
+    "c": mash_cpp.toIdxs,
+    "p": idx.toIdxs,
+    "p+": compile(idx.toIdxs, mode=compile_mode),
+}
+
+toLowerIdxsListDict = {
+    "c": mash_cpp.toLowerIdxsVec,
+    "p": idx.toLowerIdxsList,
+    "p+": compile(idx.toLowerIdxsList, mode=compile_mode),
+}
+
+toMaskBaseValuesDict = {
+    "c": mash_cpp.toMaskBaseValues,
+    "p": mask.toMaskBaseValues,
+    "p+": compile(mask.toMaskBaseValues, mode=compile_mode),
+}
 
 toUniformSamplePhisDict = {
     "c": mash_cpp.toUniformSamplePhis,
@@ -30,36 +61,10 @@ toMaskBoundaryPhisDict = {
     "p+": compile(sample.toMaskBoundaryPhis, mode=compile_mode),
 }
 
-toCountsDict = {
-    "c": mash_cpp.toCounts,
-    "p": idx.toCounts,
-    "p+": compile(idx.toCounts, mode=compile_mode),
-}
-
-toIdxsDict = {
-    "c": mash_cpp.toIdxs,
-    "p": idx.toIdxs,
-    "p+": compile(idx.toIdxs, mode=compile_mode),
-}
-
-
-toLowerIdxsListDict = {
-    "c": mash_cpp.toLowerIdxsVec,
-    "p": idx.toLowerIdxsList,
-    "p+": compile(idx.toLowerIdxsList, mode=compile_mode),
-}
-
-toMaxValuesDict = {
-    "c": mash_cpp.toMaxValues,
-    "p": filter.toMaxValues,
-    "p+": compile(filter.toMaxValues, mode=compile_mode),
-}
-
-
-toMaskBaseValuesDict = {
-    "c": mash_cpp.toMaskBaseValues,
-    "p": mask.toMaskBaseValues,
-    "p+": compile(mask.toMaskBaseValues, mode=compile_mode),
+toSHBaseValuesDict = {
+    "c": mash_cpp.toSHBaseValues,
+    "p": sh.toSHBaseValues,
+    "p+": compile(sh.toSHBaseValues, mode=compile_mode),
 }
 
 toValuesDict = {
