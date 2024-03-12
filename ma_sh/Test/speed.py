@@ -4,14 +4,15 @@ from tqdm import trange
 from ma_sh.Method.torch_thread import setThread
 from ma_sh.Method.check import checkFormat
 from ma_sh.Method.kernel import (
-    toUniformSamplePhis,
-    toUniformSampleThetas,
-    toMaskBoundaryPhis,
+    toMaxValues,
     toCounts,
     toIdxs,
     toLowerIdxsList,
-    toMaxValues,
     toMaskBaseValues,
+    toUniformSamplePhis,
+    toUniformSampleThetas,
+    toMaskBoundaryPhis,
+    toSHBaseValues,
     toValues,
 )
 
@@ -63,12 +64,34 @@ def testInMaxMaskSamplePolars(
 
 
 def testInMaskSamplePolars(
-    mask_degree_max, mask_params, in_max_mask_sample_phis, in_max_mask_sample_polar_idxs
+    mask_degree_max,
+    mask_params,
+    in_max_mask_sample_phis,
+    in_max_mask_sample_thetas,
+    in_max_mask_sample_polar_idxs,
 ):
-    in_mask_base_values = toMaskBaseValues(in_max_mask_sample_phis, mask_degree_max)
-    in_mask_thetas = toValues(
-        mask_params, in_mask_base_values, in_max_mask_sample_polar_idxs
+    in_max_mask_base_values = toMaskBaseValues(in_max_mask_sample_phis, mask_degree_max)
+    in_max_mask_thetas = toValues(
+        mask_params, in_max_mask_base_values, in_max_mask_sample_polar_idxs
     )
+    in_mask_sample_polar_mask = in_max_mask_sample_thetas <= in_max_mask_thetas
+    in_mask_sample_phis = in_max_mask_sample_phis[in_mask_sample_polar_mask]
+    in_mask_sample_thetas = in_max_mask_sample_thetas[in_mask_sample_polar_mask]
+    in_mask_sample_polar_idxs = in_max_mask_sample_polar_idxs[in_mask_sample_polar_mask]
+    return
+
+
+def testSHValues(
+    sh_params,
+    in_mask_sample_phis,
+    in_mask_sample_thetas,
+    sh_degree_max,
+    in_mask_sample_polar_idxs,
+):
+    sh_base_values = toSHBaseValues(
+        in_mask_sample_phis, in_mask_sample_thetas, sh_degree_max
+    )
+    sh_values = toValues(sh_params, sh_base_values, in_mask_sample_polar_idxs)
     return
 
 
@@ -79,6 +102,7 @@ def test():
     anchor_num = 4
     mask_degree_max = 5
     mask_boundary_sample_num = 10
+    sh_degree_max = 4
     idx_dtype = torch.int64
     dtype = torch.float32
     device = "cpu"
@@ -91,9 +115,18 @@ def test():
         mask_params, dtype, device, [anchor_num, mask_degree_max * 2 + 1]
     )
 
+    sh_params = (
+        torch.zeros([anchor_num, (sh_degree_max + 1) ** 2]).type(dtype).to(device)
+    )
+    assert checkFormat(sh_params, dtype, device, [anchor_num, (sh_degree_max + 1) ** 2])
+
     for i in range(anchor_num):
         mask_params[i, 0] = i + 1.0
     mask_params.requires_grad_(True)
+
+    for i in range(anchor_num):
+        sh_params[i, 0] = i + 1.0
+    sh_params.requires_grad_(True)
 
     # Pre Load Uniform Sample
     sample_phis = toUniformSamplePhis(sample_polar_num).type(dtype).to(device)
@@ -210,6 +243,25 @@ def test():
         in_mask_sample_polar_idxs, idx_dtype, device, [in_mask_sample_phis.shape[0]]
     )
 
+    # SH Values
+    sh_base_values = toSHBaseValues(
+        in_mask_sample_phis, in_mask_sample_thetas, sh_degree_max
+    )
+    assert checkFormat(
+        sh_base_values,
+        dtype,
+        device,
+        [(sh_degree_max + 1) ** 2, in_mask_sample_phis.shape[0]],
+    )
+
+    sh_values = toValues(sh_params, sh_base_values, in_mask_sample_polar_idxs)
+    assert checkFormat(
+        sh_values,
+        dtype,
+        device,
+        [in_mask_sample_phis.shape[0]],
+    )
+
     # Speed
     test_num = 1000
 
@@ -249,7 +301,17 @@ def test():
             mask_degree_max,
             mask_params,
             in_max_mask_sample_phis,
+            in_max_mask_sample_thetas,
             in_max_mask_sample_polar_idxs,
         )
 
+    print("\t testSHValues")
+    for _ in trange(test_num):
+        testSHValues(
+            sh_params,
+            in_mask_sample_phis,
+            in_mask_sample_thetas,
+            sh_degree_max,
+            in_mask_sample_polar_idxs,
+        )
     return True
