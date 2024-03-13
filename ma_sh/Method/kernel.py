@@ -4,6 +4,8 @@ from ma_sh.Config.kernel import (
     toIdxsDict,
     toLowerIdxsListDict,
     toMaskBaseValuesDict,
+    toRotateMatrixsDict,
+    toRotateVectorsDict,
     toUniformSamplePhisDict,
     toUniformSampleThetasDict,
     toMaskBoundaryPhisDict,
@@ -21,6 +23,9 @@ toLowerIdxsList = toLowerIdxsListDict[test_mode]
 
 toMaskBaseValues = toMaskBaseValuesDict[test_mode]
 
+toRotateMatrixs = toRotateMatrixsDict[test_mode]
+toRotateVectors = toRotateVectorsDict[test_mode]
+
 toUniformSamplePhis = toUniformSamplePhisDict[test_mode]
 toUniformSampleThetas = toUniformSampleThetasDict[test_mode]
 toMaskBoundaryPhis = toMaskBoundaryPhisDict[test_mode]
@@ -37,6 +42,9 @@ if False:
     toLowerIdxsList = toLowerIdxsListDict["c"]
 
     toMaskBaseValues = toMaskBaseValuesDict["p+"]
+
+    toRotateMatrixs = toRotateMatrixsDict['c']
+    toRotateVectors = toRotateVectorsDict['c']
 
     toUniformSamplePhis = toUniformSamplePhisDict["c"]
     toUniformSampleThetas = toUniformSampleThetasDict["c"]

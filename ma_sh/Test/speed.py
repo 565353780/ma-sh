@@ -9,12 +9,16 @@ from ma_sh.Method.kernel import (
     toIdxs,
     toLowerIdxsList,
     toMaskBaseValues,
+    toRotateVectors,
+    toRotateMatrixs,
     toUniformSamplePhis,
     toUniformSampleThetas,
     toMaskBoundaryPhis,
     toSHBaseValues,
     toValues,
 )
+
+from ma_sh.Method.rotate import toRotateMatrixs
 
 
 def testPreLoadUniformSample(sample_polar_num, dtype=torch.float32, device="cpu"):
@@ -129,8 +133,8 @@ def test():
     )
     assert checkFormat(sh_params, dtype, device, [anchor_num, (sh_degree_max + 1) ** 2])
 
-    rotations = torch.zeros([anchor_num, 6]).type(dtype).to(device)
-    assert checkFormat(rotations, dtype, device, [anchor_num, 6])
+    rotate_vectors = torch.zeros([anchor_num, 3]).type(dtype).to(device)
+    assert checkFormat(rotate_vectors, dtype, device, [anchor_num, 3])
 
     positions = torch.zeros([anchor_num, 3]).type(dtype).to(device)
     assert checkFormat(positions, dtype, device, [anchor_num, 3])
@@ -142,6 +146,10 @@ def test():
     for i in range(anchor_num):
         sh_params[i, 0] = i + 1.0
     sh_params.requires_grad_(True)
+
+    for i in range(anchor_num):
+        rotate_vectors[i, 0] = i
+    rotate_vectors.requires_grad_(True)
 
     for i in range(anchor_num):
         positions[i, 0] = i
@@ -191,6 +199,15 @@ def test():
         dtype,
         device,
         [mask_degree_max * 2 + 1, sample_polar_num], False
+    )
+
+    # Pre Load Rotate Matrixs
+    rotate_matrixs = toRotateMatrixs(rotate_vectors)
+    assert checkFormat(
+        rotate_matrixs,
+        dtype,
+        device,
+        [anchor_num, 3, 3], True
     )
 
     # Pre Load SH Directions
@@ -333,6 +350,7 @@ def test():
     )
 
     # SH Points
+
     v_sh_values = sh_values.reshape(-1, 1)
 
     sh_local_points = v_sh_values * in_mask_sh_directions

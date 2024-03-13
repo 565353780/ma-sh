@@ -2,6 +2,7 @@
 #include "filter.h"
 #include "idx.h"
 #include "mask.h"
+#include "rotate.h"
 #include "sample.h"
 #include "sh.h"
 #include "value.h"
@@ -19,6 +20,9 @@ PYBIND11_MODULE(mash_cpp, m) {
   m.def("toLowerIdxsVec", &toLowerIdxsVec, "idx.toLowerIdxsVec");
 
   m.def("toMaskBaseValues", &toMaskBaseValues, "mask.toMaskBaseValues");
+
+  m.def("toRotateMatrixs", &toRotateMatrixs, "rotate.toRotateMatrixs");
+  m.def("toRotateVectors", &toRotateVectors, "rotate.toRotateVectors");
 
   m.def("toUniformSamplePhis", &toUniformSamplePhis,
         "sample.toUniformSamplePhis");

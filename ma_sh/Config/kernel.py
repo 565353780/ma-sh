@@ -6,6 +6,7 @@ from ma_sh.Method import (
     filter,
     idx,
     mask,
+    rotate,
     sample,
     sh,
     value,
@@ -41,6 +42,18 @@ toMaskBaseValuesDict = {
     "c": mash_cpp.toMaskBaseValues,
     "p": mask.toMaskBaseValues,
     "p+": compile(mask.toMaskBaseValues, mode=compile_mode),
+}
+
+toRotateMatrixsDict = {
+    'c': mash_cpp.toRotateMatrixs,
+    'p': rotate.toRotateMatrixs,
+    "p+": compile(rotate.toRotateMatrixs, mode=compile_mode),
+}
+
+toRotateVectorsDict = {
+    'c': mash_cpp.toRotateVectors,
+    'p': rotate.toRotateVectors,
+    "p+": compile(rotate.toRotateVectors, mode=compile_mode),
 }
 
 toUniformSamplePhisDict = {
