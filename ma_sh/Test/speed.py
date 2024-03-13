@@ -350,7 +350,6 @@ def test():
     )
 
     # SH Points
-
     v_sh_values = sh_values.reshape(-1, 1)
 
     sh_local_points = v_sh_values * in_mask_sh_directions
@@ -361,6 +360,14 @@ def test():
         [sh_values.shape[0], 3], True
     )
 
+    in_mask_rotate_matrixs = rotate_matrixs[in_mask_sample_polar_idxs]
+
+    v_sh_local_points = sh_local_points.reshape(-1, 1, 3)
+
+    v_sh_local_rotate_points = torch.matmul(v_sh_local_points, in_mask_rotate_matrixs)
+
+    sh_local_rotate_points = v_sh_local_rotate_points.reshape(-1, 3)
+
     in_mask_positions = positions[in_mask_sample_polar_idxs]
     assert checkFormat(
         in_mask_positions,
@@ -369,7 +376,7 @@ def test():
         [sh_values.shape[0], 3], True
     )
 
-    sh_points = in_mask_positions + sh_local_points
+    sh_points = in_mask_positions + sh_local_rotate_points
     assert checkFormat(
         sh_points,
         dtype,
