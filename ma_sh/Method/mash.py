@@ -1,13 +1,10 @@
 import torch
-from typing import Union
 
-from ma_sh.Method import kernel
 from ma_sh.Method.mash_unit import (
     toParams,
     toPreLoadUniformSamplePolars,
     toPreLoadMaskBoundaryIdxs,
     toPreLoadBaseValues,
-    toPreLoadRotateMatrixs,
     toPreLoadSHDirections,
     toMaskBoundaryThetas,
     toInMaxMaskIdxs,
@@ -28,7 +25,6 @@ def toPreLoadDatas(
     idx_dtype,
     dtype,
     device: str,
-    rotate_vectors: Union[torch.Tensor, None] = None,
 ):
     sample_phis, sample_thetas = toPreLoadUniformSamplePolars(
         sample_polar_num, dtype, device
@@ -41,10 +37,6 @@ def toPreLoadDatas(
     )
     sample_sh_directions = toPreLoadSHDirections(sample_phis, sample_thetas)
 
-    rotate_matrixs = None
-    if rotate_vectors is not None:
-        rotate_matrixs = toPreLoadRotateMatrixs(rotate_vectors)
-
     return (
         sample_phis,
         sample_thetas,
@@ -52,7 +44,6 @@ def toPreLoadDatas(
         mask_boundary_base_values,
         sample_base_values,
         sample_sh_directions,
-        rotate_matrixs,
     )
 
 
@@ -68,11 +59,7 @@ def toMashSamplePoints(
     mask_boundary_base_values: torch.Tensor,
     sample_base_values: torch.Tensor,
     sample_sh_directions: torch.Tensor,
-    rotate_matrixs: Union[torch.Tensor, None] = None,
 ) -> torch.Tensor:
-    if rotate_matrixs is None:
-        rotate_matrixs = kernel.toRotateMatrixs(rotate_vectors)
-
     mask_boundary_thetas = toMaskBoundaryThetas(
         mask_params, mask_boundary_base_values, mask_boundary_phi_idxs
     )
@@ -124,7 +111,7 @@ def toMashSamplePoints(
         in_mask_sample_polar_idxs,
     )
     sh_points = toSHPoints(
-        rotate_matrixs,
+        rotate_vectors,
         positions,
         sample_sh_directions,
         sh_values,

@@ -53,7 +53,6 @@ def test():
         mask_boundary_base_values,
         sample_base_values,
         sample_sh_directions,
-        rotate_matrixs,
     ) = toPreLoadDatas(
         anchor_num,
         mask_degree_max,
@@ -62,7 +61,6 @@ def test():
         idx_dtype,
         dtype,
         device,
-        rotate_vectors,
     )
 
     for _ in trange(1000):
@@ -78,7 +76,6 @@ def test():
             mask_boundary_base_values,
             sample_base_values,
             sample_sh_directions,
-            rotate_matrixs,
         )
 
     return True

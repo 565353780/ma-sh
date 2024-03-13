@@ -6,7 +6,6 @@ from ma_sh.Method.mash_unit import (
     toPreLoadUniformSamplePolars,
     toPreLoadMaskBoundaryIdxs,
     toPreLoadBaseValues,
-    toPreLoadRotateMatrixs,
     toPreLoadSHDirections,
     toMaskBoundaryThetas,
     toInMaxMaskIdxs,
@@ -43,8 +42,6 @@ def test():
     mask_boundary_base_values, sample_base_values = toPreLoadBaseValues(
         anchor_num, mask_boundary_sample_num, mask_degree_max, sample_phis
     )
-    rotate_matrixs = toPreLoadRotateMatrixs(rotate_vectors)
-    # rotate_matrixs.retain_grad()
 
     sample_sh_directions = toPreLoadSHDirections(sample_phis, sample_thetas)
 
@@ -99,15 +96,13 @@ def test():
         in_mask_sample_polar_idxs,
     )
     sh_points = toSHPoints(
-        rotate_matrixs,
+        rotate_vectors,
         positions,
         sample_sh_directions,
         sh_values,
         in_mask_sample_polar_idxs,
         in_mask_sample_polar_data_idxs,
     )
-
-    # rotate_matrixs.grad.zero_()
 
     # Speed
     test_num = 1000
@@ -142,11 +137,6 @@ def test():
     print("\t toPreLoadSHDirections")
     for _ in trange(test_num):
         sample_sh_directions = toPreLoadSHDirections(sample_phis, sample_thetas)
-
-    print("\t toPreLoadRotateMatrixs")
-    for _ in trange(test_num):
-        rotate_matrixs = toPreLoadRotateMatrixs(rotate_vectors)
-        # rotate_matrixs.retain_grad()
 
     print("\t toMaskBoundaryThetas")
     for _ in trange(test_num):
@@ -222,7 +212,7 @@ def test():
     print("\t toSHPoints")
     for _ in trange(test_num):
         sh_points = toSHPoints(
-            rotate_matrixs,
+            rotate_vectors,
             positions,
             sample_sh_directions,
             sh_values,

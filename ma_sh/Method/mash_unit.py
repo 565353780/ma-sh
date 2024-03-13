@@ -139,20 +139,6 @@ def toPreLoadBaseValues(
     return mask_boundary_base_values, sample_base_values
 
 
-def toPreLoadRotateMatrixs(rotate_vectors: torch.Tensor):
-    rotate_matrixs = toRotateMatrixs(rotate_vectors)
-
-    if DEBUG:
-        dtype = rotate_vectors.dtype
-        device = str(rotate_vectors.device)
-
-        assert checkFormat(
-            rotate_matrixs, dtype, device, [rotate_vectors.shape[0], 3, 3], True
-        )
-
-    return rotate_matrixs
-
-
 def toPreLoadSHDirections(sample_phis: torch.Tensor, sample_thetas: torch.Tensor):
     sample_sh_directions = toSHDirections(sample_phis, sample_thetas)
 
@@ -400,7 +386,7 @@ def toSHValues(
 
 
 def toSHPoints(
-    rotate_matrixs,
+    rotate_vectors,
     positions,
     sample_sh_directions,
     sh_values,
@@ -410,6 +396,7 @@ def toSHPoints(
     v_sh_values = sh_values.reshape(-1, 1)
     in_mask_sh_directions = sample_sh_directions[in_mask_sample_polar_data_idxs]
     sh_local_points = v_sh_values * in_mask_sh_directions
+    rotate_matrixs = toRotateMatrixs(rotate_vectors)
     in_mask_rotate_matrixs = rotate_matrixs[in_mask_sample_polar_idxs]
     v_sh_local_points = sh_local_points.reshape(-1, 1, 3)
     v_sh_local_rotate_points = torch.matmul(v_sh_local_points, in_mask_rotate_matrixs)
@@ -418,8 +405,8 @@ def toSHPoints(
     sh_points = in_mask_positions + sh_local_rotate_points
 
     if DEBUG:
-        dtype = rotate_matrixs.dtype
-        device = str(rotate_matrixs.device)
+        dtype = rotate_vectors.dtype
+        device = str(rotate_vectors.device)
 
         assert checkFormat(
             in_mask_sh_directions,
@@ -430,6 +417,9 @@ def toSHPoints(
         )
         assert checkFormat(
             sh_local_points, dtype, device, [sh_values.shape[0], 3], True
+        )
+        assert checkFormat(
+            rotate_matrixs, dtype, device, [rotate_vectors.shape[0], 3, 3], True
         )
         assert checkFormat(
             in_mask_positions, dtype, device, [sh_values.shape[0], 3], True

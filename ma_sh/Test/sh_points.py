@@ -6,7 +6,6 @@ from ma_sh.Method.mash_unit import (
     toPreLoadUniformSamplePolars,
     toPreLoadMaskBoundaryIdxs,
     toPreLoadBaseValues,
-    toPreLoadRotateMatrixs,
     toPreLoadSHDirections,
     toMaskBoundaryThetas,
     toInMaxMaskIdxs,
@@ -45,9 +44,6 @@ def test():
         sample_phis,
     )
     sample_sh_directions = toPreLoadSHDirections(sample_phis, sample_thetas)
-
-    rotate_matrixs = toPreLoadRotateMatrixs(rotate_vectors)
-    # rotate_matrixs.retain_grad()
 
     for _ in trange(1000):
         mask_boundary_thetas = toMaskBoundaryThetas(
@@ -101,14 +97,12 @@ def test():
             in_mask_sample_polar_idxs,
         )
         sh_points = toSHPoints(
-            rotate_matrixs,
+            rotate_vectors,
             positions,
             sample_sh_directions,
             sh_values,
             in_mask_sample_polar_idxs,
             in_mask_sample_polar_data_idxs,
         )
-
-        # rotate_matrixs.grad.zero_()
 
     return True
