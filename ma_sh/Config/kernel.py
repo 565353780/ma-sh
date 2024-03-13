@@ -45,14 +45,14 @@ toMaskBaseValuesDict = {
 }
 
 toRotateMatrixsDict = {
-    'c': mash_cpp.toRotateMatrixs,
-    'p': rotate.toRotateMatrixs,
+    "c": mash_cpp.toRotateMatrixs,
+    "p": rotate.toRotateMatrixs,
     "p+": compile(rotate.toRotateMatrixs, mode=compile_mode),
 }
 
 toRotateVectorsDict = {
-    'c': mash_cpp.toRotateVectors,
-    'p': rotate.toRotateVectors,
+    "c": mash_cpp.toRotateVectors,
+    "p": rotate.toRotateVectors,
     "p+": compile(rotate.toRotateVectors, mode=compile_mode),
 }
 

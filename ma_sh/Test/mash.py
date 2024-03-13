@@ -1,7 +1,10 @@
 import torch
 from tqdm import trange
 
-from ma_sh.Method.mash import toParams, toPreLoadDatas, toMashSamplePoints
+from ma_sh.Config.constant import DEBUG
+
+from ma_sh.Method.mash import toParams, toPreLoadDatas
+from mash_cpp import toMashSamplePoints
 
 
 def test():
@@ -26,22 +29,26 @@ def test():
         device,
     )
 
-    mask_params.requires_grad_(False)
+    if DEBUG:
+        mask_params.requires_grad_(False)
     for i in range(anchor_num):
         mask_params[i, 0] = i + 1.0
     mask_params.requires_grad_(True)
 
-    sh_params.requires_grad_(False)
+    if DEBUG:
+        sh_params.requires_grad_(False)
     for i in range(anchor_num):
         sh_params[i, 0] = i + 1.0
     sh_params.requires_grad_(True)
 
-    rotate_vectors.requires_grad_(False)
+    if DEBUG:
+        rotate_vectors.requires_grad_(False)
     for i in range(anchor_num):
         rotate_vectors[i, 0] = i
     rotate_vectors.requires_grad_(True)
 
-    positions.requires_grad_(False)
+    if DEBUG:
+        positions.requires_grad_(False)
     for i in range(anchor_num):
         positions[i, 0] = i
     positions.requires_grad_(True)

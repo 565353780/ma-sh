@@ -18,6 +18,8 @@ add_subdirectory(${PYBIND11_ROOT_PATH})
 set(SRC
   ${CPP_ROOT_PATH}/src/filter.cpp
   ${CPP_ROOT_PATH}/src/idx.cpp
+  ${CPP_ROOT_PATH}/src/mash.cpp
+  ${CPP_ROOT_PATH}/src/mash_unit.cpp
   ${CPP_ROOT_PATH}/src/mask.cpp
   ${CPP_ROOT_PATH}/src/rotate.cpp
   ${CPP_ROOT_PATH}/src/sample.cpp

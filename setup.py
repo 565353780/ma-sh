@@ -8,6 +8,8 @@ root_path = os.getcwd() + "/../ma-sh/ma_sh/Cpp/"
 sources = [
     root_path + "src/filter.cpp",
     root_path + "src/idx.cpp",
+    root_path + "src/mash.cpp",
+    root_path + "src/mash_unit.cpp",
     root_path + "src/mask.cpp",
     root_path + "src/rotate.cpp",
     root_path + "src/sample.cpp",
