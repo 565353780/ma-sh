@@ -396,8 +396,8 @@ def toSHPoints(
     v_sh_values = sh_values.reshape(-1, 1)
     in_mask_sh_directions = sample_sh_directions[in_mask_sample_polar_data_idxs]
     sh_local_points = v_sh_values * in_mask_sh_directions
-    rotate_matrixs = toRotateMatrixs(rotate_vectors)
-    in_mask_rotate_matrixs = rotate_matrixs[in_mask_sample_polar_idxs]
+    in_mask_rotate_vectors = rotate_vectors[in_mask_sample_polar_idxs]
+    in_mask_rotate_matrixs = toRotateMatrixs(in_mask_rotate_vectors)
     v_sh_local_points = sh_local_points.reshape(-1, 1, 3)
     v_sh_local_rotate_points = torch.matmul(v_sh_local_points, in_mask_rotate_matrixs)
     sh_local_rotate_points = v_sh_local_rotate_points.reshape(-1, 3)
@@ -419,7 +419,11 @@ def toSHPoints(
             sh_local_points, dtype, device, [sh_values.shape[0], 3], True
         )
         assert checkFormat(
-            rotate_matrixs, dtype, device, [rotate_vectors.shape[0], 3, 3], True
+            in_mask_rotate_matrixs,
+            dtype,
+            device,
+            [in_mask_rotate_vectors.shape[0], 3, 3],
+            True,
         )
         assert checkFormat(
             in_mask_positions, dtype, device, [sh_values.shape[0], 3], True
