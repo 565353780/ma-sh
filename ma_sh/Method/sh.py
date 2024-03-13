@@ -187,3 +187,19 @@ def toSHBaseValues(
     base_values = torch.vstack(base_values_list)
 
     return base_values
+
+def toSHDirections(phis: torch.Tensor, thetas: torch.Tensor) -> torch.Tensor:
+    cos_phis = torch.cos(phis)
+    sin_phis = torch.sin(phis)
+    cos_thetas = torch.cos(thetas)
+    sin_thetas = torch.sin(thetas)
+
+    sh_directions_x = cos_phis * sin_thetas
+    sh_directions_y = sin_phis * sin_thetas
+    sh_directions_z = cos_thetas
+
+    sh_directions_list = [sh_directions_x, sh_directions_y, sh_directions_z]
+
+    sh_directions = torch.vstack(sh_directions_list).transpose(1, 0)
+
+    return sh_directions

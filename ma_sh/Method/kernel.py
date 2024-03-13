@@ -10,6 +10,7 @@ from ma_sh.Config.kernel import (
     toUniformSampleThetasDict,
     toMaskBoundaryPhisDict,
     toSHBaseValuesDict,
+    toSHDirectionsDict,
     toValuesDict,
 )
 
@@ -31,6 +32,7 @@ toUniformSampleThetas = toUniformSampleThetasDict[test_mode]
 toMaskBoundaryPhis = toMaskBoundaryPhisDict[test_mode]
 
 toSHBaseValues = toSHBaseValuesDict[test_mode]
+toSHDirections = toSHDirectionsDict[test_mode]
 
 toValues = toValuesDict[test_mode]
 
@@ -51,5 +53,6 @@ if False:
     toMaskBoundaryPhis = toMaskBoundaryPhisDict["p+"]
 
     toSHBaseValues = toSHBaseValuesDict["c"]
+    toSHDirections = toSHDirectionsDict['c']
 
     toValues = toValuesDict["c"]

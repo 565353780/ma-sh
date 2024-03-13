@@ -9,17 +9,14 @@ from ma_sh.Method.kernel import (
     toIdxs,
     toLowerIdxsList,
     toMaskBaseValues,
-    toRotateVectors,
     toRotateMatrixs,
     toUniformSamplePhis,
     toUniformSampleThetas,
     toMaskBoundaryPhis,
     toSHBaseValues,
+    toSHDirections,
     toValues,
 )
-
-from ma_sh.Method.rotate import toRotateMatrixs
-
 
 def testPreLoadUniformSample(sample_polar_num, dtype=torch.float32, device="cpu"):
     sample_phis = toUniformSamplePhis(sample_polar_num).type(dtype).to(device)
@@ -39,11 +36,22 @@ def testPreLoadMaskBoundary(
     )
     return
 
+def testPreLoadBaseValues(sample_phis, mask_boundary_phis, mask_degree_max):
+    mask_boundary_base_values = toMaskBaseValues(mask_boundary_phis, mask_degree_max)
+    sample_base_values = toMaskBaseValues(sample_phis, mask_degree_max)
+    return
+
+def testPreLoadRotateMatrixs(rotate_vectors):
+    rotate_matrixs = toRotateMatrixs(rotate_vectors)
+    return
+
+def testPreLoadSHDirections(sample_phis, sample_thetas):
+    sample_sh_directions = toSHDirections(sample_phis, sample_thetas)
+    return
 
 def testMaskBoundary(
-    mask_degree_max, mask_params, mask_boundary_phis, mask_boundary_phi_idxs
+    mask_params, mask_boundary_base_values, mask_boundary_phi_idxs
 ):
-    mask_boundary_base_values = toMaskBaseValues(mask_boundary_phis, mask_degree_max)
     with torch.no_grad():
         mask_boundary_thetas = toValues(
             mask_params, mask_boundary_base_values, mask_boundary_phi_idxs
@@ -69,13 +77,14 @@ def testInMaxMaskSamplePolars(
 
 
 def testInMaskSamplePolarWeights(
-    mask_degree_max,
     mask_params,
+    sample_base_values,
     in_max_mask_sample_phis,
     in_max_mask_sample_thetas,
     in_max_mask_sample_polar_idxs,
+    in_max_mask_sample_polar_data_idxs,
 ):
-    in_max_mask_base_values = toMaskBaseValues(in_max_mask_sample_phis, mask_degree_max)
+    in_max_mask_base_values = sample_base_values[:, in_max_mask_sample_polar_data_idxs]
     with torch.no_grad():
         in_max_mask_thetas = toValues(
             mask_params, in_max_mask_base_values, in_max_mask_sample_polar_idxs
@@ -84,6 +93,7 @@ def testInMaskSamplePolarWeights(
     in_mask_sample_phis = in_max_mask_sample_phis[in_mask_sample_polar_mask]
     in_mask_sample_thetas = in_max_mask_sample_thetas[in_mask_sample_polar_mask]
     in_mask_sample_polar_idxs = in_max_mask_sample_polar_idxs[in_mask_sample_polar_mask]
+    in_mask_sample_polar_data_idxs = in_max_mask_sample_polar_data_idxs[in_mask_sample_polar_mask]
     in_mask_base_values = in_max_mask_base_values[:, in_mask_sample_polar_mask]
     in_mask_thetas = in_max_mask_thetas[in_mask_sample_polar_mask]
     in_mask_sample_theta_weights = in_mask_sample_thetas / in_mask_thetas

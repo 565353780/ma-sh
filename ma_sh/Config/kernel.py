@@ -80,6 +80,12 @@ toSHBaseValuesDict = {
     "p+": compile(sh.toSHBaseValues, mode=compile_mode),
 }
 
+toSHDirectionsDict = {
+    "c": mash_cpp.toSHDirections,
+    "p": sh.toSHDirections,
+    "p+": compile(sh.toSHDirections, mode=compile_mode),
+}
+
 toValuesDict = {
     "c": mash_cpp.toValues,
     "p": value.toValues,

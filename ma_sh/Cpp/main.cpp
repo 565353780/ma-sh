@@ -31,6 +31,7 @@ PYBIND11_MODULE(mash_cpp, m) {
   m.def("toMaskBoundaryPhis", &toMaskBoundaryPhis, "sample.toMaskBoundaryPhis");
 
   m.def("toSHBaseValues", &toSHBaseValues, "sh.toSHBaseValues");
+  m.def("toSHDirections", &toSHDirections, "sh.toSHDirections");
 
   m.def("toValues", &toValues, "value.toValues");
 }
