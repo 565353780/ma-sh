@@ -45,14 +45,14 @@ if False:
 
     toMaskBaseValues = toMaskBaseValuesDict["p+"]
 
-    toRotateMatrixs = toRotateMatrixsDict['c']
-    toRotateVectors = toRotateVectorsDict['c']
+    toRotateMatrixs = toRotateMatrixsDict["c"]
+    toRotateVectors = toRotateVectorsDict["c"]
 
     toUniformSamplePhis = toUniformSamplePhisDict["c"]
     toUniformSampleThetas = toUniformSampleThetasDict["c"]
     toMaskBoundaryPhis = toMaskBoundaryPhisDict["p+"]
 
     toSHBaseValues = toSHBaseValuesDict["c"]
-    toSHDirections = toSHDirectionsDict['c']
+    toSHDirections = toSHDirectionsDict["c"]
 
     toValues = toValuesDict["c"]

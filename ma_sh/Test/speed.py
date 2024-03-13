@@ -18,6 +18,7 @@ from ma_sh.Method.kernel import (
     toValues,
 )
 
+
 def testPreLoadUniformSample(sample_polar_num, dtype=torch.float32, device="cpu"):
     sample_phis = toUniformSamplePhis(sample_polar_num).type(dtype).to(device)
     sample_thetas = toUniformSampleThetas(sample_polar_num).type(dtype).to(device)
@@ -36,22 +37,24 @@ def testPreLoadMaskBoundary(
     )
     return
 
+
 def testPreLoadBaseValues(sample_phis, mask_boundary_phis, mask_degree_max):
     mask_boundary_base_values = toMaskBaseValues(mask_boundary_phis, mask_degree_max)
     sample_base_values = toMaskBaseValues(sample_phis, mask_degree_max)
     return
 
+
 def testPreLoadRotateMatrixs(rotate_vectors):
     rotate_matrixs = toRotateMatrixs(rotate_vectors)
     return
+
 
 def testPreLoadSHDirections(sample_phis, sample_thetas):
     sample_sh_directions = toSHDirections(sample_phis, sample_thetas)
     return
 
-def testMaskBoundary(
-    mask_params, mask_boundary_base_values, mask_boundary_phi_idxs
-):
+
+def testMaskBoundary(mask_params, mask_boundary_base_values, mask_boundary_phi_idxs):
     with torch.no_grad():
         mask_boundary_thetas = toValues(
             mask_params, mask_boundary_base_values, mask_boundary_phi_idxs
@@ -93,16 +96,27 @@ def testInMaskSamplePolarWeights(
     in_mask_sample_phis = in_max_mask_sample_phis[in_mask_sample_polar_mask]
     in_mask_sample_thetas = in_max_mask_sample_thetas[in_mask_sample_polar_mask]
     in_mask_sample_polar_idxs = in_max_mask_sample_polar_idxs[in_mask_sample_polar_mask]
-    in_mask_sample_polar_data_idxs = in_max_mask_sample_polar_data_idxs[in_mask_sample_polar_mask]
+    in_mask_sample_polar_data_idxs = in_max_mask_sample_polar_data_idxs[
+        in_mask_sample_polar_mask
+    ]
     in_mask_base_values = in_max_mask_base_values[:, in_mask_sample_polar_mask]
     in_mask_thetas = in_max_mask_thetas[in_mask_sample_polar_mask]
     in_mask_sample_theta_weights = in_mask_sample_thetas / in_mask_thetas
     return
 
-def testSamplePolars(mask_params, in_mask_base_values, in_mask_sample_polar_idxs, in_mask_sample_theta_weights):
-    detect_boundary_thetas = toValues(mask_params, in_mask_base_values, in_mask_sample_polar_idxs)
+
+def testSamplePolars(
+    mask_params,
+    in_mask_base_values,
+    in_mask_sample_polar_idxs,
+    in_mask_sample_theta_weights,
+):
+    detect_boundary_thetas = toValues(
+        mask_params, in_mask_base_values, in_mask_sample_polar_idxs
+    )
     detect_thetas = in_mask_sample_theta_weights * detect_boundary_thetas
     return
+
 
 def testSHValues(
     sh_params,
@@ -184,14 +198,18 @@ def test():
         idx_dtype,
         device,
         [anchor_num * mask_boundary_sample_num],
-        False
+        False,
     )
 
     mask_boundary_phis = (
         toMaskBoundaryPhis(anchor_num, mask_boundary_sample_num).type(dtype).to(device)
     )
     assert checkFormat(
-        mask_boundary_phis, dtype, device, [anchor_num * mask_boundary_sample_num], False
+        mask_boundary_phis,
+        dtype,
+        device,
+        [anchor_num * mask_boundary_sample_num],
+        False,
     )
 
     # Pre Load Base Values
@@ -200,7 +218,8 @@ def test():
         mask_boundary_base_values,
         dtype,
         device,
-        [mask_degree_max * 2 + 1, anchor_num * mask_boundary_sample_num], False
+        [mask_degree_max * 2 + 1, anchor_num * mask_boundary_sample_num],
+        False,
     )
 
     sample_base_values = toMaskBaseValues(sample_phis, mask_degree_max)
@@ -208,28 +227,23 @@ def test():
         sample_base_values,
         dtype,
         device,
-        [mask_degree_max * 2 + 1, sample_polar_num], False
+        [mask_degree_max * 2 + 1, sample_polar_num],
+        False,
     )
 
     # Pre Load Rotate Matrixs
     rotate_matrixs = toRotateMatrixs(rotate_vectors)
-    assert checkFormat(
-        rotate_matrixs,
-        dtype,
-        device,
-        [anchor_num, 3, 3], True
-    )
+    assert checkFormat(rotate_matrixs, dtype, device, [anchor_num, 3, 3], True)
 
     # Pre Load SH Directions
     sample_sh_direction_x = torch.cos(sample_phis) * torch.sin(sample_thetas)
     sample_sh_direction_y = torch.sin(sample_phis) * torch.sin(sample_thetas)
     sample_sh_direction_z = torch.cos(sample_thetas)
-    sample_sh_directions = torch.vstack([sample_sh_direction_x, sample_sh_direction_y, sample_sh_direction_z]).transpose(1, 0)
+    sample_sh_directions = torch.vstack(
+        [sample_sh_direction_x, sample_sh_direction_y, sample_sh_direction_z]
+    ).transpose(1, 0)
     assert checkFormat(
-        sample_sh_directions,
-        dtype,
-        device,
-        [sample_polar_num, 3], False
+        sample_sh_directions, dtype, device, [sample_polar_num, 3], False
     )
 
     # Mask Boundary
@@ -238,7 +252,11 @@ def test():
             mask_params, mask_boundary_base_values, mask_boundary_phi_idxs
         )
     assert checkFormat(
-        mask_boundary_thetas, dtype, device, [anchor_num * mask_boundary_sample_num], False
+        mask_boundary_thetas,
+        dtype,
+        device,
+        [anchor_num * mask_boundary_sample_num],
+        False,
     )
 
     # In Max Mask Sample Polars
@@ -251,14 +269,21 @@ def test():
     # assert checkFormat(in_max_mask_sample_polar_idxs_list[0], idx_dtype, device, None, False)
 
     in_max_mask_sample_polar_counts = toCounts(in_max_mask_sample_polar_idxs_list)
-    assert checkFormat(in_max_mask_sample_polar_counts, in_max_mask_sample_polar_idxs_list[0].dtype, device, [anchor_num], False)
+    assert checkFormat(
+        in_max_mask_sample_polar_counts,
+        in_max_mask_sample_polar_idxs_list[0].dtype,
+        device,
+        [anchor_num],
+        False,
+    )
 
     in_max_mask_sample_polar_idxs = toIdxs(in_max_mask_sample_polar_counts)
     assert checkFormat(
         in_max_mask_sample_polar_idxs,
         in_max_mask_sample_polar_counts.dtype,
         device,
-        [torch.sum(in_max_mask_sample_polar_counts)], False
+        [torch.sum(in_max_mask_sample_polar_counts)],
+        False,
     )
 
     in_max_mask_sample_polar_data_idxs = torch.hstack(
@@ -270,7 +295,8 @@ def test():
         in_max_mask_sample_phis,
         dtype,
         device,
-        [in_max_mask_sample_polar_idxs.shape[0]], False
+        [in_max_mask_sample_polar_idxs.shape[0]],
+        False,
     )
 
     in_max_mask_sample_thetas = sample_thetas[in_max_mask_sample_polar_data_idxs]
@@ -278,7 +304,8 @@ def test():
         in_max_mask_sample_thetas,
         dtype,
         device,
-        [in_max_mask_sample_polar_idxs.shape[0]], False
+        [in_max_mask_sample_polar_idxs.shape[0]],
+        False,
     )
 
     # In Mask Sample Polar Weights
@@ -287,7 +314,8 @@ def test():
         in_max_mask_base_values,
         dtype,
         device,
-        [mask_degree_max * 2 + 1, in_max_mask_sample_phis.shape[0]], False
+        [mask_degree_max * 2 + 1, in_max_mask_sample_phis.shape[0]],
+        False,
     )
 
     with torch.no_grad():
@@ -295,7 +323,11 @@ def test():
             mask_params, in_max_mask_base_values, in_max_mask_sample_polar_idxs
         )
     assert checkFormat(
-        in_max_mask_thetas, dtype, device, [in_max_mask_sample_polar_idxs.shape[0]], False
+        in_max_mask_thetas,
+        dtype,
+        device,
+        [in_max_mask_sample_polar_idxs.shape[0]],
+        False,
     )
 
     in_mask_sample_polar_mask = in_max_mask_sample_thetas <= in_max_mask_thetas
@@ -310,12 +342,22 @@ def test():
 
     in_mask_sample_polar_idxs = in_max_mask_sample_polar_idxs[in_mask_sample_polar_mask]
     assert checkFormat(
-        in_mask_sample_polar_idxs, in_max_mask_sample_polar_idxs.dtype, device, [in_mask_sample_phis.shape[0]], False
+        in_mask_sample_polar_idxs,
+        in_max_mask_sample_polar_idxs.dtype,
+        device,
+        [in_mask_sample_phis.shape[0]],
+        False,
     )
 
-    in_mask_sample_polar_data_idxs = in_max_mask_sample_polar_data_idxs[in_mask_sample_polar_mask]
+    in_mask_sample_polar_data_idxs = in_max_mask_sample_polar_data_idxs[
+        in_mask_sample_polar_mask
+    ]
     assert checkFormat(
-        in_mask_sample_polar_data_idxs, in_max_mask_sample_polar_data_idxs.dtype, device, [in_mask_sample_phis.shape[0]], False
+        in_mask_sample_polar_data_idxs,
+        in_max_mask_sample_polar_data_idxs.dtype,
+        device,
+        [in_mask_sample_phis.shape[0]],
+        False,
     )
 
     in_mask_base_values = in_max_mask_base_values[:, in_mask_sample_polar_mask]
@@ -326,13 +368,23 @@ def test():
 
     in_mask_sh_directions = sample_sh_directions[in_mask_sample_polar_data_idxs]
     assert checkFormat(
-        in_mask_sh_directions, dtype, device, [in_mask_sample_polar_data_idxs.shape[0], 3], False
+        in_mask_sh_directions,
+        dtype,
+        device,
+        [in_mask_sample_polar_data_idxs.shape[0], 3],
+        False,
     )
 
     # Sample Polars
-    detect_boundary_thetas = toValues(mask_params, in_mask_base_values, in_mask_sample_polar_idxs)
+    detect_boundary_thetas = toValues(
+        mask_params, in_mask_base_values, in_mask_sample_polar_idxs
+    )
     assert checkFormat(
-        detect_boundary_thetas, dtype, device, [in_mask_sample_polar_idxs.shape[0]], True
+        detect_boundary_thetas,
+        dtype,
+        device,
+        [in_mask_sample_polar_idxs.shape[0]],
+        True,
     )
 
     detect_thetas = in_mask_sample_theta_weights * detect_boundary_thetas
@@ -341,34 +393,23 @@ def test():
     )
 
     # SH Values
-    sh_base_values = toSHBaseValues(
-        in_mask_sample_phis, detect_thetas, sh_degree_max
-    )
+    sh_base_values = toSHBaseValues(in_mask_sample_phis, detect_thetas, sh_degree_max)
     assert checkFormat(
         sh_base_values,
         dtype,
         device,
-        [(sh_degree_max + 1) ** 2, in_mask_sample_phis.shape[0]], True
+        [(sh_degree_max + 1) ** 2, in_mask_sample_phis.shape[0]],
+        True,
     )
 
     sh_values = toValues(sh_params, sh_base_values, in_mask_sample_polar_idxs)
-    assert checkFormat(
-        sh_values,
-        dtype,
-        device,
-        [in_mask_sample_phis.shape[0]], True
-    )
+    assert checkFormat(sh_values, dtype, device, [in_mask_sample_phis.shape[0]], True)
 
     # SH Points
     v_sh_values = sh_values.reshape(-1, 1)
 
     sh_local_points = v_sh_values * in_mask_sh_directions
-    assert checkFormat(
-        sh_local_points,
-        dtype,
-        device,
-        [sh_values.shape[0], 3], True
-    )
+    assert checkFormat(sh_local_points, dtype, device, [sh_values.shape[0], 3], True)
 
     in_mask_rotate_matrixs = rotate_matrixs[in_mask_sample_polar_idxs]
 
@@ -379,20 +420,10 @@ def test():
     sh_local_rotate_points = v_sh_local_rotate_points.reshape(-1, 3)
 
     in_mask_positions = positions[in_mask_sample_polar_idxs]
-    assert checkFormat(
-        in_mask_positions,
-        dtype,
-        device,
-        [sh_values.shape[0], 3], True
-    )
+    assert checkFormat(in_mask_positions, dtype, device, [sh_values.shape[0], 3], True)
 
     sh_points = in_mask_positions + sh_local_rotate_points
-    assert checkFormat(
-        sh_points,
-        dtype,
-        device,
-        [sh_values.shape[0], 3], True
-    )
+    assert checkFormat(sh_points, dtype, device, [sh_values.shape[0], 3], True)
 
     # Speed
     test_num = 1000

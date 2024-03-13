@@ -6,7 +6,6 @@ from torch.utils.cpp_extension import CUDAExtension, CppExtension, BuildExtensio
 root_path = os.getcwd() + "/../ma-sh/ma_sh/Cpp/"
 
 sources = [
-    root_path + "src/add.cpp",
     root_path + "src/filter.cpp",
     root_path + "src/idx.cpp",
     root_path + "src/mask.cpp",

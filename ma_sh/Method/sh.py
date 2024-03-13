@@ -188,6 +188,7 @@ def toSHBaseValues(
 
     return base_values
 
+
 def toSHDirections(phis: torch.Tensor, thetas: torch.Tensor) -> torch.Tensor:
     cos_phis = torch.cos(phis)
     sin_phis = torch.sin(phis)

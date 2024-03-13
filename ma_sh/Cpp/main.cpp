@@ -1,4 +1,3 @@
-#include "add.h"
 #include "filter.h"
 #include "idx.h"
 #include "mask.h"
@@ -10,8 +9,6 @@
 
 PYBIND11_MODULE(mash_cpp, m) {
   m.doc() = "pybind11 mash cpp plugin";
-
-  m.def("add", &add, "add.add");
 
   m.def("toMaxValues", &toMaxValues, "filter.toMaxValues");
 

@@ -16,7 +16,6 @@ find_package(Python COMPONENTS Interpreter Development)
 add_subdirectory(${PYBIND11_ROOT_PATH})
 
 set(SRC
-  ${CPP_ROOT_PATH}/src/add.cpp
   ${CPP_ROOT_PATH}/src/filter.cpp
   ${CPP_ROOT_PATH}/src/idx.cpp
   ${CPP_ROOT_PATH}/src/mask.cpp
