@@ -187,9 +187,7 @@ def toMaskBoundaryThetas(
     return mask_boundary_thetas
 
 
-def toInMaxMaskSamplePolars(
-    sample_phis, sample_thetas, mask_boundary_thetas, mask_boundary_phi_idxs
-):
+def toInMaxMaskIdxs(sample_thetas, mask_boundary_thetas, mask_boundary_phi_idxs):
     mask_boundary_max_thetas = toMaxValues(mask_boundary_thetas, mask_boundary_phi_idxs)
     in_max_mask_sample_polar_idxs_list = toLowerIdxsList(
         sample_thetas, mask_boundary_max_thetas
@@ -199,13 +197,11 @@ def toInMaxMaskSamplePolars(
     in_max_mask_sample_polar_data_idxs = torch.hstack(
         in_max_mask_sample_polar_idxs_list
     )
-    in_max_mask_sample_phis = sample_phis[in_max_mask_sample_polar_data_idxs]
-    in_max_mask_sample_thetas = sample_thetas[in_max_mask_sample_polar_data_idxs]
 
     if DEBUG:
         idx_dtype = mask_boundary_phi_idxs.dtype
-        dtype = sample_phis.dtype
-        device = str(sample_phis.device)
+        dtype = mask_boundary_thetas.dtype
+        device = str(mask_boundary_thetas.device)
 
         assert checkFormat(mask_boundary_max_thetas, dtype, device, None, False)
         assert checkFormat(
@@ -213,49 +209,36 @@ def toInMaxMaskSamplePolars(
         )
         assert checkFormat(
             in_max_mask_sample_polar_counts,
-            in_max_mask_sample_polar_idxs_list[0].dtype,
+            idx_dtype,
             device,
             None,
             False,
         )
         assert checkFormat(
             in_max_mask_sample_polar_idxs,
-            in_max_mask_sample_polar_counts.dtype,
+            idx_dtype,
             device,
             [torch.sum(in_max_mask_sample_polar_counts)],
             False,
         )
-        assert checkFormat(
-            in_max_mask_sample_phis,
-            dtype,
-            device,
-            [in_max_mask_sample_polar_idxs.shape[0]],
-            False,
-        )
-        assert checkFormat(
-            in_max_mask_sample_thetas,
-            dtype,
-            device,
-            [in_max_mask_sample_polar_idxs.shape[0]],
-            False,
-        )
 
-    return (
-        in_max_mask_sample_polar_idxs,
-        in_max_mask_sample_polar_data_idxs,
-        in_max_mask_sample_phis,
-        in_max_mask_sample_thetas,
-    )
+    return in_max_mask_sample_polar_idxs, in_max_mask_sample_polar_data_idxs
+
+
+def toInMaskIdxs():
+    return
 
 
 def toInMaskSamplePolarWeights(
     mask_params,
+    sample_phis,
+    sample_thetas,
     sample_base_values,
-    in_max_mask_sample_phis,
-    in_max_mask_sample_thetas,
     in_max_mask_sample_polar_idxs,
     in_max_mask_sample_polar_data_idxs,
 ):
+    in_max_mask_sample_phis = sample_phis[in_max_mask_sample_polar_data_idxs]
+    in_max_mask_sample_thetas = sample_thetas[in_max_mask_sample_polar_data_idxs]
     in_max_mask_base_values = sample_base_values[:, in_max_mask_sample_polar_data_idxs]
     with torch.no_grad():
         in_max_mask_thetas = toValues(
@@ -276,6 +259,20 @@ def toInMaskSamplePolarWeights(
         dtype = mask_params.dtype
         device = str(mask_params.device)
 
+        assert checkFormat(
+            in_max_mask_sample_phis,
+            dtype,
+            device,
+            [in_max_mask_sample_polar_idxs.shape[0]],
+            False,
+        )
+        assert checkFormat(
+            in_max_mask_sample_thetas,
+            dtype,
+            device,
+            [in_max_mask_sample_polar_idxs.shape[0]],
+            False,
+        )
         assert checkFormat(
             in_max_mask_base_values,
             dtype,
@@ -445,11 +442,7 @@ def test():
     (
         in_max_mask_sample_polar_idxs,
         in_max_mask_sample_polar_data_idxs,
-        in_max_mask_sample_phis,
-        in_max_mask_sample_thetas,
-    ) = toInMaxMaskSamplePolars(
-        sample_phis, sample_thetas, mask_boundary_thetas, mask_boundary_phi_idxs
-    )
+    ) = toInMaxMaskIdxs(sample_thetas, mask_boundary_thetas, mask_boundary_phi_idxs)
     (
         in_mask_sample_phis,
         in_mask_sample_polar_idxs,
@@ -458,9 +451,9 @@ def test():
         in_mask_sample_theta_weights,
     ) = toInMaskSamplePolarWeights(
         mask_params,
+        sample_phis,
+        sample_thetas,
         sample_base_values,
-        in_max_mask_sample_phis,
-        in_max_mask_sample_thetas,
         in_max_mask_sample_polar_idxs,
         in_max_mask_sample_polar_data_idxs,
     )
