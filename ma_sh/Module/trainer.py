@@ -1,6 +1,7 @@
 import torch
 from typing import Union
 
+from ma_sh.Data.mesh import Mesh
 from ma_sh.Model.mash import Mash
 from ma_sh.Module.logger import Logger
 

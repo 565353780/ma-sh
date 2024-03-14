@@ -5,10 +5,8 @@ build
 *.egg-info
 *.so
 compile_commands.json
+tmp
 
 # output
 logs
 output
-
-# git clone
-Lib
