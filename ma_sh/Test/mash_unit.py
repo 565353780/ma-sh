@@ -1,7 +1,7 @@
 import torch
 from tqdm import trange
 
-from ma_sh.Method.MashPy.mash_unit import (
+from ma_sh.Method.Mash.mash_unit import (
     toParams,
     toPreLoadUniformSamplePolars,
     toPreLoadMaskBoundaryIdxs,

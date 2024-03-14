@@ -2,7 +2,7 @@ import torch
 
 from ma_sh.Config.mode import DEBUG
 from ma_sh.Method.check import checkFormat
-from ma_sh.Method.kernel_unit import (
+from ma_sh.Method.Mash.kernel_unit import (
     toMaxValues,
     toCounts,
     toIdxs,

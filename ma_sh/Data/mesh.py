@@ -3,8 +3,8 @@ import torch
 import trimesh
 import numpy as np
 import open3d as o3d
-from copy import deepcopy
 from typing import Union
+from copy import deepcopy
 
 from a_sdf.Method.io import loadMeshFile
 from a_sdf.Method.path import createFileFolder, removeFile

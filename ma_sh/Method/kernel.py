@@ -3,7 +3,7 @@ import mash_cpp
 from torch import compile
 
 from ma_sh.Config.mode import BACKEND, TORCH_COMPILE
-from ma_sh.Method.kernel_unit import (
+from ma_sh.Method.Mash.kernel_unit import (
     toMaxValues,
     toCounts,
     toIdxs,
@@ -17,8 +17,8 @@ from ma_sh.Method.kernel_unit import (
     toSHDirections,
     toValues,
 )
-from ma_sh.Method.MashPy import mash_unit
-from ma_sh.Method.MashPy import mash
+from ma_sh.Method.Mash import mash_unit
+from ma_sh.Method.Mash import mash
 
 toParamsDict = {
     "c": mash_unit.toParams,
