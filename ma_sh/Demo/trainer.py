@@ -9,13 +9,13 @@ def demo():
     mask_degree_max = 4
     sh_degree_max = 3
     mask_boundary_sample_num = 100
-    sample_polar_num = 1000
+    sample_polar_num = 10000
     idx_dtype = torch.int64
-    dtype = torch.float32
+    dtype = torch.float64
     device = "cuda"
 
     epoch = 10000
-    lr = 1e-1
+    lr = 10.0
     weight_decay = 1e-4
     factor = 0.8
     patience = 10

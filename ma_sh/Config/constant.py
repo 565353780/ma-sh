@@ -1,6 +1,6 @@
 import numpy as np
 
-INIT_VALUE = 1e-6
+EPSILON = 1e-6
 
 PI = np.pi
 PI_2 = np.pi * 2.0

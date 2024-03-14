@@ -1,12 +1,12 @@
 import os
 import torch
 import numpy as np
-from torch import nn
 from tqdm import tqdm
 from typing import Union
 from torch.optim import AdamW as OPTIMIZER
 from torch.optim.lr_scheduler import ReduceLROnPlateau as SCHEDULER
 
+from ma_sh.Config.constant import EPSILON
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
 from ma_sh.Data.mesh import Mesh
 from ma_sh.Loss.chamfer_distance import chamferDistance
@@ -16,7 +16,6 @@ from ma_sh.Method.path import createFileFolder, removeFile, renameFile
 from ma_sh.Model.mash import Mash
 from ma_sh.Module.logger import Logger
 from ma_sh.Module.o3d_viewer import O3DViewer
-from ma_sh.Module.timer import Timer
 
 
 class Trainer(object):
@@ -243,19 +242,16 @@ class Trainer(object):
     ) -> Union[dict, None]:
         optimizer.zero_grad()
 
-        timer = Timer()
         detect_points = self.mash.toSamplePoints()
-        time1 = timer.now()
 
-        timer.reset()
         fit_dists2, coverage_dists2 = chamferDistance(
-            detect_points.reshape(1, -1, 3), gt_points, self.mash.device == "cpu"
+            detect_points.reshape(1, -1, 3).type(gt_points.dtype),
+            gt_points,
+            self.mash.device == "cpu",
         )[:2]
-        time2 = timer.now()
-        print("time spend:", time1, time2)
 
-        fit_dists = torch.mean(torch.sqrt(fit_dists2) + 1e-6)
-        coverage_dists = torch.mean(torch.sqrt(coverage_dists2) + 1e-6)
+        fit_dists = torch.mean(torch.sqrt(fit_dists2) + EPSILON)
+        coverage_dists = torch.mean(torch.sqrt(coverage_dists2) + EPSILON)
 
         fit_safe_scale = 0.2
         current_lr_coeff = np.log(self.getLr(optimizer))
@@ -268,26 +264,6 @@ class Trainer(object):
         coverage_loss = coverage_scale * torch.mean(coverage_dists)
         loss = fit_loss + coverage_loss
 
-        """
-        target_point_fit_dists = chamferDistance(
-            self.toTargetPointParams().reshape(1, -1, 3),
-            gt_points,
-            self.device == "cpu",
-        )[0]
-        overlap_distances = overlapDistance(detect_points)
-        position_distances = positionDistance(
-            self.toPositionParams(), self.toTargetPointParams()
-        )
-
-        target_point_fit_loss = 0.0001 * torch.mean(target_point_fit_dists)
-        overlap_loss = 0.0001 / (torch.mean(overlap_distances) + 1e-6)
-        position_loss = 0.0001 / (torch.mean(position_distances) + 1e-6)
-
-        loss = loss + target_point_fit_loss + overlap_loss + position_loss
-        """
-
-        # FIXME: Method.rotate matmul, Method.polar valid_mask may contain nan grad!
-        # with torch.autograd.detect_anomaly():
         loss.backward()
 
         """
@@ -326,9 +302,6 @@ class Trainer(object):
             .clone()
             .cpu()
             .numpy(),
-            # "target_point_fit_loss": toData(target_point_fit_loss, "numpy"),
-            # "overlap_loss": toData(overlap_loss, "numpy"),
-            # "position_loss": toData(position_loss, "numpy"),
             "loss": loss.detach().clone().cpu().numpy(),
         }
 
@@ -358,9 +331,13 @@ class Trainer(object):
             min_lr=self.min_lr,
         )
 
+        if self.mash.device == "cpu":
+            gt_points_dtype = self.mash.dtype
+        else:
+            gt_points_dtype = torch.float32
         gt_points = (
             torch.from_numpy(self.mesh.toSamplePoints(gt_points_num))
-            .type(self.mash.dtype)
+            .type(gt_points_dtype)
             .to(self.mash.device)
             .reshape(1, -1, 3)
         )
@@ -427,15 +404,8 @@ class Trainer(object):
                 "LOSS %.6f LR %.4f" % (loss_dict["loss"], self.getLr(optimizer))
             )
 
-            """
-            if not self.updateBestParams(loss_dict["loss"]):
-                best_result_reached_num += 1
-            else:
-                best_result_reached_num = 0
+            self.updateBestParams(loss_dict["loss"])
 
-            if best_result_reached_num > self.patience:
-                break
-            """
             if self.getLr(optimizer) <= self.min_lr:
                 best_result_reached_num += 1
 

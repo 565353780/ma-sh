@@ -1,6 +1,6 @@
 import torch
 
-from ma_sh.Config.constant import INIT_VALUE
+from ma_sh.Config.constant import EPSILON
 from ma_sh.Config.mode import DEBUG
 from ma_sh.Method.check import checkFormat
 from ma_sh.Method.Mash.kernel_unit import (
@@ -24,19 +24,19 @@ def toParams(
 ):
     mask_params = (
         torch.ones([anchor_num, mask_degree_max * 2 + 1]).type(dtype).to(device)
-        * INIT_VALUE
+        * EPSILON
     )
     mask_params[:, 0] = 1.0
 
     sh_params = (
         torch.ones([anchor_num, (sh_degree_max + 1) ** 2]).type(dtype).to(device)
-        * INIT_VALUE
+        * EPSILON
     )
     sh_params[:, 0] = 1.0
 
-    rotate_vectors = torch.ones([anchor_num, 3]).type(dtype).to(device) * INIT_VALUE
+    rotate_vectors = torch.ones([anchor_num, 3]).type(dtype).to(device) * EPSILON
 
-    positions = torch.ones([anchor_num, 3]).type(dtype).to(device) * INIT_VALUE
+    positions = torch.ones([anchor_num, 3]).type(dtype).to(device) * EPSILON
 
     if DEBUG:
         mask_params.requires_grad_(True)
