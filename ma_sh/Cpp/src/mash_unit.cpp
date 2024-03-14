@@ -64,8 +64,6 @@ void toInMaxMaskThetas(const torch::Tensor &mask_params,
                        const torch::Tensor &in_max_mask_sample_polar_data_idxs,
                        torch::Tensor &in_max_mask_base_values,
                        torch::Tensor &in_max_mask_thetas) {
-  const Slice slice_all = Slice(None);
-
   in_max_mask_base_values =
       sample_base_values.index({slice_all, in_max_mask_sample_polar_data_idxs});
 

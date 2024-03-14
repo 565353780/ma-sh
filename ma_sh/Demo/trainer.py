@@ -9,16 +9,16 @@ def demo():
     mask_degree_max = 5
     sh_degree_max = 3
     mask_boundary_sample_num = 100
-    sample_polar_num = 100000
+    sample_polar_num = 10000
     idx_dtype = torch.int64
-    dtype = torch.float64
-    device = "cpu"
+    dtype = torch.float32
+    device = "cuda:0"
 
     epoch = 10000
-    lr = 1e-2
+    lr = 1e-1
     weight_decay = 1e-4
     factor = 0.8
-    patience = 4
+    patience = 10
     min_lr = lr * 1e-1
 
     render = False
@@ -32,7 +32,7 @@ def demo():
 
     mesh_file_path = mesh_file_path_dict[mesh_name]
 
-    gt_points_num = 20000
+    gt_points_num = 10000
 
     save_params_file_path = "./output/" + mesh_name + ".npy"
     overwrite = True

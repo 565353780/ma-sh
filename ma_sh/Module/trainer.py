@@ -51,6 +51,8 @@ class Trainer(object):
             device,
         )
 
+        self.use_inv = False
+
         self.epoch = epoch
 
         self.step = 0
@@ -70,11 +72,7 @@ class Trainer(object):
         self.save_file_idx = 0
         self.logger = Logger()
 
-        self.sh_3d_degree_max = 0
-        self.sh_2d_degree_max = 0
         # TODO: can start from 0 and auto upperDegrees later
-        self.sh_3d_degree_max = self.mash.sh_degree_max
-        self.sh_2d_degree_max = self.mash.mask_degree_max
 
         self.mesh = Mesh()
 
@@ -243,16 +241,6 @@ class Trainer(object):
         optimizer,
         gt_points: torch.Tensor,
     ) -> Union[dict, None]:
-        assert self.mash.mask_params.grad is not None
-        assert self.mash.sh_params.grad is not None
-        assert self.mash.rotate_vectors.grad is not None
-        assert self.mash.positions.grad is not None
-
-        self.mash.mask_params.grad.zero_()
-        self.mash.sh_params.grad.zero_()
-        self.mash.rotate_vectors.grad.zero_()
-        self.mash.positions.grad.zero_()
-
         optimizer.zero_grad()
 
         timer = Timer()

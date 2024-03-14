@@ -14,7 +14,7 @@ def checkFormat(
         print("\t", data.dtype, "!=", dtype)
         return False
 
-    if data.device.type != device:
+    if str(data.device) != device:
         print("[WARN][check::checkFormat]")
         print("\t device not matched!")
         print("\t", data.device, "!=", device)
