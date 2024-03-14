@@ -8,16 +8,18 @@ from ma_sh.Model.mash import Mash
 from ma_sh.Module.logger import Logger
 from ma_sh.Module.o3d_viewer import O3DViewer
 
+
 class Trainer(object):
-    def __init__(self,
+    def __init__(
+        self,
         anchor_num: int = 4,
-                 mask_degree_max: int = 5,
-                 sh_degree_max: int = 3,
-                 mask_boundary_sample_num: int = 10,
-                 sample_polar_num: int = 10,
-        idx_dtype = torch.int64,
-        dtype = torch.float64,
-                 device: str = "cpu",
+        mask_degree_max: int = 5,
+        sh_degree_max: int = 3,
+        mask_boundary_sample_num: int = 10,
+        sample_polar_num: int = 10,
+        idx_dtype=torch.int64,
+        dtype=torch.float64,
+        device: str = "cpu",
         epoch: int = 1000,
         lr: float = 1e-2,
         weight_decay: float = 1e-10,
@@ -27,8 +29,17 @@ class Trainer(object):
         render: bool = False,
         save_folder_path: Union[str, None] = None,
         direction_upscale: int = 4,
-                 ) -> None:
-        self.mash = Mash(anchor_num, mask_degree_max, sh_degree_max, mask_boundary_sample_num, sample_polar_num, idx_dtype, dtype, device)
+    ) -> None:
+        self.mash = Mash(
+            anchor_num,
+            mask_degree_max,
+            sh_degree_max,
+            mask_boundary_sample_num,
+            sample_polar_num,
+            idx_dtype,
+            dtype,
+            device,
+        )
 
         self.epoch = epoch
 
