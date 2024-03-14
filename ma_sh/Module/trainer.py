@@ -290,6 +290,7 @@ class Trainer(object):
         # with torch.autograd.detect_anomaly():
         loss.backward()
 
+        """
         nn.utils.clip_grad_norm_(self.mash.mask_params, max_norm=1e5, norm_type=2)
         nn.utils.clip_grad_norm_(self.mash.sh_params, max_norm=1e5, norm_type=2)
         nn.utils.clip_grad_norm_(self.mash.rotate_vectors, max_norm=1e5, norm_type=2)
@@ -313,6 +314,7 @@ class Trainer(object):
             print("grad contains nan, set it to 0!")
             self.mash.positions.grad[torch.isnan(self.mash.positions.grad)] = 0.0
             exit()
+        """
 
         optimizer.step()
 
@@ -336,6 +338,8 @@ class Trainer(object):
         self,
         gt_points_num: int = 10000,
     ) -> bool:
+        self.mash.setGradState(True)
+
         optimizer = OPTIMIZER(
             [
                 self.mash.mask_params,
@@ -471,7 +475,7 @@ class Trainer(object):
 
             if self.upperSHDegree():
                 print("[INFO][Trainer::autoTrainMash]")
-                print("\t upperSH3DDegree success!")
+                print("\t upperSHDegree success!")
                 print("\t start auto train Mash...")
                 print(
                     "\t degree: mask:",
@@ -483,7 +487,7 @@ class Trainer(object):
 
             if self.upperMaskDegree():
                 print("[INFO][Trainer::autoTrainMash]")
-                print("\t upperSH2DDegree success!")
+                print("\t upperMaskDegree success!")
                 print("\t start auto train Mash...")
                 print(
                     "\t degree: mask:",

@@ -1,5 +1,6 @@
 import torch
 
+from ma_sh.Config.constant import INIT_VALUE
 from ma_sh.Config.mode import DEBUG
 from ma_sh.Method.check import checkFormat
 from ma_sh.Method.Mash.kernel_unit import (
@@ -22,24 +23,23 @@ def toParams(
     anchor_num: int, mask_degree_max: int, sh_degree_max: int, dtype, device: str
 ):
     mask_params = (
-        torch.zeros([anchor_num, mask_degree_max * 2 + 1]).type(dtype).to(device)
+        torch.ones([anchor_num, mask_degree_max * 2 + 1]).type(dtype).to(device)
+        * INIT_VALUE
     )
+    mask_params[:, 0] = 1.0
 
     sh_params = (
-        torch.zeros([anchor_num, (sh_degree_max + 1) ** 2]).type(dtype).to(device)
+        torch.ones([anchor_num, (sh_degree_max + 1) ** 2]).type(dtype).to(device)
+        * INIT_VALUE
     )
+    sh_params[:, 0] = 1.0
 
-    rotate_vectors = torch.zeros([anchor_num, 3]).type(dtype).to(device)
+    rotate_vectors = torch.ones([anchor_num, 3]).type(dtype).to(device) * INIT_VALUE
 
-    positions = torch.zeros([anchor_num, 3]).type(dtype).to(device)
+    positions = torch.ones([anchor_num, 3]).type(dtype).to(device) * INIT_VALUE
 
     if DEBUG:
-        for i in range(anchor_num):
-            mask_params[i, 0] = i + 1.0
         mask_params.requires_grad_(True)
-
-        for i in range(anchor_num):
-            sh_params[i, 0] = i + 1.0
         sh_params.requires_grad_(True)
 
         for i in range(anchor_num):

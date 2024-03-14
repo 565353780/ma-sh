@@ -130,7 +130,7 @@ class Mash(object):
 
         self.mask_degree_max = mask_degree_max
 
-        new_dim = (self.mask_degree_max + 1) ** 2
+        new_dim = 2 * self.mask_degree_max + 1
 
         new_mask_params = torch.zeros(
             [self.mask_params.shape[0], new_dim], dtype=self.dtype

@@ -4,4 +4,4 @@ BACKEND = "p"
 # valid compile modes: "reduce-overhead", "max-autotune"
 TORCH_COMPILE = "reduce-overhead"
 
-DEBUG = True
+DEBUG = False
