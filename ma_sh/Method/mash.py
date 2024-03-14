@@ -1,7 +1,6 @@
 import torch
 
 from ma_sh.Method.mash_unit import (
-    toParams,
     toPreLoadUniformSamplePolars,
     toPreLoadMaskBoundaryIdxs,
     toPreLoadBaseValues,

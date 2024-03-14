@@ -1,10 +1,9 @@
 import torch
 from tqdm import trange
 
-from ma_sh.Config.constant import DEBUG
+from ma_sh.Config.mode import DEBUG
 
-from ma_sh.Method.mash import toParams, toPreLoadDatas
-from mash_cpp import toMashSamplePoints
+from ma_sh.Method.kernel import toParams, toPreLoadDatas, toMashSamplePoints
 
 
 def test():

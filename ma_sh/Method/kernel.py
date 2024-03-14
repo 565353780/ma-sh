@@ -1,58 +1,43 @@
-from ma_sh.Config.kernel import (
-    toMaxValuesDict,
-    toCountsDict,
-    toIdxsDict,
-    toLowerIdxsListDict,
-    toMaskBaseValuesDict,
-    toRotateMatrixsDict,
-    toRotateVectorsDict,
-    toUniformSamplePhisDict,
-    toUniformSampleThetasDict,
-    toMaskBoundaryPhisDict,
-    toSHBaseValuesDict,
-    toSHDirectionsDict,
-    toValuesDict,
+import torch
+import mash_cpp
+from torch import compile
+
+from ma_sh.Config.mode import BACKEND, TORCH_COMPILE
+from ma_sh.Method.kernel_unit import (
+    toMaxValues,
+    toCounts,
+    toIdxs,
+    toLowerIdxsList,
+    toMaskBaseValues,
+    toRotateMatrixs,
+    toUniformSamplePhis,
+    toUniformSampleThetas,
+    toMaskBoundaryPhis,
+    toSHBaseValues,
+    toSHDirections,
+    toValues,
 )
+from ma_sh.Method import mash_unit
+from ma_sh.Method import mash
 
-test_mode = "c"
+toParamsDict = {
+    "c": mash_unit.toParams,
+    "p": mash_unit.toParams,
+    "p+": compile(mash_unit.toParams, mode=TORCH_COMPILE),
+}
 
-toMaxValues = toMaxValuesDict[test_mode]
+toPreLoadDatasDict = {
+    "c": mash.toPreLoadDatas,
+    "p": mash.toPreLoadDatas,
+    "p+": compile(mash.toPreLoadDatas, mode=TORCH_COMPILE),
+}
 
-toCounts = toCountsDict[test_mode]
-toIdxs = toIdxsDict[test_mode]
-toLowerIdxsList = toLowerIdxsListDict[test_mode]
+toMashSamplePointsDict = {
+    "c": mash_cpp.toMashSamplePoints,
+    "p": mash.toMashSamplePoints,
+    "p+": compile(mash.toMashSamplePoints, mode=TORCH_COMPILE),
+}
 
-toMaskBaseValues = toMaskBaseValuesDict[test_mode]
-
-toRotateMatrixs = toRotateMatrixsDict[test_mode]
-toRotateVectors = toRotateVectorsDict[test_mode]
-
-toUniformSamplePhis = toUniformSamplePhisDict[test_mode]
-toUniformSampleThetas = toUniformSampleThetasDict[test_mode]
-toMaskBoundaryPhis = toMaskBoundaryPhisDict[test_mode]
-
-toSHBaseValues = toSHBaseValuesDict[test_mode]
-toSHDirections = toSHDirectionsDict[test_mode]
-
-toValues = toValuesDict[test_mode]
-
-if False:
-    toMaxValues = toMaxValuesDict["c"]
-
-    toCounts = toCountsDict["c"]
-    toIdxs = toIdxsDict["c"]
-    toLowerIdxsList = toLowerIdxsListDict["c"]
-
-    toMaskBaseValues = toMaskBaseValuesDict["p+"]
-
-    toRotateMatrixs = toRotateMatrixsDict["c"]
-    toRotateVectors = toRotateVectorsDict["c"]
-
-    toUniformSamplePhis = toUniformSamplePhisDict["c"]
-    toUniformSampleThetas = toUniformSampleThetasDict["c"]
-    toMaskBoundaryPhis = toMaskBoundaryPhisDict["p+"]
-
-    toSHBaseValues = toSHBaseValuesDict["c"]
-    toSHDirections = toSHDirectionsDict["c"]
-
-    toValues = toValuesDict["c"]
+toParams = toParamsDict[BACKEND]
+toPreLoadDatas = toPreLoadDatasDict[BACKEND]
+toMashSamplePoints = toMashSamplePointsDict[BACKEND]
