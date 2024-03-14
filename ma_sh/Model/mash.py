@@ -1,7 +1,15 @@
 import torch
 
 from ma_sh.Method.kernel import toParams, toPreLoadDatas, toMashSamplePoints
-from ma_sh.Method.render import renderPoints
+
+try:
+    from ma_sh.Method.render import renderPoints
+
+    NO_RENDER = 0
+except:
+    print("[WARN][mash::import]")
+    print("\t import open3d failed! all render functions will be disabled now!")
+    NO_RENDER = 1
 
 
 class Mash(object):
@@ -102,6 +110,9 @@ class Mash(object):
         return sample_points
 
     def renderSamplePoints(self) -> bool:
+        if NO_RENDER:
+            return False
+
         sample_points = self.toSamplePoints().detach().clone().cpu().numpy()
 
         renderPoints(sample_points)
