@@ -10,4 +10,4 @@ pip install -e .
 cd ../ma-sh
 pip install .
 
-pip install tqdm open3d tensorboard
+pip install tqdm open3d tensorboard matplotlib

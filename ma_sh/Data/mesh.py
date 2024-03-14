@@ -6,14 +6,14 @@ import open3d as o3d
 from typing import Union
 from copy import deepcopy
 
-from a_sdf.Method.io import loadMeshFile
-from a_sdf.Method.path import createFileFolder, removeFile
-from a_sdf.Method.mesh import samplePointCloud, samplePoints
-from a_sdf.Method.sort import getNearIdxs
-from a_sdf.Method.color import getJetColorsFromDists
-from a_sdf.Loss.chamfer_distance import chamferDistance
-from a_sdf.Method.render import renderGeometries
-from a_sdf.Module.timer import Timer
+from ma_sh.Method.io import loadMeshFile
+from ma_sh.Method.path import createFileFolder, removeFile
+from ma_sh.Method.mesh import samplePointCloud, samplePoints
+from ma_sh.Method.sort import getNearIdxs
+from ma_sh.Method.color import getJetColorsFromDists
+from ma_sh.Loss.chamfer_distance import chamferDistance
+from ma_sh.Method.render import renderGeometries
+from ma_sh.Module.timer import Timer
 
 
 class Mesh(object):
