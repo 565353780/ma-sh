@@ -473,6 +473,8 @@ class Trainer(object):
                 self.mash.reset()
                 continue
 
+            break
+
             if self.upperSHDegree():
                 print("[INFO][Trainer::autoTrainMash]")
                 print("\t upperSHDegree success!")
