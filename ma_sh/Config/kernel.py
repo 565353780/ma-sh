@@ -3,7 +3,7 @@ import mash_cpp
 from torch import compile
 
 from ma_sh.Config.mode import TORCH_COMPILE
-from ma_sh.Method import (
+from ma_sh.Method.MashPy import (
     filter,
     idx,
     mask,

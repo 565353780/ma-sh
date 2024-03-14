@@ -17,8 +17,8 @@ from ma_sh.Method.kernel_unit import (
     toSHDirections,
     toValues,
 )
-from ma_sh.Method import mash_unit
-from ma_sh.Method import mash
+from ma_sh.Method.MashPy import mash_unit
+from ma_sh.Method.MashPy import mash
 
 toParamsDict = {
     "c": mash_unit.toParams,
