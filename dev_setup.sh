@@ -10,4 +10,4 @@ pip install -e .
 cd ../ma-sh
 pip install .
 
-pip install tqdm
+pip install tqdm open3d

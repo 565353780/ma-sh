@@ -40,4 +40,5 @@ def test():
     for _ in trange(1000):
         sh_points = mash.toSamplePoints()
 
+    mash.renderSamplePoints()
     return True

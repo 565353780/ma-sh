@@ -1,6 +1,7 @@
 import torch
 
 from ma_sh.Method.kernel import toParams, toPreLoadDatas, toMashSamplePoints
+from ma_sh.Method.render import renderPoints
 
 
 class Mash(object):
@@ -84,7 +85,7 @@ class Mash(object):
         return True
 
     def toSamplePoints(self) -> torch.Tensor:
-        sh_points = toMashSamplePoints(
+        sample_points = toMashSamplePoints(
             self.sh_degree_max,
             self.mask_params,
             self.sh_params,
@@ -98,4 +99,10 @@ class Mash(object):
             self.sample_sh_directions,
         )
 
-        return sh_points
+        return sample_points
+
+    def renderSamplePoints(self) -> bool:
+        sample_points = self.toSamplePoints().detach().clone().cpu().numpy()
+
+        renderPoints(sample_points)
+        return True
