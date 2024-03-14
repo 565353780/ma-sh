@@ -1,5 +1,5 @@
 # TODO: current support "c"(c++ backend) and "p"(python backend)
-BACKEND = "p"
+BACKEND = "c"
 
 # valid compile modes: "reduce-overhead", "max-autotune"
 TORCH_COMPILE = "reduce-overhead"

@@ -2,20 +2,18 @@
 #include <cstdint>
 
 const torch::Tensor toCounts(const std::vector<torch::Tensor> &data_vec) {
-  std::vector<int64_t> counts_vec;
+  std::vector<torch::Tensor> counts_vec;
   counts_vec.reserve(data_vec.size());
-
-  for (size_t i = 0; i < data_vec.size(); ++i) {
-    counts_vec.emplace_back(data_vec[i].sizes()[0]);
-  }
 
   const torch::TensorOptions opts = torch::TensorOptions()
                                         .dtype(data_vec[0].dtype())
                                         .device(data_vec[0].device());
 
-  const torch::Tensor counts =
-      torch::from_blob(counts_vec.data(), {int64_t(counts_vec.size())}, opts)
-          .clone();
+  for (size_t i = 0; i < data_vec.size(); ++i) {
+    counts_vec.emplace_back(torch::tensor(data_vec[i].sizes()[0], opts));
+  }
+
+  const torch::Tensor counts = torch::hstack(counts_vec);
 
   return counts;
 }

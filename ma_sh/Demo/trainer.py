@@ -12,7 +12,7 @@ def demo():
     sample_polar_num = 1000
     idx_dtype = torch.int64
     dtype = torch.float32
-    device = "cuda:0"
+    device = "cuda"
 
     epoch = 10000
     lr = 1e-1
@@ -21,7 +21,7 @@ def demo():
     patience = 10
     min_lr = lr * 1e-1
 
-    render = True
+    render = False
 
     mesh_name = "linux_bunny"
 
