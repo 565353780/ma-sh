@@ -21,7 +21,7 @@ sources = [
 include_dirs = [root_path + "include"]
 
 extra_compile_args = [
-    "-std=c++20",
+    "-std=c++17",
     "-DCMAKE_BUILD_TYPE Release" "-O3",
     "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
     "-D_GLIBCXX_USE_CXX11_ABI=0",
