@@ -6,6 +6,8 @@ import open3d as o3d
 from typing import Union
 from copy import deepcopy
 
+from ma_sh.Data.point import Point
+from ma_sh.Data.pcd import Pcd
 from ma_sh.Method.io import loadMeshFile
 from ma_sh.Method.path import createFileFolder, removeFile
 from ma_sh.Method.mesh import samplePointCloud, samplePoints
@@ -258,20 +260,20 @@ class Mesh(object):
     def toNearestFaceCenter(self, point: Point) -> Point:
         return Point.from_numpy(self.toFaceCenters()[self.toNearestFaceIdx()])
 
-    def toPCD(self, sample_point_num):
+    def toPcd(self, sample_point_num):
         if not self.isValid(True):
-            print("[ERROR][Mesh::toPCD]")
+            print("[ERROR][Mesh::toPcd]")
             print("\t isValid failed!")
             return None
 
         new_pcd = samplePointCloud(self.toO3DMesh(), sample_point_num)
 
         if new_pcd is None:
-            print("[ERROR][Mesh::toPCD]")
+            print("[ERROR][Mesh::toPcd]")
             print("\t samplePointCloud failed!")
             return None
 
-        pcd = PCD()
+        pcd = Pcd()
         pcd.pcd = new_pcd
         return pcd
 
@@ -355,14 +357,14 @@ class Mesh(object):
         self.sample_normals = np.asarray(sample_pcd.normals)
         return True
 
-    def toSamplePCD(self) -> PCD:
+    def toSamplePcd(self) -> Pcd:
         sample_pcd = o3d.geometry.PointCloud()
         sample_pcd.points = o3d.utility.Vector3dVector(self.sample_pts)
         sample_pcd.normals = o3d.utility.Vector3dVector(self.sample_normals)
         colors = np.zeros([self.sample_pts.shape[0], 3], dtype=float)
         colors[:, 0] = 1
         sample_pcd.colors = o3d.utility.Vector3dVector(colors)
-        return PCD.from_o3d(sample_pcd)
+        return Pcd.from_o3d(sample_pcd)
 
     def save(self, save_mesh_file_path: str, overwrite: bool = False) -> bool:
         createFileFolder(save_mesh_file_path)

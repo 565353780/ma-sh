@@ -2,9 +2,9 @@ import os
 import open3d as o3d
 
 
-def loadPCDFile(pcd_file_path):
+def loadPcdFile(pcd_file_path):
     if not os.path.exists(pcd_file_path):
-        print("[ERROR][mesh::loadPCDFile]")
+        print("[ERROR][mesh::loadPcdFile]")
         print("\t pcd file not exist!")
         print("\t pcd_file_path:", pcd_file_path)
         return None

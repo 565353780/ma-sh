@@ -1,9 +1,12 @@
+import os
 import torch
 from typing import Union
 
 from ma_sh.Data.mesh import Mesh
+from ma_sh.Method.time import getCurrentTime
 from ma_sh.Model.mash import Mash
 from ma_sh.Module.logger import Logger
+from ma_sh.Module.o3d_viewer import O3DViewer
 
 class Trainer(object):
     def __init__(self,
@@ -23,7 +26,6 @@ class Trainer(object):
         min_lr: float = 1e-3,
         render: bool = False,
         save_folder_path: Union[str, None] = None,
-        sample_direction_num: int = 200,
         direction_upscale: int = 4,
                  ) -> None:
         self.mash = Mash(anchor_num, mask_degree_max, sh_degree_max, mask_boundary_sample_num, sample_polar_num, idx_dtype, dtype, device)
@@ -60,13 +62,25 @@ class Trainer(object):
 
         self.direction_upscale = direction_upscale
         self.fps_scale = 1.0 / self.direction_upscale
-        self.xy_rads_radiuses = toData(
-            getUniformSampleXYRadsRadiuses(sample_direction_num * direction_upscale),
-            self.method_name,
-            self.dtype,
-        ).to(self.device)
 
         if self.render:
             self.o3d_viewer = O3DViewer()
             self.o3d_viewer.createWindow()
         return
+
+    def loadRecords(self, save_folder_path: Union[str, None] = None) -> bool:
+        self.save_file_idx = 0
+
+        current_time = getCurrentTime()
+
+        if save_folder_path is None:
+            self.save_folder_path = "./output/" + current_time + "/"
+            log_folder_path = "./logs/" + current_time + "/"
+        else:
+            self.save_folder_path = save_folder_path
+            log_folder_path = save_folder_path + "../logs/" + current_time + "/"
+
+        os.makedirs(self.save_folder_path, exist_ok=True)
+        os.makedirs(log_folder_path, exist_ok=True)
+        self.logger.setLogFolder(log_folder_path)
+        return True
