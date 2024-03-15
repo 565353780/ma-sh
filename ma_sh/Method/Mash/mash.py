@@ -108,8 +108,8 @@ def toMashSamplePoints(
         in_mask_sample_polar_idxs,
         in_mask_sample_theta_weights,
     )
-    all_sample_phis = torch.hstack([mask_boundary_phis, in_mask_sample_phis])
-    all_sample_thetas = torch.hstack([mask_boundary_thetas, detect_thetas])
+    all_sample_phis = torch.hstack([in_mask_sample_phis, mask_boundary_phis])
+    all_sample_thetas = torch.hstack([detect_thetas, mask_boundary_thetas])
     all_sample_polar_idxs = torch.hstack(
         [in_mask_sample_polar_idxs, mask_boundary_phi_idxs]
     )
