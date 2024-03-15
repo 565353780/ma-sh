@@ -1,7 +1,7 @@
 import torch
 
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
-from ma_sh.Method.kernel import toParams, toPreLoadDatas, toMashSamplePoints
+from ma_sh.Method.Mash.mash import toParams, toPreLoadDatas, toMashSamplePoints
 
 try:
     from ma_sh.Method.render import renderPoints

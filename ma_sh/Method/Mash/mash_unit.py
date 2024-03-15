@@ -1,23 +1,9 @@
 import torch
+import mash_cpp
 
 from ma_sh.Config.constant import EPSILON
 from ma_sh.Config.mode import DEBUG
 from ma_sh.Method.check import checkFormat
-from ma_sh.Method.Mash.kernel_unit import (
-    toMaxValues,
-    toCounts,
-    toIdxs,
-    toDataIdxs,
-    toLowerIdxsList,
-    toMaskBaseValues,
-    toRotateMatrixs,
-    toUniformSamplePhis,
-    toUniformSampleThetas,
-    toMaskBoundaryPhis,
-    toSHBaseValues,
-    toSHDirections,
-    toValues,
-)
 
 
 def toParams(
@@ -64,8 +50,10 @@ def toParams(
 
 
 def toPreLoadUniformSamplePolars(sample_polar_num: int, dtype, device: str):
-    sample_phis = toUniformSamplePhis(sample_polar_num).type(dtype).to(device)
-    sample_thetas = toUniformSampleThetas(sample_polar_num).type(dtype).to(device)
+    sample_phis = mash_cpp.toUniformSamplePhis(sample_polar_num).type(dtype).to(device)
+    sample_thetas = (
+        mash_cpp.toUniformSampleThetas(sample_polar_num).type(dtype).to(device)
+    )
 
     if DEBUG:
         assert checkFormat(sample_phis, dtype, device, [sample_polar_num], False)
@@ -80,9 +68,11 @@ def toPreLoadMaskBoundaryIdxs(
     mask_boundary_phi_counts = (
         torch.ones(anchor_num).type(idx_dtype).to(device) * mask_boundary_sample_num
     )
-    mask_boundary_phi_idxs = toIdxs(mask_boundary_phi_counts)
+    mask_boundary_phi_idxs = mash_cpp.toIdxs(mask_boundary_phi_counts)
     mask_boundary_phi_data_idxs = (
-        toDataIdxs(anchor_num, mask_boundary_sample_num).type(idx_dtype).to(device)
+        mash_cpp.toDataIdxs(anchor_num, mask_boundary_sample_num)
+        .type(idx_dtype)
+        .to(device)
     )
 
     if DEBUG:
@@ -114,12 +104,14 @@ def toPreLoadBaseValues(
     sample_phis: torch.Tensor,
 ):
     mask_boundary_phis = (
-        toMaskBoundaryPhis(anchor_num, mask_boundary_sample_num)
+        mash_cpp.toMaskBoundaryPhis(anchor_num, mask_boundary_sample_num)
         .type(sample_phis.dtype)
         .to(sample_phis.device)
     )
-    mask_boundary_base_values = toMaskBaseValues(mask_boundary_phis, mask_degree_max)
-    sample_base_values = toMaskBaseValues(sample_phis, mask_degree_max)
+    mask_boundary_base_values = mash_cpp.toMaskBaseValues(
+        mask_boundary_phis, mask_degree_max
+    )
+    sample_base_values = mash_cpp.toMaskBaseValues(sample_phis, mask_degree_max)
 
     if DEBUG:
         dtype = sample_phis.dtype
@@ -151,7 +143,7 @@ def toPreLoadBaseValues(
 
 
 def toPreLoadSHDirections(sample_phis: torch.Tensor, sample_thetas: torch.Tensor):
-    sample_sh_directions = toSHDirections(sample_phis, sample_thetas)
+    sample_sh_directions = mash_cpp.toSHDirections(sample_phis, sample_thetas)
 
     if DEBUG:
         dtype = sample_phis.dtype
@@ -169,7 +161,7 @@ def toMaskBoundaryThetas(
     mask_boundary_base_values: torch.Tensor,
     mask_boundary_phi_idxs: torch.Tensor,
 ):
-    mask_boundary_thetas = toValues(
+    mask_boundary_thetas = mash_cpp.toValues(
         mask_params, mask_boundary_base_values, mask_boundary_phi_idxs
     )
 
@@ -189,14 +181,16 @@ def toMaskBoundaryThetas(
 
 
 def toInMaxMaskIdxs(sample_thetas, mask_boundary_thetas, mask_boundary_phi_idxs):
-    mask_boundary_max_thetas = toMaxValues(
+    mask_boundary_max_thetas = mash_cpp.toMaxValues(
         mask_boundary_thetas.detach(), mask_boundary_phi_idxs
     )
-    in_max_mask_sample_polar_idxs_list = toLowerIdxsList(
+    in_max_mask_sample_polar_idxs_list = mash_cpp.toLowerIdxsVec(
         sample_thetas, mask_boundary_max_thetas
     )
-    in_max_mask_sample_polar_counts = toCounts(in_max_mask_sample_polar_idxs_list)
-    in_max_mask_sample_polar_idxs = toIdxs(in_max_mask_sample_polar_counts)
+    in_max_mask_sample_polar_counts = mash_cpp.toCounts(
+        in_max_mask_sample_polar_idxs_list
+    )
+    in_max_mask_sample_polar_idxs = mash_cpp.toIdxs(in_max_mask_sample_polar_counts)
     in_max_mask_sample_polar_data_idxs = torch.hstack(
         in_max_mask_sample_polar_idxs_list
     )
@@ -280,7 +274,7 @@ def toInMaxMaskThetas(
     in_max_mask_sample_polar_idxs: torch.Tensor,
 ):
     with torch.no_grad():
-        in_max_mask_thetas = toValues(
+        in_max_mask_thetas = mash_cpp.toValues(
             mask_params, in_max_mask_base_values, in_max_mask_sample_polar_idxs
         )
 
@@ -357,7 +351,7 @@ def toSamplePolars(
     in_mask_sample_polar_idxs,
     in_mask_sample_theta_weights,
 ):
-    detect_boundary_thetas = toValues(
+    detect_boundary_thetas = mash_cpp.toValues(
         mask_params, in_mask_base_values, in_mask_sample_polar_idxs
     )
     detect_thetas = in_mask_sample_theta_weights * detect_boundary_thetas
@@ -387,8 +381,10 @@ def toSHValues(
     detect_thetas,
     in_mask_sample_polar_idxs,
 ):
-    sh_base_values = toSHBaseValues(in_mask_sample_phis, detect_thetas, sh_degree_max)
-    sh_values = toValues(sh_params, sh_base_values, in_mask_sample_polar_idxs)
+    sh_base_values = mash_cpp.toSHBaseValues(
+        in_mask_sample_phis, detect_thetas, sh_degree_max
+    )
+    sh_values = mash_cpp.toValues(sh_params, sh_base_values, in_mask_sample_polar_idxs)
 
     if DEBUG:
         dtype = sh_params.dtype
@@ -420,7 +416,7 @@ def toSHPoints(
     in_mask_sh_directions = sample_sh_directions[in_mask_sample_polar_data_idxs]
     sh_local_points = v_sh_values * in_mask_sh_directions
     in_mask_rotate_vectors = rotate_vectors[in_mask_sample_polar_idxs]
-    in_mask_rotate_matrixs = toRotateMatrixs(in_mask_rotate_vectors)
+    in_mask_rotate_matrixs = mash_cpp.toRotateMatrixs(in_mask_rotate_vectors)
     v_sh_local_points = sh_local_points.reshape(-1, 1, 3)
     v_sh_local_rotate_points = torch.matmul(v_sh_local_points, in_mask_rotate_matrixs)
     sh_local_rotate_points = v_sh_local_rotate_points.reshape(-1, 3)
