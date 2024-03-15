@@ -1,6 +1,7 @@
 import torch
 
 from ma_sh.Method.Mash.mash_unit import (
+    toInMaxMaskBaseValues,
     toPreLoadUniformSamplePolars,
     toPreLoadMaskBoundaryIdxs,
     toPreLoadBaseValues,
@@ -72,14 +73,13 @@ def toMashSamplePoints(
     ) = toInMaxMaskPolars(
         sample_phis, sample_thetas, in_max_mask_sample_polar_data_idxs
     )
-    (
-        in_max_mask_base_values,
-        in_max_mask_thetas,
-    ) = toInMaxMaskThetas(
+    in_max_mask_base_values = toInMaxMaskBaseValues(
+        sample_base_values, in_max_mask_sample_polar_data_idxs
+    )
+    in_max_mask_thetas = toInMaxMaskThetas(
         mask_params,
-        sample_base_values,
+        in_max_mask_base_values,
         in_max_mask_sample_polar_idxs,
-        in_max_mask_sample_polar_data_idxs,
     )
     (
         in_mask_sample_phis,

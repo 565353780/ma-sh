@@ -158,10 +158,9 @@ def toMaskBoundaryThetas(
     mask_boundary_base_values: torch.Tensor,
     mask_boundary_phi_idxs: torch.Tensor,
 ):
-    with torch.no_grad():
-        mask_boundary_thetas = toValues(
-            mask_params, mask_boundary_base_values, mask_boundary_phi_idxs
-        )
+    mask_boundary_thetas = toValues(
+        mask_params, mask_boundary_base_values, mask_boundary_phi_idxs
+    )
 
     if DEBUG:
         dtype = mask_params.dtype
@@ -172,14 +171,16 @@ def toMaskBoundaryThetas(
             dtype,
             device,
             [mask_boundary_base_values.shape[1]],
-            False,
+            True,
         )
 
     return mask_boundary_thetas
 
 
 def toInMaxMaskIdxs(sample_thetas, mask_boundary_thetas, mask_boundary_phi_idxs):
-    mask_boundary_max_thetas = toMaxValues(mask_boundary_thetas, mask_boundary_phi_idxs)
+    mask_boundary_max_thetas = toMaxValues(
+        mask_boundary_thetas.detach(), mask_boundary_phi_idxs
+    )
     in_max_mask_sample_polar_idxs_list = toLowerIdxsList(
         sample_thetas, mask_boundary_max_thetas
     )
@@ -242,13 +243,31 @@ def toInMaxMaskPolars(sample_phis, sample_thetas, in_max_mask_sample_polar_data_
     return in_max_mask_sample_phis, in_max_mask_sample_thetas
 
 
-def toInMaxMaskThetas(
-    mask_params,
-    sample_base_values,
-    in_max_mask_sample_polar_idxs,
-    in_max_mask_sample_polar_data_idxs,
-):
+def toInMaxMaskBaseValues(
+    sample_base_values: torch.Tensor, in_max_mask_sample_polar_data_idxs: torch.Tensor
+) -> torch.Tensor:
     in_max_mask_base_values = sample_base_values[:, in_max_mask_sample_polar_data_idxs]
+
+    if DEBUG:
+        dtype = sample_base_values.dtype
+        device = str(sample_base_values.device)
+
+        assert checkFormat(
+            in_max_mask_base_values,
+            dtype,
+            device,
+            [sample_base_values.shape[0], in_max_mask_sample_polar_data_idxs.shape[0]],
+            False,
+        )
+
+    return in_max_mask_base_values
+
+
+def toInMaxMaskThetas(
+    mask_params: torch.Tensor,
+    in_max_mask_base_values: torch.Tensor,
+    in_max_mask_sample_polar_idxs: torch.Tensor,
+):
     with torch.no_grad():
         in_max_mask_thetas = toValues(
             mask_params, in_max_mask_base_values, in_max_mask_sample_polar_idxs
@@ -259,13 +278,6 @@ def toInMaxMaskThetas(
         device = str(mask_params.device)
 
         assert checkFormat(
-            in_max_mask_base_values,
-            dtype,
-            device,
-            [sample_base_values.shape[0], in_max_mask_sample_polar_idxs.shape[0]],
-            False,
-        )
-        assert checkFormat(
             in_max_mask_thetas,
             dtype,
             device,
@@ -273,7 +285,7 @@ def toInMaxMaskThetas(
             False,
         )
 
-    return in_max_mask_base_values, in_max_mask_thetas
+    return in_max_mask_thetas
 
 
 def toInMaskSamplePolarWeights(

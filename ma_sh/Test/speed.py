@@ -2,6 +2,7 @@ import torch
 from tqdm import trange
 
 from ma_sh.Method.Mash.mash_unit import (
+    toInMaxMaskBaseValues,
     toParams,
     toPreLoadUniformSamplePolars,
     toPreLoadMaskBoundaryIdxs,
@@ -10,6 +11,7 @@ from ma_sh.Method.Mash.mash_unit import (
     toMaskBoundaryThetas,
     toInMaxMaskIdxs,
     toInMaxMaskPolars,
+    toInMaxMaskBaseValues,
     toInMaxMaskThetas,
     toInMaskSamplePolarWeights,
     toSamplePolars,
@@ -58,14 +60,13 @@ def test():
     ) = toInMaxMaskPolars(
         sample_phis, sample_thetas, in_max_mask_sample_polar_data_idxs
     )
-    (
-        in_max_mask_base_values,
-        in_max_mask_thetas,
-    ) = toInMaxMaskThetas(
+    in_max_mask_base_values = toInMaxMaskBaseValues(
+        sample_base_values, in_max_mask_sample_polar_data_idxs
+    )
+    in_max_mask_thetas = toInMaxMaskThetas(
         mask_params,
-        sample_base_values,
+        in_max_mask_base_values,
         in_max_mask_sample_polar_idxs,
-        in_max_mask_sample_polar_data_idxs,
     )
     (
         in_mask_sample_phis,
@@ -160,16 +161,19 @@ def test():
             sample_phis, sample_thetas, in_max_mask_sample_polar_data_idxs
         )
 
+    print("\t toInMaxMaskBaseValues")
+    for _ in trange(test_num):
+        in_max_mask_base_values = toInMaxMaskBaseValues(
+            sample_base_values,
+            in_max_mask_sample_polar_data_idxs,
+        )
+
     print("\t toInMaxMaskThetas")
     for _ in trange(test_num):
-        (
-            in_max_mask_base_values,
-            in_max_mask_thetas,
-        ) = toInMaxMaskThetas(
+        in_max_mask_thetas = toInMaxMaskThetas(
             mask_params,
-            sample_base_values,
+            in_max_mask_base_values,
             in_max_mask_sample_polar_idxs,
-            in_max_mask_sample_polar_data_idxs,
         )
 
     print("\t toInMaskSamplePolarWeights")
