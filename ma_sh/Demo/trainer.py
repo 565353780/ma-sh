@@ -15,11 +15,11 @@ def demo():
     device = "cuda:0"
 
     epoch = 10000
-    lr = 10.0
+    lr = 1.0
     weight_decay = 1e-4
     factor = 0.8
     patience = 10
-    min_lr = lr * 1e-1
+    min_lr = 1e-3
 
     render = False
 
@@ -32,7 +32,7 @@ def demo():
 
     mesh_file_path = mesh_file_path_dict[mesh_name]
 
-    gt_points_num = 20000
+    gt_points_num = 10000
 
     save_params_file_path = "./output/" + mesh_name + ".npy"
     overwrite = True

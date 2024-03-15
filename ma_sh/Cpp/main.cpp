@@ -1,6 +1,7 @@
 #include "filter.h"
 #include "idx.h"
 #include "mash.h"
+#include "mash_unit.h"
 #include "mask.h"
 #include "rotate.h"
 #include "sample.h"
@@ -19,6 +20,9 @@ PYBIND11_MODULE(mash_cpp, m) {
   m.def("toLowerIdxsVec", &toLowerIdxsVec, "idx.toLowerIdxsVec");
 
   m.def("toMashSamplePoints", &toMashSamplePoints, "mash.toMashSamplePoints");
+
+  m.def("toMaskBoundaryThetas", &toMaskBoundaryThetas,
+        "mash_unit.toMaskBoundaryThetas");
 
   m.def("toMaskBaseValues", &toMaskBaseValues, "mask.toMaskBaseValues");
 

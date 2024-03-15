@@ -1,4 +1,5 @@
 import torch
+import mash_cpp
 from tqdm import trange
 
 from ma_sh.Method.Mash.mash_unit import (
@@ -27,7 +28,7 @@ def test():
     sample_polar_num = 10
     idx_dtype = torch.int64
     dtype = torch.float64
-    device = "cpu"
+    device = "cuda:0"
 
     mask_params, sh_params, rotate_vectors, positions = toParams(
         anchor_num, mask_degree_max, sh_degree_max, dtype, device

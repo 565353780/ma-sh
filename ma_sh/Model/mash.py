@@ -1,7 +1,8 @@
 import torch
+import mash_cpp
 
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
-from ma_sh.Method.Mash.mash import toParams, toPreLoadDatas, toMashSamplePoints
+from ma_sh.Method.Mash.mash import toParams, toPreLoadDatas
 from ma_sh.Method.render import renderPoints
 
 
@@ -169,7 +170,7 @@ class Mash(object):
         return True
 
     def toSamplePoints(self) -> torch.Tensor:
-        sample_points = toMashSamplePoints(
+        sample_points = mash_cpp.toMashSamplePoints(
             self.sh_degree_max,
             self.mask_params,
             self.sh_params,
