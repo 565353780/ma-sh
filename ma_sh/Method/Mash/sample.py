@@ -24,14 +24,15 @@ def toUniformSampleThetas(sample_num: int) -> torch.Tensor:
 
 
 def toMaskBoundaryPhis(anchor_num: int, mask_boundary_sample_num: int) -> torch.Tensor:
-    mask_boundary_phis = torch.zeros(anchor_num, mask_boundary_sample_num)
+    mask_boundary_phi_matrix = torch.zeros(anchor_num, mask_boundary_sample_num)
 
     for i in range(mask_boundary_sample_num):
-        mask_boundary_phis[:, i] = PI_2 * i / mask_boundary_sample_num
+        mask_boundary_phi_matrix[:, i] = PI_2 * i / mask_boundary_sample_num
 
-    mask_boundary_phis = mask_boundary_phis.reshape(-1)
+    mask_boundary_phis = mask_boundary_phi_matrix.reshape(-1)
 
     return mask_boundary_phis
+
 
 def toFPSIdxs(points: torch.Tensor, fps_point_num: int) -> torch.Tensor:
     """

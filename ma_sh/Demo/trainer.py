@@ -12,7 +12,7 @@ def demo():
     sample_polar_num = 10000
     idx_dtype = torch.int64
     dtype = torch.float64
-    device = "cuda"
+    device = "cuda:0"
 
     epoch = 10000
     lr = 10.0

@@ -7,6 +7,7 @@ from ma_sh.Method.Mash.kernel_unit import (
     toMaxValues,
     toCounts,
     toIdxs,
+    toDataIdxs,
     toLowerIdxsList,
     toMaskBaseValues,
     toRotateMatrixs,
@@ -80,6 +81,9 @@ def toPreLoadMaskBoundaryIdxs(
         torch.ones(anchor_num).type(idx_dtype).to(device) * mask_boundary_sample_num
     )
     mask_boundary_phi_idxs = toIdxs(mask_boundary_phi_counts)
+    mask_boundary_phi_data_idxs = (
+        toDataIdxs(anchor_num, mask_boundary_sample_num).type(idx_dtype).to(device)
+    )
 
     if DEBUG:
         assert checkFormat(
@@ -92,8 +96,15 @@ def toPreLoadMaskBoundaryIdxs(
             [anchor_num * mask_boundary_sample_num],
             False,
         )
+        assert checkFormat(
+            mask_boundary_phi_data_idxs,
+            idx_dtype,
+            device,
+            [anchor_num * mask_boundary_sample_num],
+            False,
+        )
 
-    return mask_boundary_phi_idxs
+    return mask_boundary_phi_idxs, mask_boundary_phi_data_idxs
 
 
 def toPreLoadBaseValues(
@@ -136,7 +147,7 @@ def toPreLoadBaseValues(
             False,
         )
 
-    return mask_boundary_base_values, sample_base_values
+    return mask_boundary_phis, mask_boundary_base_values, sample_base_values
 
 
 def toPreLoadSHDirections(sample_phis: torch.Tensor, sample_thetas: torch.Tensor):

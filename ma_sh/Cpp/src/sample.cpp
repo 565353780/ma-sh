@@ -43,18 +43,17 @@ const torch::Tensor toUniformSampleThetas(const int &sample_num) {
 
 const torch::Tensor toMaskBoundaryPhis(const int &anchor_num,
                                        const int &mask_boundary_sample_num) {
-  torch::Tensor mask_boundary_phis =
+  torch::Tensor mask_boundary_phi_matrix =
       torch::zeros({anchor_num, mask_boundary_sample_num});
-
-  const Slice slice_all(None);
 
   for (int i = 0; i < mask_boundary_sample_num; ++i) {
     const float current_phi = PI_2 * i / mask_boundary_sample_num;
 
-    mask_boundary_phis.index_put_({slice_all, i}, current_phi);
+    mask_boundary_phi_matrix.index_put_({slice_all, i}, current_phi);
   }
 
-  mask_boundary_phis = mask_boundary_phis.reshape({-1});
+  const torch::Tensor mask_boundary_phis =
+      mask_boundary_phi_matrix.reshape({-1});
 
   return mask_boundary_phis;
 }

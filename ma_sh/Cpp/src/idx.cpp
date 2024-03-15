@@ -1,4 +1,5 @@
 #include "idx.h"
+#include "constant.h"
 #include <cstdint>
 
 const torch::Tensor toCounts(const std::vector<torch::Tensor> &data_vec) {
@@ -35,6 +36,21 @@ const torch::Tensor toIdxs(const torch::Tensor &data_counts) {
   const torch::Tensor idxs = torch::hstack(idxs_vec);
 
   return idxs;
+}
+
+const torch::Tensor toDataIdxs(const int &repeat_num, const int &idx_num) {
+  const torch::TensorOptions opts =
+      torch::TensorOptions().dtype(torch::kInt64).device(torch::kCPU);
+
+  torch::Tensor data_idxs_matrix = torch::zeros({repeat_num, idx_num}, opts);
+
+  for (int i = 0; i < idx_num; ++i) {
+    data_idxs_matrix.index_put_({slice_all, i}, i);
+  }
+
+  const torch::Tensor data_idxs = data_idxs_matrix.reshape({-1});
+
+  return data_idxs;
 }
 
 const std::vector<torch::Tensor>

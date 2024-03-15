@@ -29,18 +29,22 @@ def toPreLoadDatas(
     sample_phis, sample_thetas = toPreLoadUniformSamplePolars(
         sample_polar_num, dtype, device
     )
-    mask_boundary_phi_idxs = toPreLoadMaskBoundaryIdxs(
+    mask_boundary_phi_idxs, mask_boundary_phi_data_idxs = toPreLoadMaskBoundaryIdxs(
         anchor_num, mask_boundary_sample_num, idx_dtype, device
     )
-    mask_boundary_base_values, sample_base_values = toPreLoadBaseValues(
-        anchor_num, mask_boundary_sample_num, mask_degree_max, sample_phis
+    mask_boundary_phis, mask_boundary_base_values, sample_base_values = (
+        toPreLoadBaseValues(
+            anchor_num, mask_boundary_sample_num, mask_degree_max, sample_phis
+        )
     )
     sample_sh_directions = toPreLoadSHDirections(sample_phis, sample_thetas)
 
     return (
         sample_phis,
         sample_thetas,
+        mask_boundary_phis,
         mask_boundary_phi_idxs,
+        mask_boundary_phi_data_idxs,
         mask_boundary_base_values,
         sample_base_values,
         sample_sh_directions,
@@ -55,7 +59,9 @@ def toMashSamplePoints(
     positions: torch.Tensor,
     sample_phis: torch.Tensor,
     sample_thetas: torch.Tensor,
+    mask_boundary_phis: torch.Tensor,
     mask_boundary_phi_idxs: torch.Tensor,
+    mask_boundary_phi_data_idxs: torch.Tensor,
     mask_boundary_base_values: torch.Tensor,
     sample_base_values: torch.Tensor,
     sample_sh_directions: torch.Tensor,
@@ -102,20 +108,28 @@ def toMashSamplePoints(
         in_mask_sample_polar_idxs,
         in_mask_sample_theta_weights,
     )
+    all_sample_phis = torch.hstack([mask_boundary_phis, in_mask_sample_phis])
+    all_sample_thetas = torch.hstack([mask_boundary_thetas, detect_thetas])
+    all_sample_polar_idxs = torch.hstack(
+        [in_mask_sample_polar_idxs, mask_boundary_phi_idxs]
+    )
+    all_sample_polar_data_idxs = torch.hstack(
+        [in_mask_sample_polar_data_idxs, mask_boundary_phi_data_idxs]
+    )
     sh_values = toSHValues(
         sh_degree_max,
         sh_params,
-        in_mask_sample_phis,
-        detect_thetas,
-        in_mask_sample_polar_idxs,
+        all_sample_phis,
+        all_sample_thetas,
+        all_sample_polar_idxs,
     )
     sh_points = toSHPoints(
         rotate_vectors,
         positions,
         sample_sh_directions,
         sh_values,
-        in_mask_sample_polar_idxs,
-        in_mask_sample_polar_data_idxs,
+        all_sample_polar_idxs,
+        all_sample_polar_data_idxs,
     )
 
     return sh_points

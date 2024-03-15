@@ -1,4 +1,5 @@
 #include "rotate.h"
+#include "constant.h"
 
 using namespace torch::indexing;
 
@@ -22,8 +23,6 @@ const torch::Tensor toRotateMatrixs(const torch::Tensor &rotate_vectors) {
 
   torch::Tensor theta_hats =
       torch::zeros({rotate_vectors.sizes()[0], 3, 3}, opts);
-
-  const Slice slice_all = Slice(None);
 
   theta_hats.index_put_({slice_all, 0, 1},
                         -1.0 * normed_rotate_vectors.index({slice_all, 2}));
@@ -100,8 +99,6 @@ const torch::Tensor toRotateVectors(const torch::Tensor &rotate_matrixs) {
 
   torch::Tensor normed_rotate_vectors =
       torch::zeros({rotate_matrixs.sizes()[0], 3}, opts);
-
-  const Slice slice_all = Slice(None);
 
   normed_rotate_vectors.index_put_({slice_all, 0},
                                    rights.index({slice_all, 2, 1}) -

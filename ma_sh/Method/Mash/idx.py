@@ -17,7 +17,8 @@ def toIdxs(data_counts: torch.Tensor) -> torch.Tensor:
 
     for i in range(data_counts.shape[0]):
         current_idxs = (
-            torch.ones(data_counts[i], dtype=torch.int64).to(data_counts.device) * i
+            torch.ones(int(data_counts[i]), dtype=torch.int64).to(data_counts.device)
+            * i
         )
 
         idxs_list.append(current_idxs)
@@ -25,6 +26,18 @@ def toIdxs(data_counts: torch.Tensor) -> torch.Tensor:
     idxs = torch.hstack(idxs_list)
 
     return idxs
+
+
+def toDataIdxs(repeat_num: int, idx_num: int) -> torch.Tensor:
+    data_idxs_matrix = torch.zeros([repeat_num, idx_num], dtype=torch.int64)
+
+    for i in range(repeat_num):
+        for j in range(idx_num):
+            data_idxs_matrix[i, j] = j
+
+    data_idxs = data_idxs_matrix.reshape(-1)
+
+    return data_idxs
 
 
 def toLowerIdxsList(values: torch.Tensor, max_bounds: torch.Tensor) -> list:

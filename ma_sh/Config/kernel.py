@@ -31,6 +31,12 @@ toIdxsDict = {
     "p+": compile(idx.toIdxs, mode=TORCH_COMPILE),
 }
 
+toDataIdxsDict = {
+    "c": mash_cpp.toDataIdxs,
+    "p": idx.toDataIdxs,
+    "p+": compile(idx.toDataIdxs, mode=TORCH_COMPILE),
+}
+
 toLowerIdxsListDict = {
     "c": mash_cpp.toLowerIdxsVec,
     "p": idx.toLowerIdxsList,

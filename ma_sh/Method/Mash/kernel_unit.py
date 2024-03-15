@@ -3,6 +3,7 @@ from ma_sh.Config.kernel import (
     toMaxValuesDict,
     toCountsDict,
     toIdxsDict,
+    toDataIdxsDict,
     toLowerIdxsListDict,
     toMaskBaseValuesDict,
     toRotateMatrixsDict,
@@ -20,6 +21,7 @@ toMaxValues = toMaxValuesDict[BACKEND]
 
 toCounts = toCountsDict[BACKEND]
 toIdxs = toIdxsDict[BACKEND]
+toDataIdxs = toDataIdxsDict[BACKEND]
 toLowerIdxsList = toLowerIdxsListDict[BACKEND]
 
 toMaskBaseValues = toMaskBaseValuesDict[BACKEND]

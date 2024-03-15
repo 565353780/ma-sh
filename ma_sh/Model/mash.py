@@ -44,7 +44,11 @@ class Mash(object):
         # Pre Load Datas
         self.sample_phis = torch.tensor([0.0], dtype=dtype).to(self.device)
         self.sample_thetas = torch.tensor([0.0], dtype=dtype).to(self.device)
+        self.mask_boundary_phis = torch.tensor([0.0], dtype=dtype).to(self.device)
         self.mask_boundary_phi_idxs = torch.tensor([0.0], dtype=dtype).to(self.device)
+        self.mask_boundary_phi_data_idxs = torch.tensor([0.0], dtype=dtype).to(
+            self.device
+        )
         self.mask_boundary_base_values = torch.tensor([0.0], dtype=dtype).to(
             self.device
         )
@@ -98,7 +102,9 @@ class Mash(object):
         (
             self.sample_phis,
             self.sample_thetas,
+            self.mask_boundary_phis,
             self.mask_boundary_phi_idxs,
+            self.mask_boundary_phi_data_idxs,
             self.mask_boundary_base_values,
             self.sample_base_values,
             self.sample_sh_directions,
@@ -179,7 +185,9 @@ class Mash(object):
             self.positions,
             self.sample_phis,
             self.sample_thetas,
+            self.mask_boundary_phis,
             self.mask_boundary_phi_idxs,
+            self.mask_boundary_phi_data_idxs,
             self.mask_boundary_base_values,
             self.sample_base_values,
             self.sample_sh_directions,

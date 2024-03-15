@@ -15,6 +15,7 @@ PYBIND11_MODULE(mash_cpp, m) {
 
   m.def("toCounts", &toCounts, "idx.toCounts");
   m.def("toIdxs", &toIdxs, "idx.toIdxs");
+  m.def("toDataIdxs", &toDataIdxs, "idx.toDataIdxs");
   m.def("toLowerIdxsVec", &toLowerIdxsVec, "idx.toLowerIdxsVec");
 
   m.def("toMashSamplePoints", &toMashSamplePoints, "mash.toMashSamplePoints");
