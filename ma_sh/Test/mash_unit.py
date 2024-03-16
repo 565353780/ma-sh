@@ -13,10 +13,6 @@ from ma_sh.Method.Mash.mash_unit import (
     toPreLoadSHDirections,
 )
 
-from mash_cpp import furthest_point_sampling
-
-exit()
-
 
 def test():
     anchor_num = 40
@@ -48,7 +44,7 @@ def test():
     )
     sample_sh_directions = toPreLoadSHDirections(sample_phis, sample_thetas)
 
-    for _ in trange(1000):
+    for _ in trange(100):
         mask_boundary_thetas = mash_cpp.toMaskBoundaryThetas(
             mask_params, mask_boundary_base_values, mask_boundary_phi_idxs
         )
@@ -245,9 +241,15 @@ def test():
 
         sample_point_num = ceil(in_mask_sh_points.shape[0] * sample_point_scale)
 
-        fps_in_mask_sh_point_idxs = mash_cpp.toFPSPointIdxs(
-            in_mask_sh_points, sample_point_num
+        v_in_mask_sh_points = in_mask_sh_points.reshape(1, -1, 3)
+
+        float_v_in_mask_sh_points = v_in_mask_sh_points.type(torch.float32)
+
+        v_fps_in_mask_sh_point_idxs = mash_cpp.furthest_point_sampling(
+            float_v_in_mask_sh_points, sample_point_num
         )
+
+        fps_in_mask_sh_point_idxs = v_fps_in_mask_sh_point_idxs.reshape(-1)
 
         fps_in_mask_sh_points = in_mask_sh_points[fps_in_mask_sh_point_idxs]
 

@@ -57,9 +57,8 @@ def test():
     )
 
     g.render("./output/Mash.gv", view=False)
-    exit()
 
-    for _ in trange(1000):
+    for _ in trange(100):
         sh_points = mash.toSamplePoints()
 
     print(sh_points)

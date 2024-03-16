@@ -1,6 +1,6 @@
 export MAX_JOBS=32
 
-pip uninstall pointnet2-ops mash-cpp -y
+pip uninstall mash-cpp -y
 
 rm -rf ./build
 rm -rf ./*.egg-info
