@@ -13,6 +13,10 @@ from ma_sh.Method.Mash.mash_unit import (
     toPreLoadSHDirections,
 )
 
+from mash_cpp import furthest_point_sampling
+
+exit()
+
 
 def test():
     anchor_num = 40
