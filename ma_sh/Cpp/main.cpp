@@ -23,6 +23,16 @@ PYBIND11_MODULE(mash_cpp, m) {
 
   m.def("toMaskBoundaryThetas", &toMaskBoundaryThetas,
         "mash_unit.toMaskBoundaryThetas");
+  m.def("toInMaxMaskSamplePolarIdxsVec", &toInMaxMaskSamplePolarIdxsVec,
+        "mash_unit.toInMaxMaskSamplePolarIdxsVec");
+  m.def("toInMaxMaskSamplePolarIdxs", &toInMaxMaskSamplePolarIdxs,
+        "mash_unit.toInMaxMaskSamplePolarIdxs");
+  m.def("toInMaxMaskThetas", &toInMaxMaskThetas, "mash_unit.toInMaxMaskThetas");
+  m.def("toInMaskSampleThetaWeights", &toInMaskSampleThetaWeights,
+        "mash_unit.toInMaskSampleThetaWeights");
+  m.def("toDetectThetas", &toDetectThetas, "mash_unit.toDetectThetas");
+  m.def("toSHValues", &toSHValues, "mash_unit.toSHValues");
+  m.def("toSHPoints", &toSHPoints, "mash_unit.toSHPoints");
 
   m.def("toMaskBaseValues", &toMaskBaseValues, "mask.toMaskBaseValues");
 

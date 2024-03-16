@@ -12,7 +12,7 @@ toInMaxMaskSamplePolarIdxsVec(const torch::Tensor &sample_thetas,
                               const torch::Tensor &mask_boundary_thetas,
                               const torch::Tensor &mask_boundary_phi_idxs);
 
-const torch::Tensor toInMaxSamplePolarIdxs(
+const torch::Tensor toInMaxMaskSamplePolarIdxs(
     const std::vector<torch::Tensor> &in_max_mask_sample_polar_idxs_vec);
 
 const torch::Tensor
@@ -27,20 +27,20 @@ toInMaskSampleThetaWeights(const torch::Tensor &in_max_mask_sample_thetas,
                            const torch::Tensor &in_mask_sample_polar_mask);
 
 const torch::Tensor
-toSamplePolars(const torch::Tensor &mask_params,
+toDetectThetas(const torch::Tensor &mask_params,
                const torch::Tensor &in_mask_base_values,
                const torch::Tensor &in_mask_sample_polar_idxs,
                const torch::Tensor &in_mask_sample_theta_weights);
 
 const torch::Tensor toSHValues(const int &sh_degree_max,
                                const torch::Tensor &sh_params,
-                               const torch::Tensor &in_mask_sample_phis,
-                               const torch::Tensor &detect_thetas,
-                               const torch::Tensor &in_mask_sample_polar_idxs);
+                               const torch::Tensor &phis,
+                               const torch::Tensor &thetas,
+                               const torch::Tensor &polar_idxs);
 
-const torch::Tensor
-toSHPoints(const torch::Tensor &rotate_vectors, const torch::Tensor &positions,
-           const torch::Tensor &sample_sh_directions,
-           const torch::Tensor &sh_values,
-           const torch::Tensor &in_mask_sample_polar_idxs,
-           const torch::Tensor &in_mask_sample_polar_data_idxs);
+const torch::Tensor toSHPoints(const torch::Tensor &rotate_vectors,
+                               const torch::Tensor &positions,
+                               const torch::Tensor &sample_sh_directions,
+                               const torch::Tensor &sh_values,
+                               const torch::Tensor &polar_idxs,
+                               const torch::Tensor &polar_data_idxs);

@@ -20,7 +20,7 @@ const torch::Tensor toMashSamplePoints(
                                     mask_boundary_phi_idxs);
 
   const torch::Tensor in_max_mask_sample_polar_idxs =
-      toInMaxSamplePolarIdxs(in_max_mask_sample_polar_idxs_vec);
+      toInMaxMaskSamplePolarIdxs(in_max_mask_sample_polar_idxs_vec);
 
   const torch::Tensor in_max_mask_sample_polar_data_idxs =
       torch::hstack(in_max_mask_sample_polar_idxs_vec);
@@ -57,8 +57,8 @@ const torch::Tensor toMashSamplePoints(
       in_max_mask_sample_thetas, in_max_mask_thetas, in_mask_sample_polar_mask);
 
   const torch::Tensor detect_thetas =
-      toSamplePolars(mask_params, in_mask_base_values,
-                     in_mask_sample_polar_idxs, in_mask_sample_polar_data_idxs);
+      toDetectThetas(mask_params, in_mask_base_values,
+                     in_mask_sample_polar_idxs, in_mask_sample_theta_weights);
 
   const torch::Tensor all_sample_phis =
       torch::hstack({in_mask_sample_phis, mask_boundary_phis});

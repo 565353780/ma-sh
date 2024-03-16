@@ -1,5 +1,7 @@
 import torch
 
+from ma_sh.Config.mode import DEBUG
+
 
 def checkFormat(
     data: torch.Tensor,
@@ -8,6 +10,9 @@ def checkFormat(
     shape=None,
     have_grad=None,
 ) -> bool:
+    if not DEBUG:
+        return True
+
     if data.dtype != dtype:
         print("[WARN][check::checkFormat]")
         print("\t dtype not matched!")
