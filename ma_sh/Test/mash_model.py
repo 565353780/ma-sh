@@ -29,7 +29,7 @@ def test():
     )
 
     for i in range(anchor_num):
-        mash.mask_params.data[i, 0] = i + 1.0
+        mash.mask_params.data[i, 0] = i + 10.0
 
     for i in range(anchor_num):
         mash.sh_params.data[i, 0] = i + 1.0
@@ -39,6 +39,21 @@ def test():
 
     for i in range(anchor_num):
         mash.positions.data[i, 0] = i
+
+    """
+    mash.mask_params.data = (
+        torch.randn(mash.mask_params.shape, dtype=dtype).to(device) * 100.0
+    )
+    mash.sh_params.data = (
+        torch.randn(mash.sh_params.shape, dtype=dtype).to(device) * 100.0
+    )
+    mash.rotate_vectors.data = (
+        torch.randn(mash.rotate_vectors.shape, dtype=dtype).to(device) * 100.0
+    )
+    mash.positions.data = (
+        torch.randn(mash.positions.shape, dtype=dtype).to(device) * 100.0
+    )
+    """
 
     mash.setGradState(True)
 
@@ -58,8 +73,12 @@ def test():
 
     g.render("./output/Mash.gv", view=False)
 
-    for _ in trange(100):
+    for _ in trange(20):
         sh_points = mash.toSamplePoints()
+        print(
+            "mash_model:",
+            sh_points.shape,
+        )
 
     print(sh_points)
     # mash.renderSamplePoints()

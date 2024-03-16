@@ -1,9 +1,13 @@
 import torch
+from math import ceil
+
+import pointnet2_ops
 import mash_cpp
 
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
 from ma_sh.Method.Mash.mash import toParams, toPreLoadDatas
 from ma_sh.Method.render import renderPoints
+from ma_sh.Module.timer import Timer
 
 
 class Mash(object):
@@ -172,21 +176,46 @@ class Mash(object):
         return True
 
     def toSamplePoints(self) -> torch.Tensor:
-        sample_points = mash_cpp.toMashSamplePoints(
-            self.sh_degree_max,
-            self.mask_params,
-            self.sh_params,
-            self.rotate_vectors,
-            self.positions,
-            self.sample_phis,
-            self.sample_thetas,
-            self.mask_boundary_phis,
-            self.mask_boundary_phi_idxs,
-            self.mask_boundary_phi_data_idxs,
-            self.mask_boundary_base_values,
-            self.sample_base_values,
-            self.sample_sh_directions,
-            self.sample_point_scale,
+        in_mask_sample_points, mask_boundary_sample_points = (
+            mash_cpp.toMashSamplePoints(
+                self.anchor_num,
+                self.sh_degree_max,
+                self.mask_params,
+                self.sh_params,
+                self.rotate_vectors,
+                self.positions,
+                self.sample_phis,
+                self.sample_thetas,
+                self.mask_boundary_phis,
+                self.mask_boundary_phi_idxs,
+                self.mask_boundary_phi_data_idxs,
+                self.mask_boundary_base_values,
+                self.sample_base_values,
+                self.sample_sh_directions,
+                self.sample_point_scale,
+            )
+        )
+
+        sample_point_num = ceil(
+            self.sample_point_scale * in_mask_sample_points.shape[0]
+        )
+
+        float_v_in_mask_sample_points = in_mask_sample_points.reshape(1, -1, 3).type(
+            torch.float32
+        )
+
+        timer = Timer()
+        v_fps_in_mask_sample_point_idxs = pointnet2_ops.furthest_point_sampling(
+            float_v_in_mask_sample_points, sample_point_num
+        )
+        print("mash_model furthest_point_sampling:", timer.now())
+
+        fps_in_mask_sample_point_idxs = v_fps_in_mask_sample_point_idxs.reshape(-1)
+
+        fps_in_mask_sample_points = in_mask_sample_points[fps_in_mask_sample_point_idxs]
+
+        sample_points = torch.vstack(
+            [fps_in_mask_sample_points, mask_boundary_sample_points]
         )
 
         return sample_points

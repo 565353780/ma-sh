@@ -5,6 +5,7 @@
 #include "rotate.h"
 #include "sh.h"
 #include "value.h"
+#include <cstdint>
 
 const torch::Tensor
 toMaskBoundaryThetas(const torch::Tensor &mask_params,
@@ -17,14 +18,15 @@ toMaskBoundaryThetas(const torch::Tensor &mask_params,
 }
 
 const std::vector<torch::Tensor>
-toInMaxMaskSamplePolarIdxsVec(const torch::Tensor &sample_thetas,
+toInMaxMaskSamplePolarIdxsVec(const int &anchor_num,
+                              const torch::Tensor &sample_thetas,
                               const torch::Tensor &mask_boundary_thetas,
                               const torch::Tensor &mask_boundary_phi_idxs) {
   const torch::Tensor detach_mask_boundary_thetas =
       mask_boundary_thetas.detach();
 
-  const torch::Tensor mask_boundary_max_thetas =
-      toMaxValues(detach_mask_boundary_thetas, mask_boundary_phi_idxs);
+  const torch::Tensor mask_boundary_max_thetas = toMaxValues(
+      anchor_num, detach_mask_boundary_thetas, mask_boundary_phi_idxs);
 
   const std::vector<torch::Tensor> in_max_mask_sample_polar_idxs_vec =
       toLowerIdxsVec(sample_thetas, mask_boundary_max_thetas);

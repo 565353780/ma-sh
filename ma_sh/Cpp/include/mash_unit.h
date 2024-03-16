@@ -8,7 +8,8 @@ toMaskBoundaryThetas(const torch::Tensor &mask_params,
                      const torch::Tensor &mask_boundary_phi_idxs);
 
 const std::vector<torch::Tensor>
-toInMaxMaskSamplePolarIdxsVec(const torch::Tensor &sample_thetas,
+toInMaxMaskSamplePolarIdxsVec(const int &anchor_num,
+                              const torch::Tensor &sample_thetas,
                               const torch::Tensor &mask_boundary_thetas,
                               const torch::Tensor &mask_boundary_phi_idxs);
 
