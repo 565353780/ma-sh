@@ -1,11 +1,8 @@
 #include "mash.h"
 #include "constant.h"
 #include "mash_unit.h"
-#include "sample.h"
-#include "sampling.h"
-#include "torch/types.h"
 
-const torch::Tensor toMashSamplePoints(
+const std::vector<torch::Tensor> toMashSamplePoints(
     const int &sh_degree_max, const torch::Tensor &mask_params,
     const torch::Tensor &sh_params, const torch::Tensor &rotate_vectors,
     const torch::Tensor &positions, const torch::Tensor &sample_phis,
@@ -82,26 +79,5 @@ const torch::Tensor toMashSamplePoints(
                  mask_boundary_sh_values, mask_boundary_phi_idxs,
                  mask_boundary_phi_data_idxs);
 
-  const int sample_point_num =
-      std::ceil(in_mask_sh_points.sizes()[0] * sample_point_scale);
-
-  const torch::Tensor v_in_mask_sh_points =
-      in_mask_sh_points.reshape({1, -1, 3});
-
-  const torch::Tensor float_v_in_mask_sh_points =
-      v_in_mask_sh_points.toType(torch::kFloat32);
-
-  const torch::Tensor v_fps_in_mask_sh_point_idxs =
-      furthest_point_sampling(float_v_in_mask_sh_points, sample_point_num);
-
-  const torch::Tensor fps_in_mask_sh_point_idxs =
-      v_fps_in_mask_sh_point_idxs.reshape({-1});
-
-  const torch::Tensor fps_in_mask_sh_points =
-      in_mask_sh_points.index({fps_in_mask_sh_point_idxs});
-
-  const torch::Tensor sh_points =
-      torch::vstack({fps_in_mask_sh_points, mask_boundary_sh_points});
-
-  return sh_points;
+  return std::vector<torch::Tensor>{in_mask_sh_points, mask_boundary_sh_points};
 }
