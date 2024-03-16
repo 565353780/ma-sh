@@ -1,5 +1,6 @@
 import torch
 from tqdm import trange
+from torchviz import make_dot
 
 from ma_sh.Model.mash import Mash
 
@@ -36,6 +37,25 @@ def test():
 
     for i in range(anchor_num):
         mash.positions.data[i, 0] = i
+
+    mash.setGradState(True)
+
+    sh_points = mash.toSamplePoints()
+
+    mean_point_value = torch.mean(sh_points)
+
+    g = make_dot(
+        mean_point_value,
+        params={
+            "mask_params": mash.mask_params,
+            "sh_params": mash.sh_params,
+            "rotate_vectors": mash.rotate_vectors,
+            "positions": mash.positions,
+        },
+    )
+
+    g.render("./output/Mash.gv", view=False)
+    exit()
 
     for _ in trange(1000):
         sh_points = mash.toSamplePoints()
