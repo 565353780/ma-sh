@@ -1,6 +1,7 @@
 #include "mash_unit.h"
 #include "filter.h"
 #include "idx.h"
+#include "inv.h"
 #include "rotate.h"
 #include "sh.h"
 #include "value.h"
@@ -19,8 +20,6 @@ const std::vector<torch::Tensor>
 toInMaxMaskSamplePolarIdxsVec(const torch::Tensor &sample_thetas,
                               const torch::Tensor &mask_boundary_thetas,
                               const torch::Tensor &mask_boundary_phi_idxs) {
-  torch::NoGradGuard no_grad;
-
   const torch::Tensor detach_mask_boundary_thetas =
       mask_boundary_thetas.detach();
 
@@ -49,10 +48,11 @@ toInMaxMaskThetas(const torch::Tensor &mask_params,
                   const torch::Tensor &in_max_mask_base_values,
                   const torch::Tensor &in_max_mask_sample_polar_idxs,
                   const torch::Tensor &in_max_mask_sample_polar_data_idxs) {
-  torch::NoGradGuard no_grad;
+  const torch::Tensor detach_mask_params = mask_params.detach();
 
-  const torch::Tensor in_max_mask_thetas = toValues(
-      mask_params, in_max_mask_base_values, in_max_mask_sample_polar_idxs);
+  const torch::Tensor in_max_mask_thetas =
+      toValues(detach_mask_params, in_max_mask_base_values,
+               in_max_mask_sample_polar_idxs);
 
   return in_max_mask_thetas;
 }
@@ -101,7 +101,8 @@ const torch::Tensor toSHValues(const int &sh_degree_max,
   return sh_values;
 }
 
-const torch::Tensor toSHPoints(const torch::Tensor &rotate_vectors,
+const torch::Tensor toSHPoints(const torch::Tensor &sh_params,
+                               const torch::Tensor &rotate_vectors,
                                const torch::Tensor &positions,
                                const torch::Tensor &sample_sh_directions,
                                const torch::Tensor &sh_values,
@@ -114,22 +115,26 @@ const torch::Tensor toSHPoints(const torch::Tensor &rotate_vectors,
 
   const torch::Tensor sh_local_points = v_sh_values * index_sh_directions;
 
+  const torch::Tensor sh_local_inv_points =
+      toInvPoints(sh_params, sh_local_points, polar_idxs);
+
   const torch::Tensor index_rotate_vectors = rotate_vectors.index({polar_idxs});
 
   const torch::Tensor index_rotate_matrixs =
       toRotateMatrixs(index_rotate_vectors);
 
-  const torch::Tensor v_sh_local_points = sh_local_points.reshape({-1, 1, 3});
+  const torch::Tensor v_sh_local_inv_points =
+      sh_local_inv_points.reshape({-1, 1, 3});
 
-  const torch::Tensor v_sh_local_rotate_points =
-      torch::matmul(v_sh_local_points, index_rotate_matrixs);
+  const torch::Tensor v_sh_local_inv_rotate_points =
+      torch::matmul(v_sh_local_inv_points, index_rotate_matrixs);
 
-  const torch::Tensor sh_local_rotate_points =
-      v_sh_local_rotate_points.reshape({-1, 3});
+  const torch::Tensor sh_local_inv_rotate_points =
+      v_sh_local_inv_rotate_points.reshape({-1, 3});
 
   const torch::Tensor index_positions = positions.index({polar_idxs});
 
-  const torch::Tensor sh_points = index_positions + sh_local_rotate_points;
+  const torch::Tensor sh_points = index_positions + sh_local_inv_rotate_points;
 
   return sh_points;
 }

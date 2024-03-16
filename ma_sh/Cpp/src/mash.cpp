@@ -74,8 +74,8 @@ const torch::Tensor toMashSamplePoints(
                  all_sample_polar_idxs);
 
   const torch::Tensor sh_points =
-      toSHPoints(rotate_vectors, positions, sample_sh_directions, sh_values,
-                 all_sample_polar_idxs, all_sample_polar_data_idxs);
+      toSHPoints(sh_params, rotate_vectors, positions, sample_sh_directions,
+                 sh_values, all_sample_polar_idxs, all_sample_polar_data_idxs);
 
   return sh_points;
 }

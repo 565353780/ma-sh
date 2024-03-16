@@ -200,6 +200,7 @@ def test():
         assert checkFormat(sh_values, dtype, device, [all_sample_phis.shape[0]], True)
 
         sh_points = mash_cpp.toSHPoints(
+            sh_params,
             rotate_vectors,
             positions,
             sample_sh_directions,

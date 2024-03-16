@@ -38,7 +38,8 @@ const torch::Tensor toSHValues(const int &sh_degree_max,
                                const torch::Tensor &thetas,
                                const torch::Tensor &polar_idxs);
 
-const torch::Tensor toSHPoints(const torch::Tensor &rotate_vectors,
+const torch::Tensor toSHPoints(const torch::Tensor &sh_params,
+                               const torch::Tensor &rotate_vectors,
                                const torch::Tensor &positions,
                                const torch::Tensor &sample_sh_directions,
                                const torch::Tensor &sh_values,

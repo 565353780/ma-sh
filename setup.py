@@ -4,17 +4,19 @@ from setuptools import setup
 from torch.utils.cpp_extension import CUDAExtension, CppExtension, BuildExtension
 
 root_path = os.getcwd() + "/../ma-sh/ma_sh/Cpp/"
+src_path = root_path + "src/"
 
 sources = [
-    root_path + "src/filter.cpp",
-    root_path + "src/idx.cpp",
-    root_path + "src/mash.cpp",
-    root_path + "src/mash_unit.cpp",
-    root_path + "src/mask.cpp",
-    root_path + "src/rotate.cpp",
-    root_path + "src/sample.cpp",
-    root_path + "src/sh.cpp",
-    root_path + "src/value.cpp",
+    src_path + "filter.cpp",
+    src_path + "idx.cpp",
+    src_path + "inv.cpp",
+    src_path + "mash.cpp",
+    src_path + "mash_unit.cpp",
+    src_path + "mask.cpp",
+    src_path + "rotate.cpp",
+    src_path + "sample.cpp",
+    src_path + "sh.cpp",
+    src_path + "value.cpp",
     root_path + "main.cpp",
 ]
 

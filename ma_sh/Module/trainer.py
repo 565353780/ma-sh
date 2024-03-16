@@ -253,6 +253,9 @@ class Trainer(object):
         fit_dists = torch.mean(torch.sqrt(fit_dists2) + EPSILON)
         coverage_dists = torch.mean(torch.sqrt(coverage_dists2) + EPSILON)
 
+        fit_loss = torch.mean(fit_dists)
+        coverage_loss = torch.mean(coverage_dists)
+
         fit_safe_scale = 0.2
         current_lr_coeff = np.log(self.getLr(optimizer))
         min_lr_coeff = np.log(self.min_lr)
@@ -262,6 +265,7 @@ class Trainer(object):
         coverage_scale = fit_safe_scale + (1.0 - fit_safe_scale) * lr_remain_scale
         fit_loss = fit_scale * torch.mean(fit_dists)
         coverage_loss = coverage_scale * torch.mean(coverage_dists)
+
         loss = fit_loss + coverage_loss
 
         loss.backward()

@@ -1,5 +1,6 @@
 #include "filter.h"
 #include "idx.h"
+#include "inv.h"
 #include "mash.h"
 #include "mash_unit.h"
 #include "mask.h"
@@ -18,6 +19,8 @@ PYBIND11_MODULE(mash_cpp, m) {
   m.def("toIdxs", &toIdxs, "idx.toIdxs");
   m.def("toDataIdxs", &toDataIdxs, "idx.toDataIdxs");
   m.def("toLowerIdxsVec", &toLowerIdxsVec, "idx.toLowerIdxsVec");
+
+  m.def("toInvPoints", &toInvPoints, "inv.toInvPoints");
 
   m.def("toMashSamplePoints", &toMashSamplePoints, "mash.toMashSamplePoints");
 
