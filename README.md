@@ -11,7 +11,8 @@ conda activate mash
 ## Run
 
 ```bash
-python demo.py
+python test.py
+# python demo.py
 ```
 
 ## Enjoy it~
