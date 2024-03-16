@@ -9,6 +9,7 @@ def demo():
     sh_degree_max = 3
     mask_boundary_sample_num = 100
     sample_polar_num = 100000
+    sample_point_scale = 0.5
     idx_dtype = torch.int64
     dtype = torch.float64
     device = "cpu"
@@ -19,6 +20,7 @@ def demo():
         sh_degree_max,
         mask_boundary_sample_num,
         sample_polar_num,
+        sample_point_scale,
         idx_dtype,
         dtype,
         device,

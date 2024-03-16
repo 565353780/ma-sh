@@ -1,4 +1,5 @@
 import torch
+from math import ceil
 from tqdm import trange
 
 import mash_cpp
@@ -19,6 +20,7 @@ def test():
     sh_degree_max = 3
     mask_boundary_sample_num = 10
     sample_polar_num = 10
+    sample_point_scale = 0.5
     idx_dtype = torch.int64
     dtype = torch.float64
     device = "cuda:0"
@@ -181,33 +183,70 @@ def test():
             detect_thetas, dtype, device, [in_mask_sample_polar_idxs.shape[0]], True
         )
 
-        all_sample_phis = torch.hstack([in_mask_sample_phis, mask_boundary_phis])
-        all_sample_thetas = torch.hstack([detect_thetas, mask_boundary_thetas])
-        all_sample_polar_idxs = torch.hstack(
-            [in_mask_sample_polar_idxs, mask_boundary_phi_idxs]
-        )
-        all_sample_polar_data_idxs = torch.hstack(
-            [in_mask_sample_polar_data_idxs, mask_boundary_phi_data_idxs]
-        )
-
-        sh_values = mash_cpp.toSHValues(
+        in_mask_sh_values = mash_cpp.toSHValues(
             sh_degree_max,
             sh_params,
-            all_sample_phis,
-            all_sample_thetas,
-            all_sample_polar_idxs,
+            in_mask_sample_phis,
+            detect_thetas,
+            in_mask_sample_polar_idxs,
         )
-        assert checkFormat(sh_values, dtype, device, [all_sample_phis.shape[0]], True)
+        assert checkFormat(
+            in_mask_sh_values, dtype, device, [in_mask_sample_phis.shape[0]], True
+        )
 
-        sh_points = mash_cpp.toSHPoints(
+        in_mask_sh_points = mash_cpp.toSHPoints(
             sh_params,
             rotate_vectors,
             positions,
             sample_sh_directions,
-            sh_values,
-            all_sample_polar_idxs,
-            all_sample_polar_data_idxs,
+            in_mask_sh_values,
+            in_mask_sample_polar_idxs,
+            in_mask_sample_polar_data_idxs,
         )
-        assert checkFormat(sh_points, dtype, device, [sh_values.shape[0], 3], True)
+        assert checkFormat(
+            in_mask_sh_points, dtype, device, [in_mask_sh_values.shape[0], 3], True
+        )
+
+        mask_boundary_sh_values = mash_cpp.toSHValues(
+            sh_degree_max,
+            sh_params,
+            mask_boundary_phis,
+            mask_boundary_thetas,
+            mask_boundary_phi_idxs,
+        )
+        assert checkFormat(
+            mask_boundary_sh_values,
+            dtype,
+            device,
+            [mask_boundary_phis.shape[0]],
+            True,
+        )
+
+        mask_boundary_sh_points = mash_cpp.toSHPoints(
+            sh_params,
+            rotate_vectors,
+            positions,
+            sample_sh_directions,
+            mask_boundary_sh_values,
+            mask_boundary_phi_idxs,
+            mask_boundary_phi_data_idxs,
+        )
+        assert checkFormat(
+            mask_boundary_sh_points,
+            dtype,
+            device,
+            [mask_boundary_sh_values.shape[0], 3],
+            True,
+        )
+
+        sample_point_num = ceil(in_mask_sh_points.shape[0] * sample_point_scale)
+
+        fps_in_mask_sh_point_idxs = mash_cpp.toFPSPointIdxs(
+            in_mask_sh_points, sample_point_num
+        )
+
+        fps_in_mask_sh_points = in_mask_sh_points[fps_in_mask_sh_point_idxs]
+
+        sh_points = torch.vstack([fps_in_mask_sh_points, mask_boundary_sh_points])
 
     return True

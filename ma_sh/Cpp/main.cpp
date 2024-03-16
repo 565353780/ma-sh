@@ -47,6 +47,7 @@ PYBIND11_MODULE(mash_cpp, m) {
   m.def("toUniformSampleThetas", &toUniformSampleThetas,
         "sample.toUniformSampleThetas");
   m.def("toMaskBoundaryPhis", &toMaskBoundaryPhis, "sample.toMaskBoundaryPhis");
+  m.def("toFPSPointIdxs", &toFPSPointIdxs, "sample.toFPSPointIdxs");
 
   m.def("toSHBaseValues", &toSHBaseValues, "sh.toSHBaseValues");
   m.def("toSHDirections", &toSHDirections, "sh.toSHDirections");

@@ -14,6 +14,7 @@ class Mash(object):
         sh_degree_max: int,
         mask_boundary_sample_num: int,
         sample_polar_num: int,
+        sample_point_scale: float,
         idx_dtype=torch.int64,
         dtype=torch.float64,
         device: str = "cpu",
@@ -24,6 +25,7 @@ class Mash(object):
         self.sh_degree_max = sh_degree_max
         self.mask_boundary_sample_num = mask_boundary_sample_num
         self.sample_polar_num = sample_polar_num
+        self.sample_point_scale = sample_point_scale
         self.idx_dtype = idx_dtype
         self.dtype = dtype
         self.device = device
@@ -184,6 +186,7 @@ class Mash(object):
             self.mask_boundary_base_values,
             self.sample_base_values,
             self.sample_sh_directions,
+            self.sample_point_scale,
         )
 
         return sample_points
