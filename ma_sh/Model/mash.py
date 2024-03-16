@@ -1,7 +1,6 @@
 import torch
 from math import ceil
 
-import pointnet2_ops
 import mash_cpp
 
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
@@ -204,11 +203,9 @@ class Mash(object):
             torch.float32
         )
 
-        timer = Timer()
-        v_fps_in_mask_sample_point_idxs = pointnet2_ops.furthest_point_sampling(
+        v_fps_in_mask_sample_point_idxs = mash_cpp.furthest_point_sampling(
             float_v_in_mask_sample_points, sample_point_num
         )
-        print("mash_model furthest_point_sampling:", timer.now())
 
         fps_in_mask_sample_point_idxs = v_fps_in_mask_sample_point_idxs.reshape(-1)
 

@@ -2,7 +2,6 @@ import torch
 from math import ceil
 from tqdm import trange
 
-import pointnet2_ops
 import mash_cpp
 
 from ma_sh.Method.check import checkFormat
@@ -344,7 +343,7 @@ def test():
             torch.float32
         )
 
-        v_fps_in_mask_sh_point_idxs = pointnet2_ops.furthest_point_sampling(
+        v_fps_in_mask_sh_point_idxs = mash_cpp.furthest_point_sampling(
             float_detach_v_in_mask_sh_points, sample_point_num
         )
 
