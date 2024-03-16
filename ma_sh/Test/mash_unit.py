@@ -15,11 +15,11 @@ from ma_sh.Method.Mash.mash_unit import (
 
 
 def test():
-    anchor_num = 4
-    mask_degree_max = 5
+    anchor_num = 40
+    mask_degree_max = 4
     sh_degree_max = 3
-    mask_boundary_sample_num = 10
-    sample_polar_num = 10
+    mask_boundary_sample_num = 100
+    sample_polar_num = 1000
     sample_point_scale = 0.5
     idx_dtype = torch.int64
     dtype = torch.float64
