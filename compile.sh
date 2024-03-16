@@ -2,9 +2,7 @@ export MAX_JOBS=32
 
 pip uninstall mash-cpp -y
 
-# rm -rf ./build
-rm ./build/compile_commands.json
-
+rm -rf ./build
 rm -rf ./*.egg-info
 rm ./*.so
 
