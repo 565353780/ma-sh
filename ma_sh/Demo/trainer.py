@@ -9,7 +9,7 @@ def demo():
     mask_degree_max = 4
     sh_degree_max = 3
     mask_boundary_sample_num = 100
-    sample_polar_num = 10000
+    sample_polar_num = 1000
     sample_point_scale = 0.5
     idx_dtype = torch.int64
     dtype = torch.float64

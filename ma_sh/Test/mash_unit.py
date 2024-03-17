@@ -15,11 +15,11 @@ from ma_sh.Module.timer import Timer
 
 
 def test():
-    anchor_num = 3
+    anchor_num = 40
     mask_degree_max = 4
     sh_degree_max = 3
     mask_boundary_sample_num = 100
-    sample_polar_num = 10
+    sample_polar_num = 1000
     sample_point_scale = 0.5
     idx_dtype = torch.int64
     dtype = torch.float64
@@ -310,14 +310,9 @@ def test():
         timer.reset()
 
         sh_points = torch.vstack([fps_in_mask_sh_points, mask_boundary_sh_points])
-        print(
-            "mash_unit:",
-            in_mask_sh_points.shape,
-            fps_in_mask_sh_points.shape,
-            mask_boundary_sh_points.shape,
-        )
         now = timer.now()
         print("vstack sh_points:", now)
         timer.reset()
+        print("================================")
 
     return True

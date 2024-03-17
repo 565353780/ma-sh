@@ -1,5 +1,4 @@
 #include "cuda_utils.h"
-#include <iostream>
 
 __device__ void __update(float *__restrict__ dists, int *__restrict__ dists_i,
                          int idx1, int idx2) {
@@ -126,10 +125,7 @@ __global__ void furthest_point_sampling_kernel(
 
     old = dists_i[0];
 
-    printf("finish work on points[%d] sample_point[%d] / [%d]\n", batch_index,
-           j, sample_point_num);
     if (tid == 0) {
-      printf("points[%d] set fps_idx[%d] = %d\n", batch_index, j, old);
       idxs[j] = old;
     }
   }

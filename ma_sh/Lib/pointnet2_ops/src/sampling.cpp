@@ -46,11 +46,6 @@ furthest_point_sampling(const torch::Tensor &points,
 
   torch::Tensor tmp = torch::full({points.size(0)}, 1e10, float_opts);
 
-  std::cout << "fps state:\n" << std::endl;
-  std::cout << "points.shape:" << points.sizes() << std::endl;
-  std::cout << "point_counts:\n" << point_counts << std::endl;
-  std::cout << "sample_point_nums:\n" << sample_point_nums << std::endl;
-
   furthest_point_sampling_kernel_wrapper(
       point_counts.size(0), max_point_num, max_sample_point_num,
       points.data_ptr<float>(), point_counts.data_ptr<int>(),
