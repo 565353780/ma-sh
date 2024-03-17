@@ -15,9 +15,8 @@ except ImportError:
     _ext_sources = glob.glob(osp.join(_ext_src_root, "src", "*.cpp")) + glob.glob(
         osp.join(_ext_src_root, "src", "*.cu")
     )
-    _ext_headers = glob.glob(osp.join(_ext_src_root, "include", "*"))
 
-    os.environ["TORCH_CUDA_ARCH_LIST"] = "6.0;6.1;6.2;7.0;7.5;8.0;8.6;8.9"  # 4090的配置
+    os.environ["TORCH_CUDA_ARCH_LIST"] = "6.0;6.1;6.2;7.0;7.5;8.0;8.6;8.9"
     _ext = load(
         "_ext",
         sources=_ext_sources,

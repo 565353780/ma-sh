@@ -42,14 +42,13 @@ class Timer(object):
     def now(self, append: str = "s") -> float:
         current_time_sum = self.currentTimeSum()
 
-        match append:
-            case "s":
-                return current_time_sum
-            case "m":
-                return current_time_sum / 60.0
-            case "h":
-                return current_time_sum / 60.0 / 60.0
-            case "d":
-                return current_time_sum / 60.0 / 60.0 / 24.0
-            case _:
-                return current_time_sum
+        if append == "s":
+            return current_time_sum
+        if append == "m":
+            return current_time_sum / 60.0
+        if append == "h":
+            return current_time_sum / 60.0 / 60.0
+        if append == "d":
+            return current_time_sum / 60.0 / 60.0 / 24.0
+
+        return current_time_sum
