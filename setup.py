@@ -29,7 +29,11 @@ mash_extra_compile_args = [
 if torch.cuda.is_available():
     extra_compile_args = {
         "cxx": mash_extra_compile_args,
-        "nvcc": ["-O3", "-Xfatbin", "-compress-all"],
+        "nvcc": [
+            "-O3",
+            "-Xfatbin",
+            "-compress-all",
+        ],
     }
 
     mash_module = CUDAExtension(

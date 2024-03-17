@@ -15,11 +15,11 @@ from ma_sh.Module.timer import Timer
 
 
 def test():
-    anchor_num = 40
+    anchor_num = 3
     mask_degree_max = 4
     sh_degree_max = 3
     mask_boundary_sample_num = 100
-    sample_polar_num = 1000
+    sample_polar_num = 10
     sample_point_scale = 0.5
     idx_dtype = torch.int64
     dtype = torch.float64
@@ -273,7 +273,6 @@ def test():
         assert fps_in_mask_sh_points.shape[1] == 3
         print("toFPSPoints:", now)
         timer.reset()
-        continue
 
         mask_boundary_sh_values = mash_cpp.toSHValues(
             sh_degree_max,

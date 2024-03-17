@@ -1,4 +1,5 @@
 #include "cuda_utils.h"
+#include <iostream>
 
 __device__ void __update(float *__restrict__ dists, int *__restrict__ dists_i,
                          int idx1, int idx2) {
@@ -11,11 +12,12 @@ __device__ void __update(float *__restrict__ dists, int *__restrict__ dists_i,
 template <unsigned int block_size>
 __global__ void furthest_point_sampling_kernel(
     const float *__restrict__ points, const int *__restrict__ point_counts,
+    const int *__restrict__ sample_point_nums,
     const int *__restrict__ point_start_idxs,
     const int *__restrict__ sample_point_bound_idxs, float *__restrict__ tmp,
     int *__restrict__ idxs) {
   int batch_index = blockIdx.x;
-  int sample_point_num = point_counts[batch_index];
+  int sample_point_num = sample_point_nums[batch_index];
 
   if (sample_point_num <= 0) {
     return;
@@ -123,16 +125,22 @@ __global__ void furthest_point_sampling_kernel(
     }
 
     old = dists_i[0];
-    if (tid == 0)
+
+    printf("finish work on points[%d] sample_point[%d] / [%d]\n", batch_index,
+           j, sample_point_num);
+    if (tid == 0) {
+      printf("points[%d] set fps_idx[%d] = %d\n", batch_index, j, old);
       idxs[j] = old;
+    }
   }
 }
 
 void furthest_point_sampling_kernel_wrapper(
     const int &point_batch_num, const int &max_point_num,
     const int &max_sample_point_num, const float *points,
-    const int *point_counts, const int *point_start_idxs,
-    const int *sample_point_bound_idxs, float *tmp, int *idxs) {
+    const int *point_counts, const int *sample_point_nums,
+    const int *point_start_idxs, const int *sample_point_bound_idxs, float *tmp,
+    int *idxs) {
   unsigned int n_threads = opt_n_threads(max_point_num);
 
   cudaStream_t stream = at::cuda::getCurrentCUDAStream();
@@ -141,78 +149,78 @@ void furthest_point_sampling_kernel_wrapper(
   case 512: {
     furthest_point_sampling_kernel<512>
         <<<point_batch_num, n_threads, 0, stream>>>(
-            points, point_counts, point_start_idxs, sample_point_bound_idxs,
-            tmp, idxs);
+            points, point_counts, sample_point_nums, point_start_idxs,
+            sample_point_bound_idxs, tmp, idxs);
     break;
   }
   case 256: {
     furthest_point_sampling_kernel<256>
         <<<point_batch_num, n_threads, 0, stream>>>(
-            points, point_counts, point_start_idxs, sample_point_bound_idxs,
-            tmp, idxs);
+            points, point_counts, sample_point_nums, point_start_idxs,
+            sample_point_bound_idxs, tmp, idxs);
     break;
   }
   case 128: {
     furthest_point_sampling_kernel<128>
         <<<point_batch_num, n_threads, 0, stream>>>(
-            points, point_counts, point_start_idxs, sample_point_bound_idxs,
-            tmp, idxs);
+            points, point_counts, sample_point_nums, point_start_idxs,
+            sample_point_bound_idxs, tmp, idxs);
     break;
   }
   case 64: {
     furthest_point_sampling_kernel<64>
         <<<point_batch_num, n_threads, 0, stream>>>(
-            points, point_counts, point_start_idxs, sample_point_bound_idxs,
-            tmp, idxs);
+            points, point_counts, sample_point_nums, point_start_idxs,
+            sample_point_bound_idxs, tmp, idxs);
     break;
   }
   case 32: {
     furthest_point_sampling_kernel<32>
         <<<point_batch_num, n_threads, 0, stream>>>(
-            points, point_counts, point_start_idxs, sample_point_bound_idxs,
-            tmp, idxs);
+            points, point_counts, sample_point_nums, point_start_idxs,
+            sample_point_bound_idxs, tmp, idxs);
     break;
   }
   case 16: {
     furthest_point_sampling_kernel<16>
         <<<point_batch_num, n_threads, 0, stream>>>(
-            points, point_counts, point_start_idxs, sample_point_bound_idxs,
-            tmp, idxs);
+            points, point_counts, sample_point_nums, point_start_idxs,
+            sample_point_bound_idxs, tmp, idxs);
     break;
   }
   case 8: {
     furthest_point_sampling_kernel<8>
         <<<point_batch_num, n_threads, 0, stream>>>(
-            points, point_counts, point_start_idxs, sample_point_bound_idxs,
-            tmp, idxs);
+            points, point_counts, sample_point_nums, point_start_idxs,
+            sample_point_bound_idxs, tmp, idxs);
     break;
   }
   case 4: {
     furthest_point_sampling_kernel<4>
         <<<point_batch_num, n_threads, 0, stream>>>(
-            points, point_counts, point_start_idxs, sample_point_bound_idxs,
-            tmp, idxs);
+            points, point_counts, sample_point_nums, point_start_idxs,
+            sample_point_bound_idxs, tmp, idxs);
     break;
   }
   case 2: {
     furthest_point_sampling_kernel<2>
         <<<point_batch_num, n_threads, 0, stream>>>(
-            points, point_counts, point_start_idxs, sample_point_bound_idxs,
-            tmp, idxs);
+            points, point_counts, sample_point_nums, point_start_idxs,
+            sample_point_bound_idxs, tmp, idxs);
     break;
   }
   case 1: {
     furthest_point_sampling_kernel<1>
         <<<point_batch_num, n_threads, 0, stream>>>(
-            points, point_counts, point_start_idxs, sample_point_bound_idxs,
-            tmp, idxs);
+            points, point_counts, sample_point_nums, point_start_idxs,
+            sample_point_bound_idxs, tmp, idxs);
     break;
   }
   default: {
     furthest_point_sampling_kernel<512>
         <<<point_batch_num, n_threads, 0, stream>>>(
-            points, point_counts, point_start_idxs, sample_point_bound_idxs,
-            tmp, idxs);
+            points, point_counts, sample_point_nums, point_start_idxs,
+            sample_point_bound_idxs, tmp, idxs);
   }
   }
 
