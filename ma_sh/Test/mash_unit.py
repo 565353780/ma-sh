@@ -58,6 +58,20 @@ def test():
     sample_sh_directions = toPreLoadSHDirections(sample_phis, sample_thetas)
 
     for _ in trange(10):
+        mask_params.data = (
+            torch.randn(mask_params.shape, dtype=dtype).to(mask_params.device) * 1000.0
+        )
+        sh_params.data = (
+            torch.randn(sh_params.shape, dtype=dtype).to(mask_params.device) * 1000.0
+        )
+        rotate_vectors.data = (
+            torch.randn(rotate_vectors.shape, dtype=dtype).to(mask_params.device)
+            * 1000.0
+        )
+        positions.data = (
+            torch.randn(positions.shape, dtype=dtype).to(mask_params.device) * 1000.0
+        )
+
         timer = Timer()
         mask_boundary_thetas = mash_cpp.toMaskBoundaryThetas(
             mask_params, mask_boundary_base_values, mask_boundary_phi_idxs
@@ -245,12 +259,21 @@ def test():
             in_mask_sh_points, dtype, device, [in_mask_sh_values.shape[0], 3], True
         )
 
+        sample_point_counts = mash_cpp.toIdxCounts(
+            in_mask_sample_polar_idxs, anchor_num
+        )
+        assert sample_point_counts.shape[0] == anchor_num
+        print("min counts:", torch.min(sample_point_counts))
+
         fps_in_mask_sh_points = mash_cpp.toFPSPoints(
             in_mask_sh_points, in_mask_sample_polar_idxs, sample_point_scale, anchor_num
         )
         now = timer.now()
+        print("fps points:", fps_in_mask_sh_points.shape)
+        assert fps_in_mask_sh_points.shape[1] == 3
         print("toFPSPoints:", now)
         timer.reset()
+        continue
 
         mask_boundary_sh_values = mash_cpp.toSHValues(
             sh_degree_max,

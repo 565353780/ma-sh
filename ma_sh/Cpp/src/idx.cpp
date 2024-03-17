@@ -54,16 +54,16 @@ const torch::Tensor toDataIdxs(const int &repeat_num, const int &idx_num) {
 }
 
 const torch::Tensor toIdxCounts(const torch::Tensor &idxs, const int &idx_num) {
-  std::vector<torch::Tensor> idx_counts_vec;
-  idx_counts_vec.reserve(idx_num);
+  const torch::TensorOptions idx_opts =
+      torch::TensorOptions().dtype(idxs.dtype()).device(idxs.device());
+
+  torch::Tensor idx_counts = torch::zeros({idx_num}, idx_opts);
 
   for (int i = 0; i < idx_num; ++i) {
     const torch::Tensor current_idx_count = torch::sum(idxs == i);
 
-    idx_counts_vec.emplace_back(current_idx_count);
+    idx_counts[i] = current_idx_count;
   }
-
-  const torch::Tensor idx_counts = torch::hstack(idx_counts_vec);
 
   return idx_counts;
 }

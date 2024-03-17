@@ -1,4 +1,4 @@
-from time import time
+from time import time, sleep
 
 
 class Timer(object):
@@ -52,3 +52,7 @@ class Timer(object):
             return current_time_sum / 60.0 / 60.0 / 24.0
 
         return current_time_sum
+
+    def sleep(self, second: float) -> bool:
+        sleep(second)
+        return True

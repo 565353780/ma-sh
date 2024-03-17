@@ -245,7 +245,7 @@ class Trainer(object):
         optimizer.zero_grad()
 
         detect_points = self.mash.toSamplePoints()
-        print(detect_points.shape)
+        print("detect_points:", detect_points.shape)
 
         fit_dists2, coverage_dists2 = chamferDistance(
             detect_points.reshape(1, -1, 3).type(gt_points.dtype),
