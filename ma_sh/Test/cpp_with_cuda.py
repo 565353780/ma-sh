@@ -156,21 +156,15 @@ def test():
 
     sh_points = torch.vstack([fps_in_mask_sh_points, mask_boundary_sh_points])
 
-    # =================== BUG DATA PREPARE =====================
-
-    detach_mask_boundary_thetas = mask_boundary_thetas.detach()
-
     # ====================== BUG START =========================
     timer = Timer()
 
     for _ in trange(4):
         for i in range(anchor_num):
-            current_data_mask = mask_boundary_phi_idxs == i
-
-            # FIXME: when add furthest_point_sampling, all call of this will be too slow!
             timer.reset()
-            masked_data = detach_mask_boundary_thetas[current_data_mask]
-            print("itr", i, "get masked data:", timer.now())
+            # FIXME: when add furthest_point_sampling, the next to GPU data call will be too slow!
+            new_cuda_data = torch.arange(1).cuda()
+            print("itr", i, "create new_cuda_data:", timer.now())
 
             if i > 0:
                 break
