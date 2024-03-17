@@ -25,6 +25,8 @@ def test():
     dtype = torch.float64
     device = "cuda:0"
 
+    # ===================== DATA PREPARE =======================
+
     mask_params, sh_params, rotate_vectors, positions = toParams(
         anchor_num, mask_degree_max, sh_degree_max, dtype, device
     )
@@ -154,47 +156,24 @@ def test():
 
     sh_points = torch.vstack([fps_in_mask_sh_points, mask_boundary_sh_points])
 
+    # =================== BUG DATA PREPARE =====================
+
+    detach_mask_boundary_thetas = mask_boundary_thetas.detach()
+
     # ====================== BUG START =========================
     timer = Timer()
 
-    for _ in trange(10):
-        print("==== toInMaxMaskSamplePolarIdxsVec")
-        detach_mask_boundary_thetas = mask_boundary_thetas.detach()
-        print("detach:", timer.now())
-
-        max_values_list = []
+    for _ in trange(4):
         for i in range(anchor_num):
-            timer.reset()
             current_data_mask = mask_boundary_phi_idxs == i
-            print("itr", i, "get mask:", timer.now())
 
-            # FIXME: when add furthest_point_sampling, first call of this will be too slow!
+            # FIXME: when add furthest_point_sampling, all call of this will be too slow!
             timer.reset()
             masked_data = detach_mask_boundary_thetas[current_data_mask]
             print("itr", i, "get masked data:", timer.now())
 
-            timer.reset()
-            current_max_value = torch.max(masked_data)
-            print("itr", i, "get max:", timer.now())
-
-            timer.reset()
-            max_values_list.append(current_max_value)
-            print("itr", i, "append:", timer.now())
-
-            if i > 2:
+            if i > 0:
                 break
-
-        timer.reset()
-        mask_boundary_max_thetas = torch.hstack(max_values_list)
-        print("hstack:", timer.now())
-
-        timer.reset()
-        in_max_mask_sample_polar_idxs_vec = mash_cpp.toLowerIdxsVec(
-            sample_thetas, mask_boundary_max_thetas
-        )
-        print("toLowerIdxsVec:", timer.now())
-
-        print("==== toInMaxMaskSamplePolarIdxsVec")
 
         timer.reset()
         v_fps_in_mask_sh_point_idxs = mash_cpp.furthest_point_sampling(
