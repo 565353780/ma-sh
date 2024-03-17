@@ -23,6 +23,7 @@ PYBIND11_MODULE(mash_cpp, m) {
   m.def("toCounts", &toCounts, "idx.toCounts");
   m.def("toIdxs", &toIdxs, "idx.toIdxs");
   m.def("toDataIdxs", &toDataIdxs, "idx.toDataIdxs");
+  m.def("toIdxCounts", &toIdxCounts, "idx.toIdxCounts");
   m.def("toLowerIdxsVec", &toLowerIdxsVec, "idx.toLowerIdxsVec");
 
   m.def("toInvPoints", &toInvPoints, "inv.toInvPoints");
@@ -41,6 +42,7 @@ PYBIND11_MODULE(mash_cpp, m) {
   m.def("toDetectThetas", &toDetectThetas, "mash_unit.toDetectThetas");
   m.def("toSHValues", &toSHValues, "mash_unit.toSHValues");
   m.def("toSHPoints", &toSHPoints, "mash_unit.toSHPoints");
+  m.def("toFPSPoints", &toFPSPoints, "mash_unit.toFPSPoints");
 
   m.def("toMaskBaseValues", &toMaskBaseValues, "mask.toMaskBaseValues");
 

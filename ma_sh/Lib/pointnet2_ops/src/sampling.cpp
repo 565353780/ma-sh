@@ -13,8 +13,8 @@ furthest_point_sampling(const torch::Tensor &points,
   torch::Tensor point_start_idxs =
       torch::zeros({point_counts.sizes()[0]}, idx_opts);
 
-  torch::Tensor sample_point_start_idxs =
-      torch::zeros({point_counts.sizes()[0]}, idx_opts);
+  torch::Tensor sample_point_bound_idxs =
+      torch::zeros({point_counts.sizes()[0] + 1}, idx_opts);
 
   std::int32_t max_point_num = 0;
   std::int32_t max_sample_point_num = 0;
@@ -29,23 +29,36 @@ furthest_point_sampling(const torch::Tensor &points,
     const std::int32_t current_sample_point_num =
         sample_point_nums[i].item<std::int32_t>();
 
-    sample_point_start_idxs[i + 1] =
-        sample_point_start_idxs[i] + current_sample_point_num;
+    sample_point_bound_idxs[i + 1] =
+        sample_point_bound_idxs[i] + current_sample_point_num;
 
     max_sample_point_num =
         std::max(max_sample_point_num, current_sample_point_num);
   }
+  sample_point_bound_idxs[-1] =
+      sample_point_bound_idxs[-2] + sample_point_nums[-1];
 
   torch::Tensor output = torch::zeros(
-      {sample_point_start_idxs[-1].item<std::int32_t>()}, idx_opts);
+      {sample_point_bound_idxs[-1].item<std::int32_t>()}, idx_opts);
 
   torch::Tensor tmp = torch::full({points.sizes()[0]}, 1e10, float_opts);
 
   furthest_point_sampling_kernel_wrapper(
       point_counts.size(0), max_point_num, max_sample_point_num,
       points.data_ptr<float>(), point_counts.data_ptr<int>(),
-      point_start_idxs.data_ptr<int>(), sample_point_start_idxs.data_ptr<int>(),
+      point_start_idxs.data_ptr<int>(), sample_point_bound_idxs.data_ptr<int>(),
       tmp.data_ptr<float>(), output.data_ptr<int>());
 
-  return output;
+  torch::Tensor fps_idxs = torch::zeros_like(output);
+
+  for (int i = 0; i < point_counts.size(0); ++i) {
+    const torch::indexing::Slice current_slice(
+        sample_point_bound_idxs[i].item<std::int32_t>(),
+        sample_point_bound_idxs[i + 1].item<std::int32_t>());
+
+    fps_idxs.index_put_({current_slice},
+                        output.index({current_slice}) + point_start_idxs[i]);
+  }
+
+  return fps_idxs;
 }

@@ -2,7 +2,7 @@
 #include "constant.h"
 #include "mash_unit.h"
 
-const std::vector<torch::Tensor> toMashSamplePoints(
+const torch::Tensor toMashSamplePoints(
     const int &anchor_num, const int &sh_degree_max,
     const torch::Tensor &mask_params, const torch::Tensor &sh_params,
     const torch::Tensor &rotate_vectors, const torch::Tensor &positions,
@@ -72,6 +72,10 @@ const std::vector<torch::Tensor> toMashSamplePoints(
                  in_mask_sh_values, in_mask_sample_polar_idxs,
                  in_mask_sample_polar_data_idxs);
 
+  const torch::Tensor fps_in_mask_sh_points =
+      toFPSPoints(in_mask_sh_points, in_mask_sample_polar_idxs,
+                  sample_point_scale, anchor_num);
+
   const torch::Tensor mask_boundary_sh_values =
       toSHValues(sh_degree_max, sh_params, mask_boundary_phis,
                  mask_boundary_thetas, mask_boundary_phi_idxs);
@@ -81,5 +85,8 @@ const std::vector<torch::Tensor> toMashSamplePoints(
                  mask_boundary_sh_values, mask_boundary_phi_idxs,
                  mask_boundary_phi_data_idxs);
 
-  return std::vector<torch::Tensor>{in_mask_sh_points, mask_boundary_sh_points};
+  const torch::Tensor sample_points =
+      torch::vstack({fps_in_mask_sh_points, mask_boundary_sh_points});
+
+  return sample_points;
 }

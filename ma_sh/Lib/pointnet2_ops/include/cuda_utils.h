@@ -1,9 +1,9 @@
-#ifndef _CUDA_UTILS_H
-#define _CUDA_UTILS_H
+#pragma once
 
 #include <ATen/ATen.h>
 #include <ATen/cuda/CUDAContext.h>
 #include <cmath>
+
 #include <cuda.h>
 #include <cuda_runtime.h>
 

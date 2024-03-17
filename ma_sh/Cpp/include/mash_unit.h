@@ -46,3 +46,8 @@ const torch::Tensor toSHPoints(const torch::Tensor &sh_params,
                                const torch::Tensor &sh_values,
                                const torch::Tensor &polar_idxs,
                                const torch::Tensor &polar_data_idxs);
+
+const torch::Tensor toFPSPoints(const torch::Tensor &points,
+                                const torch::Tensor &point_idxs,
+                                const float &sample_point_scale,
+                                const int &idx_num);

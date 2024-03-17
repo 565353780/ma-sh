@@ -53,6 +53,21 @@ const torch::Tensor toDataIdxs(const int &repeat_num, const int &idx_num) {
   return data_idxs;
 }
 
+const torch::Tensor toIdxCounts(const torch::Tensor &idxs, const int &idx_num) {
+  std::vector<torch::Tensor> idx_counts_vec;
+  idx_counts_vec.reserve(idx_num);
+
+  for (int i = 0; i < idx_num; ++i) {
+    const torch::Tensor current_idx_count = torch::sum(idxs == i);
+
+    idx_counts_vec.emplace_back(current_idx_count);
+  }
+
+  const torch::Tensor idx_counts = torch::hstack(idx_counts_vec);
+
+  return idx_counts;
+}
+
 const std::vector<torch::Tensor>
 toLowerIdxsVec(const torch::Tensor &values, const torch::Tensor &max_bounds) {
   std::vector<torch::Tensor> lower_idxs_vec;

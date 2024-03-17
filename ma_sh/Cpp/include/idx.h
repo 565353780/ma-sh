@@ -9,5 +9,7 @@ const torch::Tensor toIdxs(const torch::Tensor &data_counts);
 
 const torch::Tensor toDataIdxs(const int &repeat_num, const int &idx_num);
 
+const torch::Tensor toIdxCounts(const torch::Tensor &idxs, const int &idx_num);
+
 const std::vector<torch::Tensor>
 toLowerIdxsVec(const torch::Tensor &values, const torch::Tensor &max_bounds);

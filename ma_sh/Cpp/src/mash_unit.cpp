@@ -3,9 +3,9 @@
 #include "idx.h"
 #include "inv.h"
 #include "rotate.h"
+#include "sampling.h"
 #include "sh.h"
 #include "value.h"
-#include <cstdint>
 
 const torch::Tensor
 toMaskBoundaryThetas(const torch::Tensor &mask_params,
@@ -139,4 +139,25 @@ const torch::Tensor toSHPoints(const torch::Tensor &sh_params,
   const torch::Tensor sh_points = index_positions + sh_local_inv_rotate_points;
 
   return sh_points;
+}
+
+const torch::Tensor toFPSPoints(const torch::Tensor &points,
+                                const torch::Tensor &point_idxs,
+                                const float &sample_point_scale,
+                                const int &idx_num) {
+  const torch::Tensor point_counts =
+      toIdxCounts(point_idxs, idx_num).toType(torch::kInt32);
+
+  const torch::Tensor sample_point_nums =
+      torch::ceil(point_counts * sample_point_scale).toType(torch::kInt32);
+
+  const torch::Tensor float_detach_points =
+      points.detach().toType(torch::kFloat32);
+
+  const torch::Tensor fps_point_idxs = furthest_point_sampling(
+      float_detach_points, point_counts, sample_point_nums);
+
+  const torch::Tensor fps_points = points.index({fps_point_idxs});
+
+  return fps_points;
 }

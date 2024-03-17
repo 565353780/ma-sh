@@ -1,5 +1,4 @@
 import torch
-from math import ceil
 from tqdm import trange
 
 import mash_cpp
@@ -74,7 +73,6 @@ def test():
         print("toMaskBoundaryThetas:", now)
         timer.reset()
 
-        """
         in_max_mask_sample_polar_idxs_vec = mash_cpp.toInMaxMaskSamplePolarIdxsVec(
             anchor_num, sample_thetas, mask_boundary_thetas, mask_boundary_phi_idxs
         )
@@ -88,59 +86,6 @@ def test():
         now = timer.now()
         print("toInMaxMaskSamplePolarIdxsVec:", now)
         timer.reset()
-        """
-
-        print("==== toInMaxMaskSamplePolarIdxsVec")
-        detach_mask_boundary_thetas = mask_boundary_thetas.detach()
-        now = timer.now()
-        print("detach:", now)
-        timer.reset()
-
-        """
-        mask_boundary_max_thetas = mash_cpp.toMaxValues(
-            anchor_num, detach_mask_boundary_thetas, mask_boundary_phi_idxs
-        )
-        now = timer.now()
-        print("toMaxValues:", now)
-        timer.reset()
-        """
-
-        max_values_list = []
-        for i in range(anchor_num):
-            current_data_mask = mask_boundary_phi_idxs == i
-            now = timer.now()
-            print("itr", i, "get mask:", now)
-            timer.reset()
-
-            # FIXME: when add furthest_point_sampling, first call of this will be too slow!
-            masked_data = detach_mask_boundary_thetas[current_data_mask]
-            now = timer.now()
-            print("itr", i, "get masked data:", now)
-            timer.reset()
-
-            current_max_value = torch.max(masked_data)
-            now = timer.now()
-            print("itr", i, "get max:", now)
-            timer.reset()
-
-            max_values_list.append(current_max_value)
-            now = timer.now()
-            print("itr", i, "append:", now)
-            timer.reset()
-
-        mask_boundary_max_thetas = torch.hstack(max_values_list)
-        now = timer.now()
-        print("hstack:", now)
-        timer.reset()
-
-        in_max_mask_sample_polar_idxs_vec = mash_cpp.toLowerIdxsVec(
-            sample_thetas, mask_boundary_max_thetas
-        )
-        now = timer.now()
-        print("toLowerIdxsVec:", now)
-        timer.reset()
-
-        print("==== toInMaxMaskSamplePolarIdxsVec")
 
         in_max_mask_sample_polar_idxs = mash_cpp.toInMaxMaskSamplePolarIdxs(
             in_max_mask_sample_polar_idxs_vec
@@ -300,6 +245,13 @@ def test():
             in_mask_sh_points, dtype, device, [in_mask_sh_values.shape[0], 3], True
         )
 
+        fps_in_mask_sh_points = mash_cpp.toFPSPoints(
+            in_mask_sh_points, in_mask_sample_polar_idxs, sample_point_scale, anchor_num
+        )
+        now = timer.now()
+        print("toFPSPoints:", now)
+        timer.reset()
+
         mask_boundary_sh_values = mash_cpp.toSHValues(
             sh_degree_max,
             sh_params,
@@ -333,25 +285,6 @@ def test():
         )
         now = timer.now()
         print("toSHValues+toSHPoints:", now)
-        timer.reset()
-
-        sample_point_num = ceil(in_mask_sh_points.shape[0] * sample_point_scale)
-
-        v_in_mask_sh_points = in_mask_sh_points.reshape(1, -1, 3)
-
-        float_detach_v_in_mask_sh_points = v_in_mask_sh_points.detach().type(
-            torch.float32
-        )
-
-        v_fps_in_mask_sh_point_idxs = mash_cpp.furthest_point_sampling(
-            float_detach_v_in_mask_sh_points, sample_point_num
-        )
-
-        fps_in_mask_sh_point_idxs = v_fps_in_mask_sh_point_idxs.reshape(-1)
-
-        fps_in_mask_sh_points = in_mask_sh_points[fps_in_mask_sh_point_idxs]
-        now = timer.now()
-        print("toFPSPoints:", now)
         timer.reset()
 
         sh_points = torch.vstack([fps_in_mask_sh_points, mask_boundary_sh_points])

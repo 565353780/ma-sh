@@ -12,7 +12,7 @@ template <unsigned int block_size>
 __global__ void furthest_point_sampling_kernel(
     const float *__restrict__ points, const int *__restrict__ point_counts,
     const int *__restrict__ point_start_idxs,
-    const int *__restrict__ sample_point_start_idxs, float *__restrict__ tmp,
+    const int *__restrict__ sample_point_bound_idxs, float *__restrict__ tmp,
     int *__restrict__ idxs) {
   int batch_index = blockIdx.x;
   int sample_point_num = point_counts[batch_index];
@@ -26,7 +26,7 @@ __global__ void furthest_point_sampling_kernel(
 
   int point_num = point_counts[batch_index];
   int start_point_idx = point_start_idxs[batch_index];
-  int start_sample_point_idx = sample_point_start_idxs[batch_index];
+  int start_sample_point_idx = sample_point_bound_idxs[batch_index];
 
   points += start_point_idx * 3;
   tmp += start_point_idx;
@@ -137,7 +137,7 @@ __global__ void furthest_point_sampling_kernel(
 void furthest_point_sampling_kernel_wrapper(
     int point_batch_num, int max_point_num, int max_sample_point_num,
     const float *points, const int *point_counts, const int *point_start_idxs,
-    const int *sample_point_start_idxs, float *tmp, int *idxs) {
+    const int *sample_point_bound_idxs, float *tmp, int *idxs) {
   unsigned int n_threads = opt_n_threads(max_point_num);
 
   cudaStream_t stream = at::cuda::getCurrentCUDAStream();
@@ -146,69 +146,67 @@ void furthest_point_sampling_kernel_wrapper(
   case 512:
     furthest_point_sampling_kernel<512>
         <<<point_batch_num, n_threads, 0, stream>>>(
-            points, point_counts, point_start_idxs, sample_point_start_idxs,
+            points, point_counts, point_start_idxs, sample_point_bound_idxs,
             tmp, idxs);
     break;
   case 256:
     furthest_point_sampling_kernel<256>
         <<<point_batch_num, n_threads, 0, stream>>>(
-            points, point_counts, point_start_idxs, sample_point_start_idxs,
+            points, point_counts, point_start_idxs, sample_point_bound_idxs,
             tmp, idxs);
     break;
   case 128:
     furthest_point_sampling_kernel<128>
         <<<point_batch_num, n_threads, 0, stream>>>(
-            points, point_counts, point_start_idxs, sample_point_start_idxs,
+            points, point_counts, point_start_idxs, sample_point_bound_idxs,
             tmp, idxs);
     break;
   case 64:
     furthest_point_sampling_kernel<64>
         <<<point_batch_num, n_threads, 0, stream>>>(
-            points, point_counts, point_start_idxs, sample_point_start_idxs,
+            points, point_counts, point_start_idxs, sample_point_bound_idxs,
             tmp, idxs);
     break;
   case 32:
     furthest_point_sampling_kernel<32>
         <<<point_batch_num, n_threads, 0, stream>>>(
-            points, point_counts, point_start_idxs, sample_point_start_idxs,
+            points, point_counts, point_start_idxs, sample_point_bound_idxs,
             tmp, idxs);
     break;
   case 16:
     furthest_point_sampling_kernel<16>
         <<<point_batch_num, n_threads, 0, stream>>>(
-            points, point_counts, point_start_idxs, sample_point_start_idxs,
+            points, point_counts, point_start_idxs, sample_point_bound_idxs,
             tmp, idxs);
     break;
   case 8:
     furthest_point_sampling_kernel<8>
         <<<point_batch_num, n_threads, 0, stream>>>(
-            points, point_counts, point_start_idxs, sample_point_start_idxs,
+            points, point_counts, point_start_idxs, sample_point_bound_idxs,
             tmp, idxs);
     break;
   case 4:
     furthest_point_sampling_kernel<4>
         <<<point_batch_num, n_threads, 0, stream>>>(
-            points, point_counts, point_start_idxs, sample_point_start_idxs,
+            points, point_counts, point_start_idxs, sample_point_bound_idxs,
             tmp, idxs);
     break;
   case 2:
     furthest_point_sampling_kernel<2>
         <<<point_batch_num, n_threads, 0, stream>>>(
-            points, point_counts, point_start_idxs, sample_point_start_idxs,
+            points, point_counts, point_start_idxs, sample_point_bound_idxs,
             tmp, idxs);
     break;
   case 1:
     furthest_point_sampling_kernel<1>
         <<<point_batch_num, n_threads, 0, stream>>>(
-            points, point_counts, point_start_idxs, sample_point_start_idxs,
+            points, point_counts, point_start_idxs, sample_point_bound_idxs,
             tmp, idxs);
     break;
   default:
     furthest_point_sampling_kernel<512>
         <<<point_batch_num, n_threads, 0, stream>>>(
-            points, point_counts, point_start_idxs, sample_point_start_idxs,
+            points, point_counts, point_start_idxs, sample_point_bound_idxs,
             tmp, idxs);
   }
-
-  CUDA_CHECK_ERRORS();
 }
