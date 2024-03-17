@@ -1,9 +1,5 @@
 #include "sampling.h"
 
-void furthest_point_sampling_kernel_wrapper(int b, int n, int m,
-                                            const float *dataset, float *temp,
-                                            int *idxs);
-
 const torch::Tensor
 furthest_point_sampling(const torch::Tensor &points,
                         const torch::Tensor &point_counts,

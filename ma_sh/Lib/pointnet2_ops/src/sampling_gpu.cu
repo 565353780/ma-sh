@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "cuda_utils.h"
 
 __device__ void __update(float *__restrict__ dists, int *__restrict__ dists_i,
@@ -10,8 +8,6 @@ __device__ void __update(float *__restrict__ dists, int *__restrict__ dists_i,
   dists_i[idx1] = v2 > v1 ? i2 : i1;
 }
 
-// Input dataset: (b, n, 3), tmp: (b, n)
-// Ouput idxs (b, m)
 template <unsigned int block_size>
 __global__ void furthest_point_sampling_kernel(
     const float *__restrict__ points, const int *__restrict__ point_counts,
