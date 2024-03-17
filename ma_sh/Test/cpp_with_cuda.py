@@ -15,15 +15,15 @@ def test():
     for _ in range(4):
         timer.reset()
         # FIXME: after run furthest_point_sampling, the next to GPU data ops will be too slow!
-        first_new_cuda_data = torch.arange(1).cuda()
+        _ = torch.arange(1).cuda()
         print("1st: create new_cuda_data:", timer.now())
 
         timer.reset()
-        second_new_cuda_data = torch.arange(10000).cuda()
+        _ = torch.arange(10000).cuda()
         print("2nd: create new_cuda_data:", timer.now())
 
         timer.reset()
-        sample_point_idxs = mash_cpp.furthest_point_sampling(points, sample_point_num)
+        _ = mash_cpp.furthest_point_sampling(points, sample_point_num)
         print("furthest_point_sampling", timer.now())
 
         print("===============================")
