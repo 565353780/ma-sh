@@ -145,76 +145,37 @@ class Trainer(object):
 
     def loadParams(
         self,
-        mask_params: torch.Tensor,
-        sh_params: torch.Tensor,
-        rotate_vectors: torch.Tensor,
-        positions: torch.Tensor,
+        mask_params: Union[torch.Tensor, np.ndarray],
+        sh_params: Union[torch.Tensor, np.ndarray],
+        rotate_vectors: Union[torch.Tensor, np.ndarray],
+        positions: Union[torch.Tensor, np.ndarray],
     ) -> bool:
         self.mash.loadParams(mask_params, sh_params, rotate_vectors, positions)
 
         self.updateBestParams()
         return True
 
-    def loadParamsNp(
-        self,
-        mask_params_np: np.ndarray,
-        sh_params_np: np.ndarray,
-        rotate_vectors_np: np.ndarray,
-        positions_np: np.ndarray,
-    ) -> bool:
-        mask_params = (
-            torch.from_numpy(mask_params_np).type(self.mash.dtype).to(self.mash.device)
-        )
-        sh_params = (
-            torch.from_numpy(sh_params_np).type(self.mash.dtype).to(self.mash.device)
-        )
-        rotate_vectors = (
-            torch.from_numpy(rotate_vectors_np)
-            .type(self.mash.dtype)
-            .to(self.mash.device)
-        )
-        positions = (
-            torch.from_numpy(positions_np).type(self.mash.dtype).to(self.mash.device)
-        )
-
-        return self.loadParams(mask_params, sh_params, rotate_vectors, positions)
-
     def loadBestParams(
         self,
-        mask_params: torch.Tensor,
-        sh_params: torch.Tensor,
-        rotate_vectors: torch.Tensor,
-        positions: torch.Tensor,
+        mask_params: Union[torch.Tensor, np.ndarray],
+        sh_params: Union[torch.Tensor, np.ndarray],
+        rotate_vectors: Union[torch.Tensor, np.ndarray],
+        positions: Union[torch.Tensor, np.ndarray],
     ) -> bool:
+        if isinstance(mask_params, np.ndarray):
+            mask_params = torch.from_numpy(mask_params)
+        if isinstance(sh_params, np.ndarray):
+            sh_params = torch.from_numpy(sh_params)
+        if isinstance(rotate_vectors, np.ndarray):
+            rotate_vectors = torch.from_numpy(rotate_vectors)
+        if isinstance(positions, np.ndarray):
+            positions = torch.from_numpy(positions)
+
         self.best_params_dict["mask_params"] = mask_params
         self.best_params_dict["sh_params"] = sh_params
         self.best_params_dict["rotate_vectors"] = rotate_vectors
         self.best_params_dict["positions"] = positions
         return True
-
-    def loadBestParamsNp(
-        self,
-        mask_params_np: np.ndarray,
-        sh_params_np: np.ndarray,
-        rotate_vectors_np: np.ndarray,
-        positions_np: np.ndarray,
-    ) -> bool:
-        mask_params = (
-            torch.from_numpy(mask_params_np).type(self.mash.dtype).to(self.mash.device)
-        )
-        sh_params = (
-            torch.from_numpy(sh_params_np).type(self.mash.dtype).to(self.mash.device)
-        )
-        rotate_vectors = (
-            torch.from_numpy(rotate_vectors_np)
-            .type(self.mash.dtype)
-            .to(self.mash.device)
-        )
-        positions = (
-            torch.from_numpy(positions_np).type(self.mash.dtype).to(self.mash.device)
-        )
-
-        return self.loadBestParams(mask_params, sh_params, rotate_vectors, positions)
 
     def setBestParams(self) -> bool:
         self.mash.loadParams(
