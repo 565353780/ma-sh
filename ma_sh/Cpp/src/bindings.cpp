@@ -48,6 +48,9 @@ PYBIND11_MODULE(mash_cpp, m) {
 
   m.def("toRotateMatrixs", &toRotateMatrixs, "rotate.toRotateMatrixs");
   m.def("toRotateVectors", &toRotateVectors, "rotate.toRotateVectors");
+  m.def("toRotateVectorsByFaceForwardVectors",
+        &toRotateVectorsByFaceForwardVectors,
+        "rotate.toRotateVectorsByFaceForwardVectors");
 
   m.def("toUniformSamplePhis", &toUniformSamplePhis,
         "sample.toUniformSamplePhis");

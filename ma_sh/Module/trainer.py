@@ -111,7 +111,22 @@ class Trainer(object):
             print("\t mesh_file_path:", mesh_file_path)
             return False
 
-        return self.mesh.loadMesh(mesh_file_path)
+        if not self.mesh.loadMesh(mesh_file_path):
+            print("[ERROR][Trainer::loadMeshFile]")
+            print("\t loadMesh failed!")
+            print("\t mesh_file_path:", mesh_file_path)
+            return False
+
+        self.mesh.samplePoints(self.mash.anchor_num)
+
+        assert self.mesh.sample_normals is not None
+        assert self.mesh.sample_pts is not None
+
+        self.mash.loadParams(
+            positions=self.mesh.sample_pts + self.mesh.sample_normals * 1.0,
+            face_forward_vectors=-self.mesh.sample_normals,
+        )
+        return True
 
     def updateBestParams(self, loss: Union[float, None] = None) -> bool:
         if loss is not None:

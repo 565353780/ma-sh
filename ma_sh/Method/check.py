@@ -3,6 +3,23 @@ import torch
 from ma_sh.Config.mode import DEBUG
 
 
+def checkShape(source_shape, target_shape):
+    if len(source_shape) != len(target_shape):
+        print("[WARN][check::checkShape]")
+        print("\t shape channel not matched!")
+        print("\t", source_shape, "!=", target_shape)
+        return False
+
+    for i in range(len(source_shape)):
+        if source_shape[i] != target_shape[i]:
+            print("[WARN][check::checkShape]")
+            print("\t shape dim not matched!")
+            print("\t", source_shape, "!=", target_shape)
+            return False
+
+    return True
+
+
 def checkFormat(
     data: torch.Tensor,
     dtype=torch.float32,
@@ -26,18 +43,10 @@ def checkFormat(
         return False
 
     if shape is not None:
-        if len(data.shape) != len(shape):
+        if not checkShape(data.shape, shape):
             print("[WARN][check::checkFormat]")
-            print("\t shape channel not matched!")
-            print("\t", data.shape, "!=", shape)
+            print("\t checkShape matched!")
             return False
-
-        for i in range(len(data.shape)):
-            if data.shape[i] != shape[i]:
-                print("[WARN][check::checkFormat]")
-                print("\t shape dim not matched!")
-                print("\t", data.shape, "!=", shape)
-                return False
 
     if have_grad is not None:
         grad_state = data.grad_fn is not None

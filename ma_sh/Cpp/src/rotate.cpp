@@ -12,7 +12,7 @@ const torch::Tensor toRotateMatrixs(const torch::Tensor &rotate_vectors) {
                                         .dtype(rotate_vectors.dtype())
                                         .device(rotate_vectors.device());
 
-  torch::Tensor divide_thetas = torch::ones({rotate_vectors.sizes()[0]}, opts);
+  torch::Tensor divide_thetas = torch::ones({rotate_vectors.size(0)}, opts);
 
   divide_thetas.index_put_({valid_theta_mask},
                            thetas.index({valid_theta_mask}));
@@ -21,8 +21,7 @@ const torch::Tensor toRotateMatrixs(const torch::Tensor &rotate_vectors) {
 
   const torch::Tensor normed_rotate_vectors = rotate_vectors / v_divide_thetas;
 
-  torch::Tensor theta_hats =
-      torch::zeros({rotate_vectors.sizes()[0], 3, 3}, opts);
+  torch::Tensor theta_hats = torch::zeros({rotate_vectors.size(0), 3, 3}, opts);
 
   theta_hats.index_put_({slice_all, 0, 1},
                         -1.0 * normed_rotate_vectors.index({slice_all, 2}));
@@ -40,7 +39,7 @@ const torch::Tensor toRotateMatrixs(const torch::Tensor &rotate_vectors) {
   const torch::Tensor identity_matrix = torch::eye(3, opts);
 
   const torch::Tensor identity_matrixs =
-      identity_matrix.repeat({rotate_vectors.sizes()[0], 1, 1});
+      identity_matrix.repeat({rotate_vectors.size(0), 1, 1});
 
   const torch::Tensor vv_thetas = thetas.reshape({-1, 1, 1});
 
@@ -62,11 +61,46 @@ const torch::Tensor toRotateMatrixs(const torch::Tensor &rotate_vectors) {
   return rotate_matrixs;
 }
 
+const torch::Tensor
+toRotateVectorsByFaceForwardVectors(const torch::Tensor face_forward_vectors) {
+  torch::Tensor rotate_vectors = torch::zeros_like(face_forward_vectors);
+
+  const torch::Tensor face_forward_vector_norms =
+      torch::norm(face_forward_vectors, 2, 1);
+
+  const torch::Tensor valid_face_forward_vector_mask =
+      face_forward_vector_norms > 0;
+
+  const torch::Tensor valid_normed_face_forward_vectors =
+      face_forward_vectors.index({valid_face_forward_vector_mask}) /
+      face_forward_vector_norms.index({valid_face_forward_vector_mask})
+          .reshape({-1, 1});
+
+  torch::Tensor valid_z_axis =
+      torch::zeros_like(valid_normed_face_forward_vectors);
+  valid_z_axis.index_put_({slice_all, 2}, 1.0);
+
+  const torch::Tensor valid_rotate_vectors =
+      torch::cross(valid_z_axis, valid_normed_face_forward_vectors, 1);
+
+  const torch::Tensor valid_cos_thetas =
+      valid_normed_face_forward_vectors.index({slice_all, 2});
+
+  const torch::Tensor valid_thetas = torch::acos(valid_cos_thetas);
+
+  const torch::Tensor v_valid_thetas = valid_thetas.reshape({-1, 1});
+
+  rotate_vectors.index_put_({valid_face_forward_vector_mask},
+                            valid_rotate_vectors * v_valid_thetas);
+
+  return rotate_vectors;
+}
+
 const torch::Tensor toRotateVectors(const torch::Tensor &rotate_matrixs) {
   std::vector<torch::Tensor> traces_vec;
-  traces_vec.reserve(rotate_matrixs.sizes()[0]);
+  traces_vec.reserve(rotate_matrixs.size(0));
 
-  for (int i = 0; i < rotate_matrixs.sizes()[0]; ++i) {
+  for (int i = 0; i < rotate_matrixs.size(0); ++i) {
     const torch::Tensor current_traces = torch::trace(rotate_matrixs[i]);
 
     traces_vec.emplace_back(current_traces);
@@ -84,8 +118,7 @@ const torch::Tensor toRotateVectors(const torch::Tensor &rotate_matrixs) {
                                         .dtype(rotate_matrixs.dtype())
                                         .device(rotate_matrixs.device());
 
-  torch::Tensor divide_sin_thetas =
-      torch::ones({rotate_matrixs.sizes()[0]}, opts);
+  torch::Tensor divide_sin_thetas = torch::ones({rotate_matrixs.size(0)}, opts);
 
   divide_sin_thetas.index_put_({valid_sin_thetas_mask},
                                sin_thetas.index({valid_sin_thetas_mask}));
@@ -98,7 +131,7 @@ const torch::Tensor toRotateVectors(const torch::Tensor &rotate_matrixs) {
       vv_divide_sin_thetas;
 
   torch::Tensor normed_rotate_vectors =
-      torch::zeros({rotate_matrixs.sizes()[0], 3}, opts);
+      torch::zeros({rotate_matrixs.size(0), 3}, opts);
 
   normed_rotate_vectors.index_put_({slice_all, 0},
                                    rights.index({slice_all, 2, 1}) -

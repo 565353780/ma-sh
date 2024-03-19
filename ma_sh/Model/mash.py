@@ -1,8 +1,11 @@
 import torch
+import numpy as np
+from typing import Union
 
 import mash_cpp
 
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
+from ma_sh.Method.check import checkShape
 from ma_sh.Method.Mash.mash import toParams, toPreLoadDatas
 from ma_sh.Method.render import renderPoints
 
@@ -63,23 +66,87 @@ class Mash(object):
 
     def loadParams(
         self,
-        mask_params: torch.Tensor,
-        sh_params: torch.Tensor,
-        rotate_vectors: torch.Tensor,
-        positions: torch.Tensor,
+        mask_params: Union[torch.Tensor, np.ndarray, None] = None,
+        sh_params: Union[torch.Tensor, np.ndarray, None] = None,
+        rotate_vectors: Union[torch.Tensor, np.ndarray, None] = None,
+        positions: Union[torch.Tensor, np.ndarray, None] = None,
+        face_forward_vectors: Union[torch.Tensor, np.ndarray, None] = None,
     ) -> bool:
-        self.mask_params.data = (
-            mask_params.detach().clone().type(self.dtype).to(self.device)
-        )
-        self.sh_params.data = (
-            sh_params.detach().clone().type(self.dtype).to(self.device)
-        )
-        self.rotate_vectors.data = (
-            rotate_vectors.detach().clone().type(self.dtype).to(self.device)
-        )
-        self.positions.data = (
-            positions.detach().clone().type(self.dtype).to(self.device)
-        )
+        if rotate_vectors is not None and face_forward_vectors is not None:
+            print("[ERROR][Mash::loadParams]")
+            print("\t rotate vectors and face forward vectors are all None!")
+            print("\t please make at least one of them be None!")
+            return False
+
+        if mask_params is not None:
+            if not checkShape(mask_params.shape, self.mask_params.shape):
+                print("[ERROR][Mash::loadParams]")
+                print("\t checkShape failed for mask params!")
+                return False
+
+            if isinstance(mask_params, np.ndarray):
+                mask_params = torch.from_numpy(mask_params)
+
+            self.mask_params.data = (
+                mask_params.detach().clone().type(self.dtype).to(self.device)
+            )
+
+        if sh_params is not None:
+            if not checkShape(sh_params.shape, self.sh_params.shape):
+                print("[ERROR][Mash::loadParams]")
+                print("\t checkShape failed for sh params!")
+                return False
+
+            if isinstance(sh_params, np.ndarray):
+                sh_params = torch.from_numpy(sh_params)
+
+            self.sh_params.data = (
+                sh_params.detach().clone().type(self.dtype).to(self.device)
+            )
+
+        if rotate_vectors is not None:
+            if not checkShape(rotate_vectors.shape, self.rotate_vectors.shape):
+                print("[ERROR][Mash::loadParams]")
+                print("\t checkShape failed for rotate vectors!")
+                return False
+
+            if isinstance(rotate_vectors, np.ndarray):
+                rotate_vectors = torch.from_numpy(rotate_vectors)
+
+            self.rotate_vectors.data = (
+                rotate_vectors.detach().clone().type(self.dtype).to(self.device)
+            )
+
+        if positions is not None:
+            if not checkShape(positions.shape, self.positions.shape):
+                print("[ERROR][Mash::loadParams]")
+                print("\t checkShape failed for positions!")
+                return False
+
+            if isinstance(positions, np.ndarray):
+                positions = torch.from_numpy(positions)
+
+            self.positions.data = (
+                positions.detach().clone().type(self.dtype).to(self.device)
+            )
+
+        if face_forward_vectors is not None:
+            if not checkShape(face_forward_vectors.shape, self.rotate_vectors.shape):
+                print("[ERROR][Mash::loadParams]")
+                print("\t checkShape failed for face forward vectors!")
+                return False
+
+            if isinstance(face_forward_vectors, np.ndarray):
+                face_forward_vectors = torch.from_numpy(face_forward_vectors)
+
+            rotate_vectors = mash_cpp.toRotateVectorsByFaceForwardVectors(
+                face_forward_vectors
+            )
+
+            self.rotate_vectors.data = (
+                rotate_vectors.detach().clone().type(self.dtype).to(self.device)
+            )
+
         return True
 
     def initParams(self) -> bool:
