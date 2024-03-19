@@ -123,7 +123,7 @@ class Trainer(object):
         assert self.mesh.sample_pts is not None
 
         self.mash.loadParams(
-            positions=self.mesh.sample_pts + self.mesh.sample_normals * 1.0,
+            positions=self.mesh.sample_pts + self.mesh.sample_normals,
             face_forward_vectors=-self.mesh.sample_normals,
         )
         return True
@@ -366,7 +366,7 @@ class Trainer(object):
 
                     self.o3d_viewer.update()
 
-                    if False:
+                    if True:
                         self.o3d_viewer.run()
                         exit()
 
@@ -409,7 +409,7 @@ class Trainer(object):
         # self.sh_3d_degree_max = self.max_sh_3d_degree
         # self.sh_2d_degree_max = self.max_sh_2d_degree
 
-        self.mash.reset()
+        # self.mash.reset()
 
         print("[INFO][Trainer::autoTrainMash]")
         print("\t start auto train Mash...")

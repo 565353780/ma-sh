@@ -22,7 +22,7 @@ def demo():
     patience = 10
     min_lr = 1e-3
 
-    render = False
+    render = True
 
     mesh_name = "linux_bunny"
 
