@@ -3,6 +3,7 @@
 #include "idx.h"
 #include "inv.h"
 #include "rotate.h"
+#include "sample.h"
 #include "sampling.h"
 #include "sh.h"
 #include "value.h"
@@ -145,19 +146,43 @@ const torch::Tensor toFPSPoints(const torch::Tensor &points,
                                 const torch::Tensor &point_idxs,
                                 const float &sample_point_scale,
                                 const int &idx_num) {
-  const torch::Tensor point_counts =
-      toIdxCounts(point_idxs, idx_num).toType(torch::kInt32);
+  const torch::Tensor detach_points = points.detach();
+
+  const torch::Tensor point_counts = toIdxCounts(point_idxs, idx_num);
 
   const torch::Tensor sample_point_nums =
-      torch::ceil(point_counts * sample_point_scale).toType(torch::kInt32);
+      torch::ceil(point_counts * sample_point_scale)
+          .toType(point_idxs.scalar_type());
 
-  const torch::Tensor float_detach_points =
-      points.detach().toType(torch::kFloat32);
+  if (points.is_cuda()) {
+    const torch::Tensor fps_point_idxs =
+        furthest_point_sampling(detach_points.toType(torch::kFloat32),
+                                point_counts.toType(torch::kInt32),
+                                sample_point_nums.toType(torch::kInt32));
 
-  const torch::Tensor fps_point_idxs = furthest_point_sampling(
-      float_detach_points, point_counts, sample_point_nums);
+    const torch::Tensor fps_points = points.index({fps_point_idxs});
 
-  const torch::Tensor fps_points = points.index({fps_point_idxs});
+    return fps_points;
+  } else {
+    std::vector<torch::Tensor> fps_point_idxs_vec;
+    fps_point_idxs_vec.reserve(idx_num);
 
-  return fps_points;
+    std::int64_t point_start_idx = 0;
+    for (int i = 0; i < idx_num; ++i) {
+      const torch::Tensor current_points = points.index({point_idxs == i});
+
+      const torch::Tensor current_fps_point_idxs = toFPSPointIdxs(
+          current_points, sample_point_nums[i].item<std::int64_t>());
+
+      fps_point_idxs_vec.emplace_back(current_fps_point_idxs + point_start_idx);
+
+      point_start_idx += point_counts[i].item<std::int64_t>();
+    }
+
+    const torch::Tensor fps_point_idxs = torch::hstack(fps_point_idxs_vec);
+
+    const torch::Tensor fps_points = points.index({fps_point_idxs});
+
+    return fps_points;
+  }
 }

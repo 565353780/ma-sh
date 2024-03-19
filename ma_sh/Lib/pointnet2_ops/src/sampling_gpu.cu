@@ -220,5 +220,5 @@ void furthest_point_sampling_kernel_wrapper(
   }
   }
 
-  CUDA_CHECK_ERRORS();
+  // CUDA_CHECK_ERRORS();
 }

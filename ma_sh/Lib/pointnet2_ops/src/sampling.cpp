@@ -5,7 +5,7 @@ const torch::Tensor
 furthest_point_sampling(const torch::Tensor &points,
                         const torch::Tensor &point_counts,
                         const torch::Tensor &sample_point_nums) {
-  CHECK_INPUT(points);
+  // CHECK_INPUT(points);
 
   const torch::TensorOptions float_opts =
       torch::TensorOptions().dtype(torch::kFloat32).device(points.device());

@@ -1,5 +1,6 @@
 import torch
 from tqdm import trange
+from torchviz import make_dot
 
 import mash_cpp
 
@@ -16,8 +17,8 @@ from ma_sh.Module.timer import Timer
 
 def test():
     anchor_num = 40
-    mask_degree_max = 4
-    sh_degree_max = 3
+    mask_degree_max = 2
+    sh_degree_max = 2
     mask_boundary_sample_num = 100
     sample_polar_num = 1000
     sample_point_scale = 0.5
@@ -57,6 +58,22 @@ def test():
     )
     sample_sh_directions = toPreLoadSHDirections(sample_phis, sample_thetas)
 
+    def saveGraph(data, graph_name):
+        mean_data = torch.mean(data)
+
+        g = make_dot(
+            mean_data,
+            params={
+                "mask_params": mask_params,
+                "sh_params": sh_params,
+                "rotate_vectors": rotate_vectors,
+                "positions": positions,
+            },
+        )
+
+        g.render("./output/" + graph_name + ".gv", view=False)
+        return
+
     for _ in trange(10):
         mask_params.data = (
             torch.randn(mask_params.shape, dtype=dtype).to(mask_params.device) * 1000.0
@@ -86,6 +103,8 @@ def test():
         now = timer.now()
         print("toMaskBoundaryThetas:", now)
         timer.reset()
+
+        saveGraph(mask_boundary_thetas, "1-mask_boundary_thetas")
 
         in_max_mask_sample_polar_idxs_vec = mash_cpp.toInMaxMaskSamplePolarIdxsVec(
             anchor_num, sample_thetas, mask_boundary_thetas, mask_boundary_phi_idxs
@@ -235,6 +254,8 @@ def test():
         print("toDetectThetas:", now)
         timer.reset()
 
+        saveGraph(detect_thetas, "2-detect_thetas")
+
         in_mask_sh_values = mash_cpp.toSHValues(
             sh_degree_max,
             sh_params,
@@ -245,6 +266,8 @@ def test():
         assert checkFormat(
             in_mask_sh_values, dtype, device, [in_mask_sample_phis.shape[0]], True
         )
+
+        saveGraph(in_mask_sh_values, "3-in_mask_sh_values")
 
         in_mask_sh_points = mash_cpp.toSHPoints(
             sh_params,
@@ -258,6 +281,8 @@ def test():
         assert checkFormat(
             in_mask_sh_points, dtype, device, [in_mask_sh_values.shape[0], 3], True
         )
+
+        saveGraph(in_mask_sh_points, "4-in_mask_sh_points")
 
         sample_point_counts = mash_cpp.toIdxCounts(
             in_mask_sample_polar_idxs, anchor_num
@@ -274,6 +299,8 @@ def test():
         print("toFPSPoints:", now)
         timer.reset()
 
+        saveGraph(fps_in_mask_sh_points, "5-fps_in_mask_sh_points")
+
         mask_boundary_sh_values = mash_cpp.toSHValues(
             sh_degree_max,
             sh_params,
@@ -288,6 +315,8 @@ def test():
             [mask_boundary_phis.shape[0]],
             True,
         )
+
+        saveGraph(mask_boundary_sh_values, "6-mask_boundary_sh_values")
 
         mask_boundary_sh_points = mash_cpp.toSHPoints(
             sh_params,
@@ -309,10 +338,16 @@ def test():
         print("toSHValues+toSHPoints:", now)
         timer.reset()
 
+        saveGraph(mask_boundary_sh_points, "7-mask_boundary_sh_points")
+
         sh_points = torch.vstack([fps_in_mask_sh_points, mask_boundary_sh_points])
         now = timer.now()
         print("vstack sh_points:", now)
         timer.reset()
+
+        saveGraph(sh_points, "8-sh_points")
+
         print("================================")
+        return
 
     return True

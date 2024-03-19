@@ -36,28 +36,29 @@ const torch::Tensor toSHCommonValue(const torch::Tensor &phis,
                                     const int &idx) {
   if (idx == 0) {
     const torch::TensorOptions opts =
-        torch::TensorOptions().dtype(phis.scalar_type()).device(phis.device());
+        torch::TensorOptions().dtype(phis.dtype()).device(phis.device());
 
     return torch::tensor(1.0, opts);
+  } else {
+    const torch::Tensor sin_thetas = torch::sin(thetas);
+
+    const torch::Tensor pow_sin_thetas = torch::pow(sin_thetas, std::abs(idx));
+
+    if (idx > 0) {
+      const torch::Tensor cos_phis = torch::cos(1.0 * idx * phis);
+
+      const torch::Tensor common_value = cos_phis * pow_sin_thetas;
+
+      return common_value;
+    } else {
+
+      const torch::Tensor sin_phis = torch::sin(-1.0 * idx * phis);
+
+      const torch::Tensor common_value = sin_phis * pow_sin_thetas;
+
+      return common_value;
+    }
   }
-
-  const torch::Tensor sin_thetas = torch::sin(thetas);
-
-  const torch::Tensor pow_sin_thetas = torch::pow(sin_thetas, std::abs(idx));
-
-  if (idx > 0) {
-    const torch::Tensor cos_phis = torch::cos(1.0 * idx * phis);
-
-    const torch::Tensor common_value = cos_phis * pow_sin_thetas;
-
-    return common_value;
-  }
-
-  const torch::Tensor sin_phis = torch::sin(-1.0 * idx * phis);
-
-  const torch::Tensor common_value = sin_phis * pow_sin_thetas;
-
-  return common_value;
 }
 
 const torch::Tensor toDeg1ThetaValue(const torch::Tensor &thetas,
@@ -67,9 +68,8 @@ const torch::Tensor toDeg1ThetaValue(const torch::Tensor &thetas,
     return torch::cos(thetas);
   }
   default: {
-    const torch::TensorOptions opts = torch::TensorOptions()
-                                          .dtype(thetas.scalar_type())
-                                          .device(thetas.device());
+    const torch::TensorOptions opts =
+        torch::TensorOptions().dtype(thetas.dtype()).device(thetas.device());
 
     return torch::tensor(1.0, opts);
   }
@@ -88,9 +88,8 @@ const torch::Tensor toDeg2ThetaValue(const torch::Tensor &thetas,
     return torch::cos(thetas);
   }
   default: {
-    const torch::TensorOptions opts = torch::TensorOptions()
-                                          .dtype(thetas.scalar_type())
-                                          .device(thetas.device());
+    const torch::TensorOptions opts =
+        torch::TensorOptions().dtype(thetas.dtype()).device(thetas.device());
 
     return torch::tensor(1.0, opts);
   }
@@ -114,9 +113,8 @@ const torch::Tensor toDeg3ThetaValue(const torch::Tensor &thetas,
     return torch::cos(thetas);
   }
   default: {
-    const torch::TensorOptions opts = torch::TensorOptions()
-                                          .dtype(thetas.scalar_type())
-                                          .device(thetas.device());
+    const torch::TensorOptions opts =
+        torch::TensorOptions().dtype(thetas.dtype()).device(thetas.device());
 
     return torch::tensor(1.0, opts);
   }
@@ -145,9 +143,8 @@ const torch::Tensor toDeg4ThetaValue(const torch::Tensor &thetas,
     return torch::cos(thetas);
   }
   default: {
-    const torch::TensorOptions opts = torch::TensorOptions()
-                                          .dtype(thetas.scalar_type())
-                                          .device(thetas.device());
+    const torch::TensorOptions opts =
+        torch::TensorOptions().dtype(thetas.dtype()).device(thetas.device());
 
     return torch::tensor(1.0, opts);
   }
@@ -182,9 +179,8 @@ const torch::Tensor toDeg5ThetaValue(const torch::Tensor &thetas,
     return torch::cos(thetas);
   }
   default: {
-    const torch::TensorOptions opts = torch::TensorOptions()
-                                          .dtype(thetas.scalar_type())
-                                          .device(thetas.device());
+    const torch::TensorOptions opts =
+        torch::TensorOptions().dtype(thetas.dtype()).device(thetas.device());
 
     return torch::tensor(1.0, opts);
   }
@@ -223,9 +219,8 @@ const torch::Tensor toDeg6ThetaValue(const torch::Tensor &thetas,
     return torch::cos(thetas);
   }
   default: {
-    const torch::TensorOptions opts = torch::TensorOptions()
-                                          .dtype(thetas.scalar_type())
-                                          .device(thetas.device());
+    const torch::TensorOptions opts =
+        torch::TensorOptions().dtype(thetas.dtype()).device(thetas.device());
 
     return torch::tensor(1.0, opts);
   }
@@ -257,9 +252,8 @@ const torch::Tensor toSHResValue(const torch::Tensor &thetas, const int &degree,
     return toDeg6ThetaValue(thetas, real_idx);
   }
   default: {
-    const torch::TensorOptions opts = torch::TensorOptions()
-                                          .dtype(thetas.scalar_type())
-                                          .device(thetas.device());
+    const torch::TensorOptions opts =
+        torch::TensorOptions().dtype(thetas.dtype()).device(thetas.device());
 
     return torch::tensor(0.0, opts);
   }

@@ -68,7 +68,7 @@ const torch::Tensor toFPSPointIdxs(const torch::Tensor &points,
   torch::Tensor centroids = torch::zeros({sample_point_num}, idx_opts);
   torch::Tensor distance = torch::ones({points.sizes()[0]}, opts) * 1e10;
 
-  torch::Tensor farthest = torch::randint(0, points.sizes()[0], {1}, idx_opts);
+  torch::Tensor farthest = torch::zeros({1}, idx_opts);
 
   for (int i = 0; i < sample_point_num; ++i) {
     centroids.index_put_({i}, farthest);
