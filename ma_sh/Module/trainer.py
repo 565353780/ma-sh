@@ -27,6 +27,7 @@ class Trainer(object):
         mask_boundary_sample_num: int = 10,
         sample_polar_num: int = 10,
         sample_point_scale: float = 0.5,
+        use_inv: bool = True,
         idx_dtype=torch.int64,
         dtype=torch.float64,
         device: str = "cpu",
@@ -47,6 +48,7 @@ class Trainer(object):
             mask_boundary_sample_num,
             sample_polar_num,
             sample_point_scale,
+            use_inv,
             idx_dtype,
             dtype,
             device,
@@ -122,7 +124,11 @@ class Trainer(object):
         assert self.mesh.sample_normals is not None
         assert self.mesh.sample_pts is not None
 
+        sh_params = torch.zeros_like(self.mash.sh_params)
+        sh_params[:, 0] = 10.0
+
         self.mash.loadParams(
+            sh_params=sh_params,
             positions=self.mesh.sample_pts + self.mesh.sample_normals,
             face_forward_vectors=-self.mesh.sample_normals,
         )

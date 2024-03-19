@@ -30,11 +30,11 @@ def toParams(
         sh_params.requires_grad_(True)
 
         for i in range(anchor_num):
-            rotate_vectors[i, 0] = i
+            rotate_vectors[i, 0] = i + 1
         rotate_vectors.requires_grad_(True)
 
         for i in range(anchor_num):
-            positions[i, 0] = i
+            positions[i, 0] = i + 1
         positions.requires_grad_(True)
 
     assert checkFormat(

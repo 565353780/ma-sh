@@ -11,6 +11,7 @@ def demo():
     mask_boundary_sample_num = 100
     sample_polar_num = 1000
     sample_point_scale = 0.5
+    use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float64
     device = "cuda:0"
@@ -29,8 +30,6 @@ def demo():
     save_folder_path = "./output/" + mesh_name + "/"
     direction_upscale = 2
 
-    use_inv = False
-
     mesh_file_path = mesh_file_path_dict[mesh_name]
 
     gt_points_num = 10000
@@ -45,6 +44,7 @@ def demo():
         mask_boundary_sample_num,
         sample_polar_num,
         sample_point_scale,
+        use_inv,
         idx_dtype,
         dtype,
         device,
