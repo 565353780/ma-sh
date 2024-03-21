@@ -9,30 +9,30 @@ def demo():
     mask_degree_max = 1
     sh_degree_max = 3
     mask_boundary_sample_num = 36
-    sample_polar_num = 1000
+    sample_polar_num = 2000
     sample_point_scale = 0.8
     use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float64
     device = "cuda:0"
 
-    epoch = 1000
+    epoch = 10000
     lr = 1e-1
     weight_decay = 1e-4
-    factor = 0.9
-    patience = 10
+    factor = 0.99
+    patience = 1
     min_lr = 1e-3
 
-    render = True
+    render = False
 
-    mesh_name = "linux_bunny"
+    mesh_name = "linux_4"
 
     save_folder_path = "./output/" + mesh_name + "/"
     direction_upscale = 2
 
     mesh_file_path = mesh_file_path_dict[mesh_name]
 
-    gt_points_num = 10000
+    gt_points_num = 20000
 
     save_params_file_path = "./output/" + mesh_name + ".npy"
     overwrite = True
