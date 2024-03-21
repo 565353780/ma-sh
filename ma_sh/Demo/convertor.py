@@ -1,10 +1,13 @@
 import torch
 
-from ma_sh.Config.custom_path import mesh_file_path_dict
-from ma_sh.Module.trainer import Trainer
+from ma_sh.Module.convertor import Convertor
 
 
 def demo():
+    shape_root_folder_path = "/home/chli/chLi/Dataset/ShapeNet/Core/ShapeNetCore.v2/"
+    save_root_folder_path = "/home/chli/chLi/Dataset/Mash/ShapeNet/"
+    force_start = True
+    gt_points_num = 10000
     anchor_num = 100
     mask_degree_max = 1
     sh_degree_max = 3
@@ -23,21 +26,11 @@ def demo():
     patience = 1
     min_lr = 1e-3
 
-    render = False
-
-    mesh_name = "linux_2"
-
-    save_result_folder_path = "auto"
-    save_log_folder_path = "auto"
-
-    mesh_file_path = mesh_file_path_dict[mesh_name]
-
-    gt_points_num = 10000
-
-    save_params_file_path = "./output/" + mesh_name + ".npy"
-    overwrite = True
-
-    trainer = Trainer(
+    convertor = Convertor(
+        shape_root_folder_path,
+        save_root_folder_path,
+        force_start,
+        gt_points_num,
         anchor_num,
         mask_degree_max,
         sh_degree_max,
@@ -54,14 +47,7 @@ def demo():
         factor,
         patience,
         min_lr,
-        render,
-        save_result_folder_path,
-        save_log_folder_path,
     )
 
-    trainer.loadMeshFile(mesh_file_path)
-    trainer.autoTrainMash(gt_points_num)
-    trainer.mash.saveParamsFile(save_params_file_path, overwrite)
-    # trainer.o3d_viewer.run()
-    # trainer.mash.renderSamplePoints()
+    convertor.convertAll()
     return True
