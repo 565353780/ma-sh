@@ -153,7 +153,6 @@ class Convertor(object):
                 self.convertOneShape(rel_file_path)
 
                 solved_shape_num += 1
-                print("\r solved shape num:", solved_shape_num, "    ", end="")
+                print("solved shape num:", solved_shape_num)
 
-        print()
         return True
