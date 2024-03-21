@@ -9,9 +9,7 @@ const torch::Tensor toMashSamplePoints(
     const torch::Tensor &sample_phis, const torch::Tensor &sample_thetas,
     const torch::Tensor &mask_boundary_phis,
     const torch::Tensor &mask_boundary_phi_idxs,
-    const torch::Tensor &mask_boundary_phi_data_idxs,
     const torch::Tensor &mask_boundary_base_values,
     const torch::Tensor &sample_base_values,
     const torch::Tensor &sample_sh_directions, const float &sample_point_scale,
-    const bool &use_inv = true, const bool &return_inner = true,
-    const bool &return_boundary = true);
+    const bool &use_inv = true);

@@ -8,20 +8,22 @@ from ma_sh.Method.check import checkFormat
 from ma_sh.Method.Mash.mash_unit import (
     toParams,
     toPreLoadUniformSamplePolars,
-    toPreLoadMaskBoundaryIdxs,
+    toPreLoadMaskBoundaryPhiIdxs,
     toPreLoadBaseValues,
     toPreLoadSHDirections,
 )
+from ma_sh.Method.render import renderPoints
 from ma_sh.Module.timer import Timer
 
 
 def test():
-    anchor_num = 40
+    anchor_num = 2
     mask_degree_max = 2
     sh_degree_max = 2
     mask_boundary_sample_num = 100
     sample_polar_num = 1000
     sample_point_scale = 0.5
+    use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float64
     device = "cuda:0"
@@ -45,7 +47,7 @@ def test():
     sample_phis, sample_thetas = toPreLoadUniformSamplePolars(
         sample_polar_num, dtype, device
     )
-    mask_boundary_phi_idxs, mask_boundary_phi_data_idxs = toPreLoadMaskBoundaryIdxs(
+    mask_boundary_phi_idxs = toPreLoadMaskBoundaryPhiIdxs(
         anchor_num, mask_boundary_sample_num, idx_dtype, device
     )
     mask_boundary_phis, mask_boundary_base_values, sample_base_values = (
@@ -75,19 +77,32 @@ def test():
         return
 
     for _ in trange(10):
-        mask_params.data = (
-            torch.randn(mask_params.shape, dtype=dtype).to(mask_params.device) * 1000.0
-        )
-        sh_params.data = (
-            torch.randn(sh_params.shape, dtype=dtype).to(mask_params.device) * 1000.0
-        )
-        rotate_vectors.data = (
-            torch.randn(rotate_vectors.shape, dtype=dtype).to(mask_params.device)
-            * 1000.0
-        )
-        positions.data = (
-            torch.randn(positions.shape, dtype=dtype).to(mask_params.device) * 1000.0
-        )
+        if False:
+            mask_params.data = (
+                torch.randn(mask_params.shape, dtype=dtype).to(mask_params.device)
+                * 1000.0
+            )
+            sh_params.data = (
+                torch.randn(sh_params.shape, dtype=dtype).to(mask_params.device)
+                * 1000.0
+            )
+            rotate_vectors.data = (
+                torch.randn(rotate_vectors.shape, dtype=dtype).to(mask_params.device)
+                * 1000.0
+            )
+            positions.data = (
+                torch.randn(positions.shape, dtype=dtype).to(mask_params.device)
+                * 1000.0
+            )
+        if True:
+            mask_params.data = torch.zeros_like(mask_params)
+            mask_params.data[:, 0] = 1.0
+            sh_params.data = torch.zeros_like(sh_params)
+            sh_params.data[:, 0] = 10.0
+            rotate_vectors.data = torch.zeros_like(rotate_vectors)
+            positions.data = torch.zeros_like(positions)
+            for i in range(anchor_num):
+                positions.data[i, 0] = 15.0 * i
 
         timer = Timer()
         mask_boundary_thetas = mash_cpp.toMaskBoundaryThetas(
@@ -269,20 +284,24 @@ def test():
 
         saveGraph(in_mask_sh_values, "3-in_mask_sh_values")
 
+        in_mask_sh_directions = sample_sh_directions[in_mask_sample_polar_data_idxs]
+
+        saveGraph(in_mask_sh_directions, "4-in_mask_sh_directions")
+
         in_mask_sh_points = mash_cpp.toSHPoints(
             sh_params,
             rotate_vectors,
             positions,
-            sample_sh_directions,
+            in_mask_sh_directions,
             in_mask_sh_values,
             in_mask_sample_polar_idxs,
-            in_mask_sample_polar_data_idxs,
+            use_inv,
         )
         assert checkFormat(
             in_mask_sh_points, dtype, device, [in_mask_sh_values.shape[0], 3], True
         )
 
-        saveGraph(in_mask_sh_points, "4-in_mask_sh_points")
+        saveGraph(in_mask_sh_points, "5-in_mask_sh_points")
 
         sample_point_counts = mash_cpp.toIdxCounts(
             in_mask_sample_polar_idxs, anchor_num
@@ -299,7 +318,7 @@ def test():
         print("toFPSPoints:", now)
         timer.reset()
 
-        saveGraph(fps_in_mask_sh_points, "5-fps_in_mask_sh_points")
+        saveGraph(fps_in_mask_sh_points, "6-fps_in_mask_sh_points")
 
         mask_boundary_sh_values = mash_cpp.toSHValues(
             sh_degree_max,
@@ -316,16 +335,22 @@ def test():
             True,
         )
 
-        saveGraph(mask_boundary_sh_values, "6-mask_boundary_sh_values")
+        saveGraph(mask_boundary_sh_values, "7-mask_boundary_sh_values")
+
+        mask_boundary_sh_directions = mash_cpp.toSHDirections(
+            mask_boundary_phis, mask_boundary_thetas
+        )
+
+        saveGraph(mask_boundary_sh_directions, "8-mask_boundary_sh_directions")
 
         mask_boundary_sh_points = mash_cpp.toSHPoints(
             sh_params,
             rotate_vectors,
             positions,
-            sample_sh_directions,
+            mask_boundary_sh_directions,
             mask_boundary_sh_values,
             mask_boundary_phi_idxs,
-            mask_boundary_phi_data_idxs,
+            use_inv,
         )
         assert checkFormat(
             mask_boundary_sh_points,
@@ -346,6 +371,8 @@ def test():
         timer.reset()
 
         saveGraph(sh_points, "8-sh_points")
+
+        renderPoints(sh_points.detach().clone().cpu().numpy())
 
         print("================================")
         return

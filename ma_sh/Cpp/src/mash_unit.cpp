@@ -104,18 +104,16 @@ const torch::Tensor toSHValues(const int &sh_degree_max,
   return sh_values;
 }
 
-const torch::Tensor
-toSHPoints(const torch::Tensor &sh_params, const torch::Tensor &rotate_vectors,
-           const torch::Tensor &positions,
-           const torch::Tensor &sample_sh_directions,
-           const torch::Tensor &sh_values, const torch::Tensor &polar_idxs,
-           const torch::Tensor &polar_data_idxs, const bool &use_inv) {
+const torch::Tensor toSHPoints(const torch::Tensor &sh_params,
+                               const torch::Tensor &rotate_vectors,
+                               const torch::Tensor &positions,
+                               const torch::Tensor &sample_sh_directions,
+                               const torch::Tensor &sh_values,
+                               const torch::Tensor &polar_idxs,
+                               const bool &use_inv) {
   const torch::Tensor v_sh_values = sh_values.reshape({-1, 1});
 
-  const torch::Tensor index_sh_directions =
-      sample_sh_directions.index({polar_data_idxs});
-
-  const torch::Tensor sh_local_points = v_sh_values * index_sh_directions;
+  const torch::Tensor sh_local_points = v_sh_values * sample_sh_directions;
 
   torch::Tensor sh_local_inv_points;
   if (use_inv) {

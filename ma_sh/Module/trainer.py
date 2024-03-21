@@ -342,12 +342,7 @@ class Trainer(object):
                     self.o3d_viewer.clearGeometries()
 
                     detect_points = (
-                        self.mash.toSamplePoints()
-                        .detach()
-                        .clone()
-                        .cpu()
-                        .numpy()
-                        .reshape(-1, 3)
+                        self.mash.toSamplePoints().detach().clone().cpu().numpy()
                     )
                     pcd = getPointCloud(detect_points)
                     self.o3d_viewer.addGeometry(pcd)

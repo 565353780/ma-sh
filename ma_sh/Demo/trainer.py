@@ -10,8 +10,8 @@ def demo():
     sh_degree_max = 3
     mask_boundary_sample_num = 100
     sample_polar_num = 1000
-    sample_point_scale = 0.5
-    use_inv = True
+    sample_point_scale = 0.8
+    use_inv = False
     idx_dtype = torch.int64
     dtype = torch.float64
     device = "cuda:0"

@@ -59,18 +59,13 @@ def toPreLoadUniformSamplePolars(sample_polar_num: int, dtype, device: str):
     return sample_phis, sample_thetas
 
 
-def toPreLoadMaskBoundaryIdxs(
+def toPreLoadMaskBoundaryPhiIdxs(
     anchor_num: int, mask_boundary_sample_num: int, idx_dtype, device: str
 ):
     mask_boundary_phi_counts = (
         torch.ones(anchor_num).type(idx_dtype).to(device) * mask_boundary_sample_num
     )
     mask_boundary_phi_idxs = mash_cpp.toIdxs(mask_boundary_phi_counts)
-    mask_boundary_phi_data_idxs = (
-        mash_cpp.toDataIdxs(anchor_num, mask_boundary_sample_num)
-        .type(idx_dtype)
-        .to(device)
-    )
 
     assert checkFormat(mask_boundary_phi_counts, idx_dtype, device, [anchor_num], False)
     assert checkFormat(
@@ -80,15 +75,8 @@ def toPreLoadMaskBoundaryIdxs(
         [anchor_num * mask_boundary_sample_num],
         False,
     )
-    assert checkFormat(
-        mask_boundary_phi_data_idxs,
-        idx_dtype,
-        device,
-        [anchor_num * mask_boundary_sample_num],
-        False,
-    )
 
-    return mask_boundary_phi_idxs, mask_boundary_phi_data_idxs
+    return mask_boundary_phi_idxs
 
 
 def toPreLoadBaseValues(
