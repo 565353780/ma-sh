@@ -25,14 +25,14 @@ def demo():
 
     render = False
 
-    mesh_name = "linux_4"
+    mesh_name = "linux_2"
 
     save_result_folder_path = "auto"
     save_log_folder_path = "auto"
 
     mesh_file_path = mesh_file_path_dict[mesh_name]
 
-    gt_points_num = 20000
+    gt_points_num = 40000
 
     save_params_file_path = "./output/" + mesh_name + ".npy"
     overwrite = True

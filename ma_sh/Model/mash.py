@@ -19,18 +19,14 @@ class Mash(object):
         anchor_num: int,
         mask_degree_max: int,
         sh_degree_max: int,
-        mask_boundary_sample_num: int,
-        sample_polar_num: int,
-        sample_point_scale: float,
+        mask_boundary_sample_num: int = 36,
+        sample_polar_num: int = 2000,
+        sample_point_scale: float = 0.8,
         use_inv: bool = True,
         idx_dtype=torch.int64,
         dtype=torch.float64,
         device: str = "cpu",
     ) -> None:
-        # Tmp Super Params
-        self.return_inner = True
-        self.return_boundary = False
-
         # Super Params
         self.anchor_num = anchor_num
         self.mask_degree_max = mask_degree_max
@@ -384,9 +380,6 @@ class Mash(object):
                 return False
 
         params_dict = self.toParamsDict()
-
-        # for key, item in self.best_params_dict.items():
-        #     params_dict["best_" + key] = item.detach().clone().cpu().numpy()
 
         createFileFolder(save_params_file_path)
 

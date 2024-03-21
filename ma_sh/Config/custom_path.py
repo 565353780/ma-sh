@@ -7,10 +7,8 @@ mesh_file_path_dict = {
     "linux_plane": "/home/chli/Downloads/plane.obj",
     "linux_airplane": "/home/chli/chLi/Dataset/ShapeNet/Core/ShapeNetCore.v2/02691156/2af04ef09d49221b85e5214b0d6a7/models/model_normalized.obj",
     "linux_bunny": "/home/chli/Downloads/bunny.obj",
-    "linux_1": "/home/chli/Nutstore Files/paper-materials-ASDF/Dataset/mini/02773838/1b9ef45fefefa35ed13f430b2941481.obj",
-    "linux_2": "/home/chli/Nutstore Files/paper-materials-ASDF/Dataset/mini/02801938/5c67e859bd49074c5a9dc003587438be.obj",
-    "linux_3": "/home/chli/Nutstore Files/paper-materials-ASDF/Dataset/mini/02808440/a88e254ea9ff7b4dfe52ffd0e748a1ab.obj",
-    "linux_4": "/home/chli/Nutstore Files/paper-materials-ASDF/Dataset/mini/02691156/1b171503b1d0a074bc0909d98a1ff2b4.obj",
+    "linux_1": "/home/chli/Nutstore Files/paper-materials-ASDF/Dataset/mini/02691156/1b171503b1d0a074bc0909d98a1ff2b4.obj",
+    "linux_2": "/home/chli/Nutstore Files/paper-materials-ASDF/Dataset/mini/03001627/2c251c2c49aaffd54b3c42e318f3affc.obj",
 }
 
 mac_chair_folder_path = (
