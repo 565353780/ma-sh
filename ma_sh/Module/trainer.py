@@ -237,8 +237,8 @@ class Trainer(object):
         fit_dists = torch.mean(torch.sqrt(fit_dists2) + EPSILON)
         coverage_dists = torch.mean(torch.sqrt(coverage_dists2) + EPSILON)
 
-        fit_loss = torch.mean(fit_dists)
-        coverage_loss = torch.mean(coverage_dists)
+        mean_fit_loss = torch.mean(fit_dists)
+        mean_coverage_loss = torch.mean(coverage_dists)
 
         fit_safe_scale = 0.2
         current_lr_coeff = np.log(self.getLr(optimizer))
@@ -247,8 +247,8 @@ class Trainer(object):
         lr_remain_scale = (current_lr_coeff - min_lr_coeff) / (lr_coeff - min_lr_coeff)
         fit_scale = fit_safe_scale + (1.0 - fit_safe_scale) * (1.0 - lr_remain_scale)
         coverage_scale = fit_safe_scale + (1.0 - fit_safe_scale) * lr_remain_scale
-        fit_loss = fit_scale * torch.mean(fit_dists)
-        coverage_loss = coverage_scale * torch.mean(coverage_dists)
+        fit_loss = fit_scale * mean_fit_loss
+        coverage_loss = coverage_scale * mean_coverage_loss
 
         loss = fit_loss + coverage_loss
 
@@ -283,9 +283,9 @@ class Trainer(object):
         optimizer.step()
 
         loss_dict = {
-            "fit_loss": fit_loss.detach().clone().cpu().numpy(),
-            "coverage_loss": coverage_loss.detach().clone().cpu().numpy(),
-            "chamfer_distance": (torch.mean(fit_dists) + torch.mean(coverage_dists))
+            "fit_loss": mean_fit_loss.detach().clone().cpu().numpy(),
+            "coverage_loss": mean_coverage_loss.detach().clone().cpu().numpy(),
+            "chamfer_distance": (mean_fit_loss + mean_coverage_loss)
             .detach()
             .clone()
             .cpu()
@@ -337,7 +337,7 @@ class Trainer(object):
         pbar = tqdm(total=self.epoch)
         pbar.update(self.step)
         while self.step < self.epoch:
-            if self.render and self.step % 5 == 0:
+            if self.render and self.step % 100 == 0:
                 with torch.no_grad():
                     self.o3d_viewer.clearGeometries()
 
@@ -367,7 +367,7 @@ class Trainer(object):
 
                     self.o3d_viewer.update()
 
-                    if True:
+                    if False:
                         self.o3d_viewer.run()
                         exit()
 

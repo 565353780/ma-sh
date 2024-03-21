@@ -15,7 +15,10 @@ toMaskBoundaryThetas(const torch::Tensor &mask_params,
   const torch::Tensor mask_boundary_thetas =
       toValues(mask_params, mask_boundary_base_values, mask_boundary_phi_idxs);
 
-  return mask_boundary_thetas;
+  const torch::Tensor regular_mask_boundary_thetas =
+      M_PI * torch::sigmoid(mask_boundary_thetas);
+
+  return regular_mask_boundary_thetas;
 }
 
 const std::vector<torch::Tensor>
@@ -57,7 +60,10 @@ toInMaxMaskThetas(const torch::Tensor &mask_params,
       toValues(detach_mask_params, in_max_mask_base_values,
                in_max_mask_sample_polar_idxs);
 
-  return in_max_mask_thetas;
+  const torch::Tensor regular_in_max_mask_thetas =
+      M_PI * torch::sigmoid(in_max_mask_thetas);
+
+  return regular_in_max_mask_thetas;
 }
 
 const torch::Tensor
@@ -84,8 +90,11 @@ toDetectThetas(const torch::Tensor &mask_params,
   const torch::Tensor detect_boundary_thetas =
       toValues(mask_params, in_mask_base_values, in_mask_sample_polar_idxs);
 
+  const torch::Tensor regular_detect_boundary_thetas =
+      M_PI * torch::sigmoid(detect_boundary_thetas);
+
   const torch::Tensor detect_thetas =
-      in_mask_sample_theta_weights * detect_boundary_thetas;
+      in_mask_sample_theta_weights * regular_detect_boundary_thetas;
 
   return detect_thetas;
 }
@@ -101,7 +110,9 @@ const torch::Tensor toSHValues(const int &sh_degree_max,
   const torch::Tensor sh_values =
       toValues(sh_params, sh_base_values, polar_idxs);
 
-  return sh_values;
+  const torch::Tensor regular_sh_values = torch::relu(sh_values);
+
+  return regular_sh_values;
 }
 
 const torch::Tensor toSHPoints(const torch::Tensor &sh_params,
