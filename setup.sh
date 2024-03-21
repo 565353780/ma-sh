@@ -1,7 +1,8 @@
-pip install torch torchvision torchaudio
+sudo apt install bear -y
 
-sudo apt install bear
 pip install ninja
+
+pip install torch torchvision torchaudio
 
 cd ../ma-sh
 ./compile.sh
