@@ -6,7 +6,7 @@ from ma_sh.Module.convertor import Convertor
 def demo():
     shape_root_folder_path = "/home/chli/chLi/Dataset/ShapeNet/Core/ShapeNetCore.v2/"
     save_root_folder_path = "/home/chli/chLi/Dataset/Mash/ShapeNet/"
-    force_start = True
+    force_start = False
     gt_points_num = 10000
     anchor_num = 100
     mask_degree_max = 1
