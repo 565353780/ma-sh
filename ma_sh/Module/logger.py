@@ -4,7 +4,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 
 class Logger(object):
-    def __init__(self, log_folder_path: Union[str, None]=None) -> None:
+    def __init__(self, log_folder_path: Union[str, None] = None) -> None:
         self.summary_writer = None
 
         self.log_name_dict = {}
@@ -41,6 +41,11 @@ class Logger(object):
         return self.setStep(name, self.getNameStep(name) + 1)
 
     def addScalar(self, name: str, value: float, step: Union[int, None] = None) -> bool:
+        if not self.isValid():
+            print("[ERROR][Logger::addScalar]")
+            print("\t isValid failed!")
+            return False
+
         if step is not None:
             self.setStep(name, step)
 

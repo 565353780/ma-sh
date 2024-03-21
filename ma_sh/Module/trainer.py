@@ -3,6 +3,7 @@ import torch
 import numpy as np
 from tqdm import tqdm
 from typing import Union
+from copy import deepcopy
 from torch.optim import AdamW as OPTIMIZER
 from torch.optim.lr_scheduler import ReduceLROnPlateau as SCHEDULER
 
@@ -12,7 +13,6 @@ from ma_sh.Data.mesh import Mesh
 from ma_sh.Loss.chamfer_distance import chamferDistance
 from ma_sh.Method.pcd import getPointCloud
 from ma_sh.Method.time import getCurrentTime
-from ma_sh.Method.path import createFileFolder, removeFile, renameFile
 from ma_sh.Model.mash import Mash
 from ma_sh.Module.logger import Logger
 from ma_sh.Module.o3d_viewer import O3DViewer
@@ -21,25 +21,25 @@ from ma_sh.Module.o3d_viewer import O3DViewer
 class Trainer(object):
     def __init__(
         self,
-        anchor_num: int = 4,
-        mask_degree_max: int = 5,
+        anchor_num: int = 100,
+        mask_degree_max: int = 1,
         sh_degree_max: int = 3,
-        mask_boundary_sample_num: int = 10,
-        sample_polar_num: int = 10,
-        sample_point_scale: float = 0.5,
+        mask_boundary_sample_num: int = 36,
+        sample_polar_num: int = 2000,
+        sample_point_scale: float = 0.8,
         use_inv: bool = True,
         idx_dtype=torch.int64,
         dtype=torch.float64,
-        device: str = "cpu",
-        epoch: int = 1000,
-        lr: float = 1e-2,
-        weight_decay: float = 1e-10,
-        factor: float = 0.8,
-        patience: int = 10,
+        device: str = "cuda:0",
+        epoch: int = 10000,
+        lr: float = 1e-1,
+        weight_decay: float = 1e-4,
+        factor: float = 0.99,
+        patience: int = 1,
         min_lr: float = 1e-3,
         render: bool = False,
-        save_folder_path: Union[str, None] = None,
-        direction_upscale: int = 4,
+        save_result_folder_path: Union[str, None] = None,
+        save_log_folder_path: Union[str, None] = None,
     ) -> None:
         self.mash = Mash(
             anchor_num,
@@ -71,7 +71,8 @@ class Trainer(object):
 
         self.render = render
 
-        self.save_folder_path = None
+        self.save_result_folder_path = save_result_folder_path
+        self.save_log_folder_path = save_log_folder_path
         self.save_file_idx = 0
         self.logger = Logger()
 
@@ -79,31 +80,28 @@ class Trainer(object):
 
         self.mesh = Mesh()
 
-        self.loadRecords(save_folder_path)
-
-        self.direction_upscale = direction_upscale
-        self.fps_scale = 1.0 / self.direction_upscale
+        self.initRecords()
 
         if self.render:
             self.o3d_viewer = O3DViewer()
             self.o3d_viewer.createWindow()
         return
 
-    def loadRecords(self, save_folder_path: Union[str, None] = None) -> bool:
+    def initRecords(self) -> bool:
         self.save_file_idx = 0
 
         current_time = getCurrentTime()
 
-        if save_folder_path is None:
-            self.save_folder_path = "./output/" + current_time + "/"
-            log_folder_path = "./logs/" + current_time + "/"
-        else:
-            self.save_folder_path = save_folder_path
-            log_folder_path = save_folder_path + "../logs/" + current_time + "/"
+        if self.save_result_folder_path == "auto":
+            self.save_result_folder_path = "./output/" + current_time + "/"
+        if self.save_log_folder_path == "auto":
+            self.save_log_folder_path = "./logs/" + current_time + "/"
 
-        os.makedirs(self.save_folder_path, exist_ok=True)
-        os.makedirs(log_folder_path, exist_ok=True)
-        self.logger.setLogFolder(log_folder_path)
+        if self.save_result_folder_path is not None:
+            os.makedirs(self.save_result_folder_path, exist_ok=True)
+        if self.save_log_folder_path is not None:
+            os.makedirs(self.save_log_folder_path, exist_ok=True)
+            self.logger.setLogFolder(self.save_log_folder_path)
         return True
 
     def loadMeshFile(self, mesh_file_path: str) -> bool:
@@ -146,6 +144,7 @@ class Trainer(object):
             "sh_params": self.mash.sh_params.detach().clone(),
             "rotate_vectors": self.mash.rotate_vectors.detach().clone(),
             "positions": self.mash.positions.detach().clone(),
+            "use_inv": self.mash.use_inv,
         }
         return True
 
@@ -155,8 +154,9 @@ class Trainer(object):
         sh_params: Union[torch.Tensor, np.ndarray],
         rotate_vectors: Union[torch.Tensor, np.ndarray],
         positions: Union[torch.Tensor, np.ndarray],
+        use_inv: bool,
     ) -> bool:
-        self.mash.loadParams(mask_params, sh_params, rotate_vectors, positions)
+        self.mash.loadParams(mask_params, sh_params, rotate_vectors, positions, use_inv)
 
         self.updateBestParams()
         return True
@@ -167,6 +167,7 @@ class Trainer(object):
         sh_params: Union[torch.Tensor, np.ndarray],
         rotate_vectors: Union[torch.Tensor, np.ndarray],
         positions: Union[torch.Tensor, np.ndarray],
+        use_inv: bool,
     ) -> bool:
         if isinstance(mask_params, np.ndarray):
             mask_params = torch.from_numpy(mask_params)
@@ -181,15 +182,7 @@ class Trainer(object):
         self.best_params_dict["sh_params"] = sh_params
         self.best_params_dict["rotate_vectors"] = rotate_vectors
         self.best_params_dict["positions"] = positions
-        return True
-
-    def setBestParams(self) -> bool:
-        self.mash.loadParams(
-            self.best_params_dict["mask_params"],
-            self.best_params_dict["sh_params"],
-            self.best_params_dict["rotate_vectors"],
-            self.best_params_dict["positions"],
-        )
+        self.best_params_dict["use_inv"] = use_inv
         return True
 
     def upperMaskDegree(self) -> bool:
@@ -377,9 +370,10 @@ class Trainer(object):
             )
 
             assert isinstance(loss_dict, dict)
-            for key, item in loss_dict.items():
-                self.logger.addScalar("Train/" + key, item, self.step)
-            self.logger.addScalar("Train/lr", self.getLr(optimizer), self.step)
+            if self.logger.isValid():
+                for key, item in loss_dict.items():
+                    self.logger.addScalar("Train/" + key, item, self.step)
+                self.logger.addScalar("Train/lr", self.getLr(optimizer), self.step)
 
             scheduler.step(loss_dict["loss"])
 
@@ -406,12 +400,6 @@ class Trainer(object):
         self,
         gt_points_num: int = 10000,
     ) -> bool:
-        # TODO: need to adaptive upper degrees here for more stable optimizing
-        # self.sh_3d_degree_max = self.max_sh_3d_degree
-        # self.sh_2d_degree_max = self.max_sh_2d_degree
-
-        # self.mash.reset()
-
         print("[INFO][Trainer::autoTrainMash]")
         print("\t start auto train Mash...")
         print(
@@ -456,71 +444,21 @@ class Trainer(object):
 
         return True
 
-    def saveParams(self, save_params_file_path: str, overwrite: bool = False) -> bool:
-        if os.path.exists(save_params_file_path):
-            if overwrite:
-                removeFile(save_params_file_path)
-            else:
-                print("[WARN][Trainer::saveParams]")
-                print("\t save params file already exist!")
-                print("\t save_params_file_path:", save_params_file_path)
-                return False
-
-        params_dict = {
-            "mask_degree_max": self.mash.mask_degree_max,
-            "sh_degree_max": self.mash.sh_degree_max,
-            "use_inv": self.use_inv,
-            "mask_params": self.mash.mask_params.detach().clone().cpu().numpy(),
-            "sh_params": self.mash.sh_params.detach().clone().cpu().numpy(),
-            "rotate_vectors": self.mash.rotate_vectors.detach().clone().cpu().numpy(),
-            "positions": self.mash.positions.detach().clone().cpu().numpy(),
-        }
-
-        for key, item in self.best_params_dict.items():
-            params_dict["best_" + key] = item.detach().clone().cpu().numpy()
-
-        createFileFolder(save_params_file_path)
-
-        tmp_save_params_file_path = save_params_file_path.split(".npy")[0] + "_tmp.npy"
-        removeFile(tmp_save_params_file_path)
-
-        np.save(tmp_save_params_file_path, params_dict)
-        renameFile(tmp_save_params_file_path, save_params_file_path)
-        return True
-
-    def loadParamsFile(self, params_file_path: str) -> bool:
-        if not os.path.exists(params_file_path):
-            print("[ERROR][Trainer::loadParamsFile]")
-            print("\t params file not exist!")
-            print("\t params_file_path:", params_file_path)
+    def autoSaveMash(self, state_info: str) -> bool:
+        if self.save_result_folder_path is None:
             return False
 
-        params_dict = np.load(params_file_path, allow_pickle=True).item()
-
-        self.mash.mask_degree_max = int(params_dict["mask_degree_max"])
-        self.mash.sh_degree_max = int(params_dict["sh_degree_max"])
-        self.use_inv = bool(params_dict["use_inv"])
-
-        self.loadParamsNp(
-            params_dict["mask_params"],
-            params_dict["sh_params"],
-            params_dict["rotate_vectors"],
-            params_dict["positions"],
-        )
-        self.loadBestParamsNp(
-            params_dict["best_mask_params"],
-            params_dict["best_sh_params"],
-            params_dict["best_rotate_vectors"],
-            params_dict["best_positions"],
-        )
-        return True
-
-    def autoSaveMash(self, state_info: str) -> bool:
         save_file_path = (
-            self.save_folder_path + str(self.save_file_idx) + "_" + state_info + ".npy"
+            self.save_result_folder_path
+            + str(self.save_file_idx)
+            + "_"
+            + state_info
+            + ".npy"
         )
 
-        self.saveParams(save_file_path, True)
+        save_mash = deepcopy(self.mash)
+        save_mash.loadParamsDict(self.best_params_dict)
+        save_mash.saveParamsFile(save_file_path, True)
 
         self.save_file_idx += 1
         return True

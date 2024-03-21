@@ -27,8 +27,8 @@ def demo():
 
     mesh_name = "linux_4"
 
-    save_folder_path = "./output/" + mesh_name + "/"
-    direction_upscale = 2
+    save_result_folder_path = "auto"
+    save_log_folder_path = "auto"
 
     mesh_file_path = mesh_file_path_dict[mesh_name]
 
@@ -55,13 +55,13 @@ def demo():
         patience,
         min_lr,
         render,
-        save_folder_path,
-        direction_upscale,
+        save_result_folder_path,
+        save_log_folder_path,
     )
 
     trainer.loadMeshFile(mesh_file_path)
     trainer.autoTrainMash(gt_points_num)
-    trainer.o3d_viewer.run()
-    trainer.mash.renderSamplePoints()
-    trainer.saveParams(save_params_file_path, overwrite)
+    trainer.mash.saveParamsFile(save_params_file_path, overwrite)
+    # trainer.o3d_viewer.run()
+    # trainer.mash.renderSamplePoints()
     return True
