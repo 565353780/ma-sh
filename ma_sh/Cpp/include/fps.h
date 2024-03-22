@@ -17,9 +17,9 @@ furthest_point_sampling(const torch::Tensor &points,
 #endif
 
 const torch::Tensor toSingleFPSPointIdxs(const torch::Tensor &points,
-                                   const int &sample_point_num);
+                                         const int &sample_point_num);
 
 const torch::Tensor toFPSPointIdxs(const torch::Tensor &points,
-                                const torch::Tensor &point_idxs,
-                                const float &sample_point_scale,
-                                const int &idx_num);
+                                   const torch::Tensor &point_idxs,
+                                   const float &sample_point_scale,
+                                   const int &idx_num);

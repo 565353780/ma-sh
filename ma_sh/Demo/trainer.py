@@ -15,7 +15,7 @@ def demo():
     use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float64
-    device = "cpu"
+    device = "cuda:0"
 
     epoch = 10000
     lr = 1e-1
@@ -26,7 +26,7 @@ def demo():
 
     render = False
 
-    mesh_name = "mac_airplane"
+    mesh_name = "linux_1"
 
     save_result_folder_path = "auto"
     save_log_folder_path = "auto"

@@ -1,5 +1,5 @@
-#include "constant.h"
 #include "fps.h"
+#include "constant.h"
 #include "idx.h"
 #include "utils.h"
 
@@ -72,7 +72,7 @@ furthest_point_sampling(const torch::Tensor &points,
 #endif
 
 const torch::Tensor toSingleFPSPointIdxs(const torch::Tensor &points,
-                                   const int &sample_point_num) {
+                                         const int &sample_point_num) {
   const torch::TensorOptions opts =
       torch::TensorOptions().dtype(points.dtype()).device(points.device());
   const torch::TensorOptions idx_opts =
@@ -104,9 +104,9 @@ const torch::Tensor toSingleFPSPointIdxs(const torch::Tensor &points,
 }
 
 const torch::Tensor toFPSPointIdxs(const torch::Tensor &points,
-                                const torch::Tensor &point_idxs,
-                                const float &sample_point_scale,
-                                const int &idx_num) {
+                                   const torch::Tensor &point_idxs,
+                                   const float &sample_point_scale,
+                                   const int &idx_num) {
   const torch::Tensor detach_points = points.detach();
 
   const torch::Tensor point_counts = toIdxCounts(point_idxs, idx_num);
