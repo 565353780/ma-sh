@@ -1,3 +1,4 @@
+import open3d
 import torch
 
 from ma_sh.Config.custom_path import mesh_file_path_dict
@@ -14,7 +15,7 @@ def demo():
     use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float64
-    device = "cuda:0"
+    device = "cpu"
 
     epoch = 10000
     lr = 1e-1
@@ -25,7 +26,7 @@ def demo():
 
     render = False
 
-    mesh_name = "linux_2"
+    mesh_name = "mac_airplane"
 
     save_result_folder_path = "auto"
     save_log_folder_path = "auto"

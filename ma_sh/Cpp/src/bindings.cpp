@@ -1,4 +1,5 @@
 #include "filter.h"
+#include "fps.h"
 #include "idx.h"
 #include "inv.h"
 #include "mash.h"
@@ -6,7 +7,6 @@
 #include "mask.h"
 #include "rotate.h"
 #include "sample.h"
-#include "sampling.h"
 #include "sh.h"
 #include "value.h"
 
@@ -15,10 +15,14 @@
 PYBIND11_MODULE(mash_cpp, m) {
   m.doc() = "pybind11 mash cpp plugin";
 
-  m.def("furthest_point_sampling", &furthest_point_sampling,
-        "pointnet2_ops.furthest_point_sampling");
-
   m.def("toMaxValues", &toMaxValues, "filter.toMaxValues");
+
+#ifdef USE_CUDA
+  m.def("furthest_point_sampling", &furthest_point_sampling,
+        "fps.furthest_point_sampling");
+#endif
+  m.def("toSingleFPSPointIdxs", &toSingleFPSPointIdxs, "fps.toSingleFPSPointIdxs");
+  m.def("toFPSPointIdxs", &toFPSPointIdxs, "fps.toFPSPointIdxs");
 
   m.def("toCounts", &toCounts, "idx.toCounts");
   m.def("toIdxs", &toIdxs, "idx.toIdxs");
@@ -57,7 +61,6 @@ PYBIND11_MODULE(mash_cpp, m) {
   m.def("toUniformSampleThetas", &toUniformSampleThetas,
         "sample.toUniformSampleThetas");
   m.def("toMaskBoundaryPhis", &toMaskBoundaryPhis, "sample.toMaskBoundaryPhis");
-  m.def("toFPSPointIdxs", &toFPSPointIdxs, "sample.toFPSPointIdxs");
 
   m.def("toSHBaseValues", &toSHBaseValues, "sh.toSHBaseValues");
   m.def("toSHDirections", &toSHDirections, "sh.toSHDirections");

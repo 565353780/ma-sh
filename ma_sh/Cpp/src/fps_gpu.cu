@@ -1,5 +1,6 @@
 #include "cuda_utils.h"
 
+#ifdef USE_CUDA
 __device__ void __update(float *__restrict__ dists, int *__restrict__ dists_i,
                          int idx1, int idx2) {
   const float v1 = dists[idx1], v2 = dists[idx2];
@@ -222,3 +223,4 @@ void furthest_point_sampling_kernel_wrapper(
 
   // CUDA_CHECK_ERRORS();
 }
+#endif

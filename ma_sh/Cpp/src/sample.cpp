@@ -57,35 +57,3 @@ const torch::Tensor toMaskBoundaryPhis(const int &anchor_num,
 
   return mask_boundary_phis;
 }
-
-const torch::Tensor toFPSPointIdxs(const torch::Tensor &points,
-                                   const int &sample_point_num) {
-  const torch::TensorOptions opts =
-      torch::TensorOptions().dtype(points.dtype()).device(points.device());
-  const torch::TensorOptions idx_opts =
-      torch::TensorOptions().dtype(torch::kInt64).device(points.device());
-
-  torch::Tensor centroids = torch::zeros({sample_point_num}, idx_opts);
-  torch::Tensor distance = torch::ones({points.sizes()[0]}, opts) * 1e10;
-
-  torch::Tensor farthest = torch::zeros({1}, idx_opts);
-
-  for (int i = 0; i < sample_point_num; ++i) {
-    centroids.index_put_({i}, farthest);
-
-    const torch::Tensor centroid =
-        points.index({farthest, slice_all}).view({1, 3});
-
-    const torch::Tensor point_diffs = points - centroid;
-
-    const torch::Tensor dist = torch::sum(point_diffs * point_diffs, -1);
-
-    const torch::Tensor mask = dist < distance;
-
-    distance.index_put_({mask}, dist.index({mask}));
-
-    farthest = std::get<1>(torch::max(distance, -1));
-  }
-
-  return centroids;
-}
