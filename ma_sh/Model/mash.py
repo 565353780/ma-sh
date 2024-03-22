@@ -353,6 +353,7 @@ class Mash(object):
 
     def renderSamplePoints(self) -> bool:
         sample_points = self.toSamplePoints().detach().clone().cpu().numpy()
+        print(sample_points.shape)
 
         renderPoints(sample_points)
         return True

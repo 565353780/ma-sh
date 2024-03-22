@@ -1,5 +1,6 @@
 #pragma once
 
+#ifdef USE_CUDA
 #include <ATen/ATen.h>
 #include <ATen/cuda/CUDAContext.h>
 #include <cmath>
@@ -34,3 +35,4 @@ inline dim3 opt_block_config(int x, int y) {
       exit(-1);                                                                \
     }                                                                          \
   } while (0)
+#endif

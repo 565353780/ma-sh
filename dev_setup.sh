@@ -1,4 +1,10 @@
-sudo apt install bear -y
+UNAME=$(uname -s)
+
+if [ "$UNAME" == "Darwin" ]; then
+	brew install bear
+elif [ "$UNAME" == "Linux" ]; then
+	sudo apt install bear -y
+fi
 
 pip install -U ninja
 
