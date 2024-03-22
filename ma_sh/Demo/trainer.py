@@ -1,4 +1,3 @@
-import open3d
 import torch
 
 from ma_sh.Config.custom_path import mesh_file_path_dict
@@ -10,7 +9,7 @@ def demo():
     mask_degree_max = 1
     sh_degree_max = 3
     mask_boundary_sample_num = 36
-    sample_polar_num = 2000
+    sample_polar_num = 10000
     sample_point_scale = 0.8
     use_inv = True
     idx_dtype = torch.int64
@@ -22,11 +21,11 @@ def demo():
     weight_decay = 1e-4
     factor = 0.99
     patience = 1
-    min_lr = 1e-3
+    min_lr = 1e-4
 
     render = False
 
-    mesh_name = "linux_1"
+    mesh_name = "linux_2"
 
     save_result_folder_path = "auto"
     save_log_folder_path = "auto"
@@ -36,7 +35,9 @@ def demo():
     gt_points_num = 10000
 
     save_params_file_path = "./output/" + mesh_name + ".npy"
+    save_pcd_file_path = "./output/" + mesh_name + ".ply"
     overwrite = True
+    print_progress = True
 
     trainer = Trainer(
         anchor_num,
@@ -63,6 +64,8 @@ def demo():
     trainer.loadMeshFile(mesh_file_path)
     trainer.autoTrainMash(gt_points_num)
     trainer.mash.saveParamsFile(save_params_file_path, overwrite)
+    trainer.mash.saveAsPcdFile(save_pcd_file_path, overwrite, print_progress)
+
     # trainer.o3d_viewer.run()
     # trainer.mash.renderSamplePoints()
     return True

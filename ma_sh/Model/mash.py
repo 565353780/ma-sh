@@ -1,6 +1,7 @@
 import os
 import torch
 import numpy as np
+import open3d as o3d
 from math import sqrt
 from typing import Union
 
@@ -389,4 +390,34 @@ class Mash(object):
 
         np.save(tmp_save_params_file_path, params_dict)
         renameFile(tmp_save_params_file_path, save_params_file_path)
+        return True
+
+    def saveAsPcdFile(
+        self,
+        save_pcd_file_path: str,
+        overwrite: bool = False,
+        print_progress: bool = False,
+    ) -> bool:
+        if os.path.exists(save_pcd_file_path):
+            if overwrite:
+                removeFile(save_pcd_file_path)
+            else:
+                print("[ERROR][Mash::saveAsPcdFile]")
+                print("\t save pcd file already exist!")
+                print("\t save_pcd_file_path:", save_pcd_file_path)
+                return False
+
+        createFileFolder(save_pcd_file_path)
+
+        points = self.toSamplePoints().detach().clone().cpu().numpy()
+
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = o3d.utility.Vector3dVector(points)
+
+        if print_progress:
+            print("[INFO][Mash::saveAsPcdFile]")
+            print("\t start save as pcd file...")
+        o3d.io.write_point_cloud(
+            save_pcd_file_path, pcd, write_ascii=True, print_progress=print_progress
+        )
         return True
