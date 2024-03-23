@@ -19,8 +19,8 @@ def test():
     mask_degree_max = 1
     sh_degree_max = 3
     mask_boundary_sample_num = 10
+    inner_sample_row_num = 10
     sample_point_scale = 0.5
-    delta_theta_angle = 1.0
     use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float64
@@ -68,8 +68,8 @@ def test():
             saveGraph(mask_boundary_thetas, "1-mask_boundary_thetas")
 
         timer.reset()
-        sample_theta_nums = mash_cpp.toSampleThetaNums(
-            mask_boundary_thetas, delta_theta_angle
+        sample_theta_nums = (
+            torch.ones_like(mask_boundary_phi_idxs) * inner_sample_row_num
         )
         print("toSampleThetaNums:", timer.now())
 

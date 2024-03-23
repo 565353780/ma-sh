@@ -11,8 +11,8 @@ def test():
     mask_degree_max = 1
     sh_degree_max = 3
     mask_boundary_sample_num = 10
+    inner_sample_row_num = 10
     sample_point_scale = 0.5
-    delta_theta_angle = 1.0
     use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float64
@@ -23,8 +23,8 @@ def test():
         mask_degree_max,
         sh_degree_max,
         mask_boundary_sample_num,
+        inner_sample_row_num,
         sample_point_scale,
-        delta_theta_angle,
         use_inv,
         idx_dtype,
         dtype,

@@ -24,9 +24,9 @@ class Trainer(object):
         anchor_num: int = 100,
         mask_degree_max: int = 1,
         sh_degree_max: int = 3,
-        mask_boundary_sample_num: int = 36,
+        mask_boundary_sample_num: int = 10,
+        inner_sample_row_num: int = 10,
         sample_point_scale: float = 0.8,
-        delta_theta_angle: float = 1.0,
         use_inv: bool = True,
         idx_dtype=torch.int64,
         dtype=torch.float64,
@@ -46,8 +46,8 @@ class Trainer(object):
             mask_degree_max,
             sh_degree_max,
             mask_boundary_sample_num,
+            inner_sample_row_num,
             sample_point_scale,
-            delta_theta_angle,
             use_inv,
             idx_dtype,
             dtype,
@@ -220,6 +220,7 @@ class Trainer(object):
         optimizer.zero_grad()
 
         detect_points = self.mash.toSamplePoints()
+        print("detect_points:", detect_points.shape)
 
         fit_dists2, coverage_dists2 = chamferDistance(
             detect_points.reshape(1, -1, 3).type(gt_points.dtype),

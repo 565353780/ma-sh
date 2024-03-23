@@ -1,4 +1,5 @@
 #include "mash.h"
+#include "ATen/core/ATen_fwd.h"
 #include "idx.h"
 #include "mash_unit.h"
 #include "sample.h"
@@ -10,13 +11,14 @@ const torch::Tensor toMashSamplePoints(
     const torch::Tensor &rotate_vectors, const torch::Tensor &positions,
     const torch::Tensor &mask_boundary_phis,
     const torch::Tensor &mask_boundary_base_values,
-    const torch::Tensor &mask_boundary_phi_idxs, const float &delta_theta_angle,
-    const float &sample_point_scale, const bool &use_inv) {
+    const torch::Tensor &mask_boundary_phi_idxs,
+    const int &inner_sample_row_num, const float &sample_point_scale,
+    const bool &use_inv) {
   const torch::Tensor mask_boundary_thetas = toMaskBoundaryThetas(
       mask_params, mask_boundary_base_values, mask_boundary_phi_idxs);
 
   const torch::Tensor sample_theta_nums =
-      toSampleThetaNums(mask_boundary_thetas, delta_theta_angle);
+      torch::ones_like(mask_boundary_phi_idxs) * inner_sample_row_num;
 
   const torch::Tensor sample_theta_idxs_in_phi_idxs = toIdxs(sample_theta_nums);
 

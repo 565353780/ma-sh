@@ -9,9 +9,9 @@ def demo():
     mask_degree_max = 1
     sh_degree_max = 3
     mask_boundary_sample_num = 10
-    sample_point_scale = 0.8
-    delta_theta_angle = 1.0
-    use_inv = True
+    inner_sample_row_num = 10
+    sample_point_scale = 0.5
+    use_inv = False
     idx_dtype = torch.int64
     dtype = torch.float64
     device = "cuda:0"
@@ -19,9 +19,9 @@ def demo():
     epoch = 10000
     lr = 1e-1
     weight_decay = 1e-4
-    factor = 0.99
+    factor = 0.9
     patience = 1
-    min_lr = 1e-4
+    min_lr = 1e-3
 
     render = False
 
@@ -44,8 +44,8 @@ def demo():
         mask_degree_max,
         sh_degree_max,
         mask_boundary_sample_num,
+        inner_sample_row_num,
         sample_point_scale,
-        delta_theta_angle,
         use_inv,
         idx_dtype,
         dtype,
