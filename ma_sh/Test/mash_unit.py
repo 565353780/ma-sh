@@ -1,11 +1,9 @@
 import torch
-import numpy as np
 from tqdm import trange
 from torchviz import make_dot
 
 import mash_cpp
 
-from ma_sh.Method.check import checkFormat
 from ma_sh.Method.Mash.mash_unit import (
     toParams,
     toPreLoadMaskBoundaryPhiIdxs,
@@ -13,15 +11,16 @@ from ma_sh.Method.Mash.mash_unit import (
 )
 from ma_sh.Method.render import renderPoints
 from ma_sh.Module.timer import Timer
+from ma_sh.Test.init_values import initValues
 
 
 def test():
-    anchor_num = 2
-    mask_degree_max = 2
-    sh_degree_max = 2
-    mask_boundary_sample_num = 100
+    anchor_num = 100
+    mask_degree_max = 1
+    sh_degree_max = 3
+    mask_boundary_sample_num = 10
     sample_point_scale = 0.5
-    delta_theta = np.pi / 90.0
+    delta_theta_angle = 1.0
     use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float64
@@ -31,42 +30,7 @@ def test():
         anchor_num, mask_degree_max, sh_degree_max, dtype, device
     )
 
-    init_mode = 2
-    if init_mode == 0:
-        for i in range(anchor_num):
-            mask_params.data[i, 0] = i + 10.0
-
-        for i in range(anchor_num):
-            sh_params.data[i, 0] = i + 1.0
-
-        for i in range(anchor_num):
-            rotate_vectors.data[i, 0] = i
-
-        for i in range(anchor_num):
-            positions.data[i, 0] = i
-    elif init_mode == 1:
-        mask_params.data = (
-            torch.randn(mask_params.shape, dtype=dtype).to(mask_params.device) * 1000.0
-        )
-        sh_params.data = (
-            torch.randn(sh_params.shape, dtype=dtype).to(mask_params.device) * 1000.0
-        )
-        rotate_vectors.data = (
-            torch.randn(rotate_vectors.shape, dtype=dtype).to(mask_params.device)
-            * 1000.0
-        )
-        positions.data = (
-            torch.randn(positions.shape, dtype=dtype).to(mask_params.device) * 1000.0
-        )
-    elif init_mode == 2:
-        mask_params.data = torch.zeros_like(mask_params)
-        mask_params.data[:, 0] = 1.0
-        sh_params.data = torch.zeros_like(sh_params)
-        sh_params.data[:, 0] = 10.0
-        rotate_vectors.data = torch.zeros_like(rotate_vectors)
-        positions.data = torch.zeros_like(positions)
-        for i in range(anchor_num):
-            positions.data[i, 2] = 15.0 * i
+    initValues(mask_params, sh_params, rotate_vectors, positions, 2)
 
     mask_boundary_phi_idxs = toPreLoadMaskBoundaryPhiIdxs(
         anchor_num, mask_boundary_sample_num, idx_dtype, device
@@ -105,7 +69,7 @@ def test():
 
         timer.reset()
         sample_theta_nums = mash_cpp.toSampleThetaNums(
-            mask_boundary_thetas, delta_theta
+            mask_boundary_thetas, delta_theta_angle
         )
         print("toSampleThetaNums:", timer.now())
 
@@ -171,6 +135,8 @@ def test():
 
         if i == 0:
             saveGraph(fps_sample_sh_points, "6-sh_points")
+
+        print("sh_points:", fps_sample_sh_points.shape)
 
         # renderPoints(fps_sample_sh_points.detach().clone().cpu().numpy())
 

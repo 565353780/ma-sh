@@ -1,39 +1,42 @@
 #include "idx.h"
 #include "constant.h"
-#include <cstdint>
+
+using namespace torch::indexing;
 
 const torch::Tensor toCounts(const std::vector<torch::Tensor> &data_vec) {
-  std::vector<torch::Tensor> counts_vec;
-  counts_vec.reserve(data_vec.size());
-
   const torch::TensorOptions opts = torch::TensorOptions()
                                         .dtype(data_vec[0].dtype())
                                         .device(data_vec[0].device());
 
-  for (size_t i = 0; i < data_vec.size(); ++i) {
-    counts_vec.emplace_back(torch::tensor(data_vec[i].sizes()[0], opts));
-  }
+  torch::Tensor counts = torch::zeros({long(data_vec.size())}, opts);
 
-  const torch::Tensor counts = torch::hstack(counts_vec);
+  for (size_t i = 0; i < data_vec.size(); ++i) {
+    counts[i] = data_vec[i].size(0);
+  }
 
   return counts;
 }
 
 const torch::Tensor toIdxs(const torch::Tensor &data_counts) {
-  std::vector<torch::Tensor> idxs_vec;
+  const int idxs_num = torch::sum(data_counts).item<int>();
 
   const torch::TensorOptions opts = torch::TensorOptions()
                                         .dtype(data_counts.dtype())
                                         .device(data_counts.device());
 
-  for (int i = 0; i < data_counts.sizes()[0]; ++i) {
-    const torch::Tensor current_idxs =
-        torch::ones(data_counts[i].item<std::int64_t>(), opts) * i;
+  torch::Tensor idxs = torch::zeros({idxs_num}, opts);
 
-    idxs_vec.emplace_back(current_idxs);
+  int idx_start_idx = 0;
+  for (int i = 0; i < data_counts.size(0); ++i) {
+    const int current_data_count = data_counts[i].item<int>();
+
+    const Slice current_slice =
+        Slice(idx_start_idx, idx_start_idx + current_data_count);
+
+    idxs.index_put_({current_slice}, i);
+
+    idx_start_idx += current_data_count;
   }
-
-  const torch::Tensor idxs = torch::hstack(idxs_vec);
 
   return idxs;
 }
@@ -71,9 +74,9 @@ const torch::Tensor toIdxCounts(const torch::Tensor &idxs, const int &idx_num) {
 const std::vector<torch::Tensor>
 toLowerIdxsVec(const torch::Tensor &values, const torch::Tensor &max_bounds) {
   std::vector<torch::Tensor> lower_idxs_vec;
-  lower_idxs_vec.reserve(max_bounds.sizes()[0]);
+  lower_idxs_vec.reserve(max_bounds.size(0));
 
-  for (int i = 0; i < max_bounds.sizes()[0]; ++i) {
+  for (int i = 0; i < max_bounds.size(0); ++i) {
     const torch::Tensor current_lower_idxs =
         torch::where(values <= max_bounds[i])[0];
 

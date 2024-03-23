@@ -25,8 +25,8 @@ class Trainer(object):
         mask_degree_max: int = 1,
         sh_degree_max: int = 3,
         mask_boundary_sample_num: int = 36,
-        sample_polar_num: int = 2000,
         sample_point_scale: float = 0.8,
+        delta_theta_angle: float = 1.0,
         use_inv: bool = True,
         idx_dtype=torch.int64,
         dtype=torch.float64,
@@ -46,8 +46,8 @@ class Trainer(object):
             mask_degree_max,
             sh_degree_max,
             mask_boundary_sample_num,
-            sample_polar_num,
             sample_point_scale,
+            delta_theta_angle,
             use_inv,
             idx_dtype,
             dtype,
@@ -252,7 +252,11 @@ class Trainer(object):
         loss_dict = {
             "fit_loss": mean_fit_loss.detach().clone().cpu().numpy(),
             "coverage_loss": mean_coverage_loss.detach().clone().cpu().numpy(),
-            "chamfer_distance": (mean_fit_loss + mean_coverage_loss).detach().clone().cpu().numpy(),
+            "chamfer_distance": (mean_fit_loss + mean_coverage_loss)
+            .detach()
+            .clone()
+            .cpu()
+            .numpy(),
             "loss": loss.detach().clone().cpu().numpy(),
         }
 

@@ -21,8 +21,8 @@ class Mash(object):
         mask_degree_max: int,
         sh_degree_max: int,
         mask_boundary_sample_num: int = 36,
-        sample_polar_num: int = 2000,
         sample_point_scale: float = 0.8,
+        delta_theta_angle: float = 1.0,
         use_inv: bool = True,
         idx_dtype=torch.int64,
         dtype=torch.float64,
@@ -33,9 +33,8 @@ class Mash(object):
         self.mask_degree_max = mask_degree_max
         self.sh_degree_max = sh_degree_max
         self.mask_boundary_sample_num = mask_boundary_sample_num
-        self.sample_polar_num = sample_polar_num
         self.sample_point_scale = sample_point_scale
-        self.delta_theta = np.pi / 90.0
+        self.delta_theta_angle = delta_theta_angle
         self.use_inv = use_inv
         self.idx_dtype = idx_dtype
         self.dtype = dtype
@@ -62,8 +61,8 @@ class Mash(object):
         cls,
         params_dict: dict,
         mask_boundary_sample_num: int = 36,
-        sample_polar_num: int = 2000,
         sample_point_scale: float = 0.8,
+        delta_theta_angle: float = 1.0,
         idx_dtype=torch.int64,
         dtype=torch.float64,
         device: str = "cuda:0",
@@ -81,8 +80,8 @@ class Mash(object):
             mask_degree_max,
             sh_degree_max,
             mask_boundary_sample_num,
-            sample_polar_num,
             sample_point_scale,
+            delta_theta_angle,
             use_inv,
             idx_dtype,
             dtype,
@@ -98,8 +97,8 @@ class Mash(object):
         cls,
         params_file_path: str,
         mask_boundary_sample_num: int = 36,
-        sample_polar_num: int = 2000,
         sample_point_scale: float = 0.8,
+        delta_theta_angle: float = 1.0,
         idx_dtype=torch.int64,
         dtype=torch.float64,
         device: str = "cuda:0",
@@ -109,8 +108,8 @@ class Mash(object):
         return cls.fromParamsDict(
             params_dict,
             mask_boundary_sample_num,
-            sample_polar_num,
             sample_point_scale,
+            delta_theta_angle,
             idx_dtype,
             dtype,
             device,
@@ -334,7 +333,7 @@ class Mash(object):
             self.mask_boundary_phis,
             self.mask_boundary_base_values,
             self.mask_boundary_phi_idxs,
-            self.delta_theta,
+            self.delta_theta_angle,
             self.sample_point_scale,
             self.use_inv,
         )

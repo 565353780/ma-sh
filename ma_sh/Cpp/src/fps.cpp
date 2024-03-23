@@ -79,7 +79,7 @@ const torch::Tensor toSingleFPSPointIdxs(const torch::Tensor &points,
       torch::TensorOptions().dtype(torch::kInt64).device(points.device());
 
   torch::Tensor centroids = torch::zeros({sample_point_num}, idx_opts);
-  torch::Tensor distance = torch::ones({points.sizes()[0]}, opts) * 1e10;
+  torch::Tensor distance = torch::ones({points.size(0)}, opts) * 1e10;
 
   torch::Tensor farthest = torch::zeros({1}, idx_opts);
 

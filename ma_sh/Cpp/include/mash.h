@@ -8,5 +8,5 @@ const torch::Tensor toMashSamplePoints(
     const torch::Tensor &rotate_vectors, const torch::Tensor &positions,
     const torch::Tensor &mask_boundary_phis,
     const torch::Tensor &mask_boundary_base_values,
-    const torch::Tensor &mask_boundary_phi_idxs, const float &delta_theta,
+    const torch::Tensor &mask_boundary_phi_idxs, const float &delta_theta_angle,
     const float &sample_point_scale, const bool &use_inv = true);

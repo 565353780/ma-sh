@@ -60,9 +60,11 @@ const torch::Tensor toMaskBoundaryPhis(const int &anchor_num,
 }
 
 const torch::Tensor toSampleThetaNums(const torch::Tensor &mask_boundary_thetas,
-                                      const float &delta_theta) {
+                                      const float &delta_theta_angle) {
   const torch::Tensor detach_mask_boundary_thetas =
       mask_boundary_thetas.detach();
+
+  const float delta_theta = M_PI / 90.0 * delta_theta_angle;
 
   const torch::Tensor sample_theta_nums =
       torch::ceil(detach_mask_boundary_thetas / delta_theta)
@@ -74,7 +76,7 @@ const torch::Tensor toSampleThetaNums(const torch::Tensor &mask_boundary_thetas,
 const torch::Tensor toSampleThetas(const torch::Tensor &mask_boundary_thetas,
                                    const torch::Tensor &sample_theta_nums) {
   std::vector<torch::Tensor> sample_thetas_vec;
-  sample_thetas_vec.reserve(torch::sum(sample_theta_nums).item<int>());
+  sample_thetas_vec.reserve(sample_theta_nums.size(0));
 
   const torch::TensorOptions opts = torch::TensorOptions()
                                         .dtype(mask_boundary_thetas.dtype())

@@ -13,7 +13,7 @@ const torch::Tensor toInvPoints(const torch::Tensor &sh_params,
 
   const torch::Tensor first_sh_base_values = W0[0] * first_sh_params;
 
-  torch::Tensor inv_centers = torch::zeros({polar_idxs.sizes()[0], 3}, opts);
+  torch::Tensor inv_centers = torch::zeros({polar_idxs.size(0), 3}, opts);
 
   inv_centers.index_put_({slice_all, 2}, -1.0 * first_sh_base_values);
 
