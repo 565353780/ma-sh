@@ -35,6 +35,7 @@ class Mash(object):
         self.mask_boundary_sample_num = mask_boundary_sample_num
         self.sample_polar_num = sample_polar_num
         self.sample_point_scale = sample_point_scale
+        self.delta_theta = np.pi / 90.0
         self.use_inv = use_inv
         self.idx_dtype = idx_dtype
         self.dtype = dtype
@@ -47,15 +48,11 @@ class Mash(object):
         self.positions = torch.tensor([0.0], dtype=dtype).to(self.device)
 
         # Pre Load Datas
-        self.sample_phis = torch.tensor([0.0], dtype=dtype).to(self.device)
-        self.sample_thetas = torch.tensor([0.0], dtype=dtype).to(self.device)
         self.mask_boundary_phis = torch.tensor([0.0], dtype=dtype).to(self.device)
         self.mask_boundary_phi_idxs = torch.tensor([0.0], dtype=dtype).to(self.device)
         self.mask_boundary_base_values = torch.tensor([0.0], dtype=dtype).to(
             self.device
         )
-        self.sample_base_values = torch.tensor([0.0], dtype=dtype).to(self.device)
-        self.sample_sh_directions = torch.tensor([0.0], dtype=dtype).to(self.device)
 
         self.reset()
         return
@@ -145,18 +142,13 @@ class Mash(object):
 
     def updatePreLoadDatas(self) -> bool:
         (
-            self.sample_phis,
-            self.sample_thetas,
             self.mask_boundary_phis,
             self.mask_boundary_phi_idxs,
             self.mask_boundary_base_values,
-            self.sample_base_values,
-            self.sample_sh_directions,
         ) = toPreLoadDatas(
             self.anchor_num,
             self.mask_degree_max,
             self.mask_boundary_sample_num,
-            self.sample_polar_num,
             self.idx_dtype,
             self.dtype,
             self.device,
@@ -339,13 +331,10 @@ class Mash(object):
             self.sh_params,
             self.rotate_vectors,
             self.positions,
-            self.sample_phis,
-            self.sample_thetas,
             self.mask_boundary_phis,
-            self.mask_boundary_phi_idxs,
             self.mask_boundary_base_values,
-            self.sample_base_values,
-            self.sample_sh_directions,
+            self.mask_boundary_phi_idxs,
+            self.delta_theta,
             self.sample_point_scale,
             self.use_inv,
         )

@@ -1,6 +1,7 @@
 #include "sample.h"
 #include "constant.h"
 #include <c10/core/DeviceType.h>
+#include <cstdint>
 #include <torch/types.h>
 
 using namespace torch::indexing;
@@ -56,4 +57,40 @@ const torch::Tensor toMaskBoundaryPhis(const int &anchor_num,
       mask_boundary_phi_matrix.reshape({-1});
 
   return mask_boundary_phis;
+}
+
+const torch::Tensor toSampleThetaNums(const torch::Tensor &mask_boundary_thetas,
+                                      const float &delta_theta) {
+  const torch::Tensor detach_mask_boundary_thetas =
+      mask_boundary_thetas.detach();
+
+  const torch::Tensor sample_theta_nums =
+      torch::ceil(detach_mask_boundary_thetas / delta_theta)
+          .toType(torch::kInt64);
+
+  return sample_theta_nums;
+}
+
+const torch::Tensor toSampleThetas(const torch::Tensor &mask_boundary_thetas,
+                                   const torch::Tensor &sample_theta_nums) {
+  std::vector<torch::Tensor> sample_thetas_vec;
+  sample_thetas_vec.reserve(torch::sum(sample_theta_nums).item<int>());
+
+  const torch::TensorOptions opts = torch::TensorOptions()
+                                        .dtype(mask_boundary_thetas.dtype())
+                                        .device(mask_boundary_thetas.device());
+
+  for (int i = 0; i < sample_theta_nums.size(0); ++i) {
+    const int current_sample_theta_num = sample_theta_nums[i].item<int>();
+
+    const torch::Tensor current_sample_thetas =
+        torch::arange(1, current_sample_theta_num + 1, opts) /
+        current_sample_theta_num * mask_boundary_thetas[i];
+
+    sample_thetas_vec.emplace_back(current_sample_thetas);
+  }
+
+  const torch::Tensor sample_thetas = torch::hstack(sample_thetas_vec);
+
+  return sample_thetas;
 }

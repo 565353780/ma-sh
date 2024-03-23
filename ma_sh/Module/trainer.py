@@ -247,42 +247,12 @@ class Trainer(object):
 
         loss.backward()
 
-        """
-        nn.utils.clip_grad_norm_(self.mash.mask_params, max_norm=1e5, norm_type=2)
-        nn.utils.clip_grad_norm_(self.mash.sh_params, max_norm=1e5, norm_type=2)
-        nn.utils.clip_grad_norm_(self.mash.rotate_vectors, max_norm=1e5, norm_type=2)
-        nn.utils.clip_grad_norm_(self.mash.positions, max_norm=1e5, norm_type=2)
-
-        if torch.isnan(self.mash.mask_params.grad).any():
-            print("grad contains nan, set it to 0!")
-            self.mash.mask_params.grad[torch.isnan(self.mash.mask_params.grad)] = 0.0
-            exit()
-        if torch.isnan(self.mash.sh_params.grad).any():
-            print("grad contains nan, set it to 0!")
-            self.mash.sh_params.grad[torch.isnan(self.mash.sh_params.grad)] = 0.0
-            exit()
-        if torch.isnan(self.mash.rotate_vectors.grad).any():
-            print("grad contains nan, set it to 0!")
-            self.mash.rotate_vectors.grad[
-                torch.isnan(self.mash.rotate_vectors.grad)
-            ] = 0.0
-            exit()
-        if torch.isnan(self.mash.positions.grad).any():
-            print("grad contains nan, set it to 0!")
-            self.mash.positions.grad[torch.isnan(self.mash.positions.grad)] = 0.0
-            exit()
-        """
-
         optimizer.step()
 
         loss_dict = {
             "fit_loss": mean_fit_loss.detach().clone().cpu().numpy(),
             "coverage_loss": mean_coverage_loss.detach().clone().cpu().numpy(),
-            "chamfer_distance": (mean_fit_loss + mean_coverage_loss)
-            .detach()
-            .clone()
-            .cpu()
-            .numpy(),
+            "chamfer_distance": (mean_fit_loss + mean_coverage_loss).detach().clone().cpu().numpy(),
             "loss": loss.detach().clone().cpu().numpy(),
         }
 

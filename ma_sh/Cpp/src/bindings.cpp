@@ -21,7 +21,8 @@ PYBIND11_MODULE(mash_cpp, m) {
   m.def("furthest_point_sampling", &furthest_point_sampling,
         "fps.furthest_point_sampling");
 #endif
-  m.def("toSingleFPSPointIdxs", &toSingleFPSPointIdxs, "fps.toSingleFPSPointIdxs");
+  m.def("toSingleFPSPointIdxs", &toSingleFPSPointIdxs,
+        "fps.toSingleFPSPointIdxs");
   m.def("toFPSPointIdxs", &toFPSPointIdxs, "fps.toFPSPointIdxs");
 
   m.def("toCounts", &toCounts, "idx.toCounts");
@@ -61,6 +62,8 @@ PYBIND11_MODULE(mash_cpp, m) {
   m.def("toUniformSampleThetas", &toUniformSampleThetas,
         "sample.toUniformSampleThetas");
   m.def("toMaskBoundaryPhis", &toMaskBoundaryPhis, "sample.toMaskBoundaryPhis");
+  m.def("toSampleThetaNums", &toSampleThetaNums, "sample.toSampleThetaNums");
+  m.def("toSampleThetas", &toSampleThetas, "sample.toSampleThetas");
 
   m.def("toSHBaseValues", &toSHBaseValues, "sh.toSHBaseValues");
   m.def("toSHDirections", &toSHDirections, "sh.toSHDirections");

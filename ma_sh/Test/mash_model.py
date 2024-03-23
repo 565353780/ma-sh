@@ -62,11 +62,6 @@ def test():
 
     mean_point_value.backward()
 
-    print(mash.mask_params.grad)
-    print(mash.sh_params.grad)
-    print(mash.rotate_vectors.grad)
-    print(mash.positions.grad)
-
     for _ in trange(20):
         if False:
             mash.mask_params.data = (
@@ -95,5 +90,6 @@ def test():
             print(mash.positions.grad[0])
 
     print(sh_points)
+    print(sh_points.shape)
     # mash.renderSamplePoints()
     return True
