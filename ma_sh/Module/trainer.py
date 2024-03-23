@@ -185,6 +185,15 @@ class Trainer(object):
         self.best_params_dict["use_inv"] = use_inv
         return True
 
+    def setBestParams(self) -> bool:
+        self.mash.setGradState(False)
+        self.mash.mask_params.data = self.best_params_dict["mask_params"]
+        self.mash.sh_params.data = self.best_params_dict["sh_params"]
+        self.mash.rotate_vectors.data = self.best_params_dict["rotate_vectors"]
+        self.mash.positions.data = self.best_params_dict["positions"]
+        self.mash.setGradState(True)
+        return True
+
     def upperMaskDegree(self) -> bool:
         if self.mash.mask_degree_max == MAX_MASK_DEGREE:
             return False
