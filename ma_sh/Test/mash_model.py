@@ -11,7 +11,7 @@ def test():
     mask_degree_max = 1
     sh_degree_max = 3
     mask_boundary_sample_num = 10
-    inner_sample_row_num = 10
+    sample_polar_num = 2000
     sample_point_scale = 0.5
     use_inv = True
     idx_dtype = torch.int64
@@ -23,7 +23,7 @@ def test():
         mask_degree_max,
         sh_degree_max,
         mask_boundary_sample_num,
-        inner_sample_row_num,
+        sample_polar_num,
         sample_point_scale,
         use_inv,
         idx_dtype,
@@ -54,20 +54,6 @@ def test():
         mean_point_value.backward()
 
     for _ in trange(20):
-        if False:
-            mash.mask_params.data = (
-                torch.randn(mash.mask_params.shape, dtype=dtype).to(device) * 100.0
-            )
-            mash.sh_params.data = (
-                torch.randn(mash.sh_params.shape, dtype=dtype).to(device) * 100.0
-            )
-            mash.rotate_vectors.data = (
-                torch.randn(mash.rotate_vectors.shape, dtype=dtype).to(device) * 100.0
-            )
-            mash.positions.data = (
-                torch.randn(mash.positions.shape, dtype=dtype).to(device) * 100.0
-            )
-
         sh_points = mash.toSamplePoints()
 
         if False:

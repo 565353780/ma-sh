@@ -6,10 +6,8 @@ from ma_sh.Module.convertor import Convertor
 def demo():
     shape_root_folder_path = "/home/chli/chLi/Dataset/ShapeNet/Core/ShapeNetCore.v2/"
     save_root_folder_path = "/home/chli/chLi/Dataset/Mash/ShapeNet/"
-    shape_root_folder_path = (
-        "/home/chli/Nutstore Files/paper-materials-ASDF/Dataset/mini/03001627/"
-    )
-    save_root_folder_path = "/home/chli/Dataset/MashTest/100anc/"
+    shape_root_folder_path = "/home/chli/Dataset/aro_net/data/shapenet/00_meshes/"
+    save_root_folder_path = "/home/chli/Dataset/aro_net/data/shapenet/mash/100anc/"
     force_start = False
     gt_points_num = 40000
     anchor_num = 100

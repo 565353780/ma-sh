@@ -24,8 +24,8 @@ class Trainer(object):
         anchor_num: int = 100,
         mask_degree_max: int = 1,
         sh_degree_max: int = 3,
-        mask_boundary_sample_num: int = 10,
-        inner_sample_row_num: int = 10,
+        mask_boundary_sample_num: int = 36,
+        sample_polar_num: int = 2000,
         sample_point_scale: float = 0.8,
         use_inv: bool = True,
         idx_dtype=torch.int64,
@@ -46,7 +46,7 @@ class Trainer(object):
             mask_degree_max,
             sh_degree_max,
             mask_boundary_sample_num,
-            inner_sample_row_num,
+            sample_polar_num,
             sample_point_scale,
             use_inv,
             idx_dtype,
@@ -185,15 +185,6 @@ class Trainer(object):
         self.best_params_dict["use_inv"] = use_inv
         return True
 
-    def setBestParams(self) -> bool:
-        self.mash.setGradState(False)
-        self.mash.mask_params.data = self.best_params_dict["mask_params"]
-        self.mash.sh_params.data = self.best_params_dict["sh_params"]
-        self.mash.rotate_vectors.data = self.best_params_dict["rotate_vectors"]
-        self.mash.positions.data = self.best_params_dict["positions"]
-        self.mash.setGradState(True)
-        return True
-
     def upperMaskDegree(self) -> bool:
         if self.mash.mask_degree_max == MAX_MASK_DEGREE:
             return False
@@ -229,7 +220,6 @@ class Trainer(object):
         optimizer.zero_grad()
 
         detect_points = self.mash.toSamplePoints()
-        print("detect_points:", detect_points.shape)
 
         fit_dists2, coverage_dists2 = chamferDistance(
             detect_points.reshape(1, -1, 3).type(gt_points.dtype),
@@ -256,6 +246,32 @@ class Trainer(object):
         loss = fit_loss + coverage_loss
 
         loss.backward()
+
+        """
+        nn.utils.clip_grad_norm_(self.mash.mask_params, max_norm=1e5, norm_type=2)
+        nn.utils.clip_grad_norm_(self.mash.sh_params, max_norm=1e5, norm_type=2)
+        nn.utils.clip_grad_norm_(self.mash.rotate_vectors, max_norm=1e5, norm_type=2)
+        nn.utils.clip_grad_norm_(self.mash.positions, max_norm=1e5, norm_type=2)
+
+        if torch.isnan(self.mash.mask_params.grad).any():
+            print("grad contains nan, set it to 0!")
+            self.mash.mask_params.grad[torch.isnan(self.mash.mask_params.grad)] = 0.0
+            exit()
+        if torch.isnan(self.mash.sh_params.grad).any():
+            print("grad contains nan, set it to 0!")
+            self.mash.sh_params.grad[torch.isnan(self.mash.sh_params.grad)] = 0.0
+            exit()
+        if torch.isnan(self.mash.rotate_vectors.grad).any():
+            print("grad contains nan, set it to 0!")
+            self.mash.rotate_vectors.grad[
+                torch.isnan(self.mash.rotate_vectors.grad)
+            ] = 0.0
+            exit()
+        if torch.isnan(self.mash.positions.grad).any():
+            print("grad contains nan, set it to 0!")
+            self.mash.positions.grad[torch.isnan(self.mash.positions.grad)] = 0.0
+            exit()
+        """
 
         optimizer.step()
 

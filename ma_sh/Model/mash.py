@@ -20,8 +20,8 @@ class Mash(object):
         anchor_num: int,
         mask_degree_max: int,
         sh_degree_max: int,
-        mask_boundary_sample_num: int = 10,
-        inner_sample_row_num: int = 10,
+        mask_boundary_sample_num: int = 36,
+        sample_polar_num: int = 2000,
         sample_point_scale: float = 0.8,
         use_inv: bool = True,
         idx_dtype=torch.int64,
@@ -33,7 +33,7 @@ class Mash(object):
         self.mask_degree_max = mask_degree_max
         self.sh_degree_max = sh_degree_max
         self.mask_boundary_sample_num = mask_boundary_sample_num
-        self.inner_sample_row_num = inner_sample_row_num
+        self.sample_polar_num = sample_polar_num
         self.sample_point_scale = sample_point_scale
         self.use_inv = use_inv
         self.idx_dtype = idx_dtype
@@ -47,11 +47,15 @@ class Mash(object):
         self.positions = torch.tensor([0.0], dtype=dtype).to(self.device)
 
         # Pre Load Datas
+        self.sample_phis = torch.tensor([0.0], dtype=dtype).to(self.device)
+        self.sample_thetas = torch.tensor([0.0], dtype=dtype).to(self.device)
         self.mask_boundary_phis = torch.tensor([0.0], dtype=dtype).to(self.device)
         self.mask_boundary_phi_idxs = torch.tensor([0.0], dtype=dtype).to(self.device)
         self.mask_boundary_base_values = torch.tensor([0.0], dtype=dtype).to(
             self.device
         )
+        self.sample_base_values = torch.tensor([0.0], dtype=dtype).to(self.device)
+        self.sample_sh_directions = torch.tensor([0.0], dtype=dtype).to(self.device)
 
         self.reset()
         return
@@ -60,8 +64,8 @@ class Mash(object):
     def fromParamsDict(
         cls,
         params_dict: dict,
-        mask_boundary_sample_num: int = 10,
-        inner_sample_row_num: int = 10,
+        mask_boundary_sample_num: int = 36,
+        sample_polar_num: int = 2000,
         sample_point_scale: float = 0.8,
         idx_dtype=torch.int64,
         dtype=torch.float64,
@@ -80,7 +84,7 @@ class Mash(object):
             mask_degree_max,
             sh_degree_max,
             mask_boundary_sample_num,
-            inner_sample_row_num,
+            sample_polar_num,
             sample_point_scale,
             use_inv,
             idx_dtype,
@@ -96,8 +100,8 @@ class Mash(object):
     def fromParamsFile(
         cls,
         params_file_path: str,
-        mask_boundary_sample_num: int = 10,
-        inner_sample_row_num: int = 10,
+        mask_boundary_sample_num: int = 36,
+        sample_polar_num: int = 2000,
         sample_point_scale: float = 0.8,
         idx_dtype=torch.int64,
         dtype=torch.float64,
@@ -108,7 +112,7 @@ class Mash(object):
         return cls.fromParamsDict(
             params_dict,
             mask_boundary_sample_num,
-            inner_sample_row_num,
+            sample_polar_num,
             sample_point_scale,
             idx_dtype,
             dtype,
@@ -141,13 +145,18 @@ class Mash(object):
 
     def updatePreLoadDatas(self) -> bool:
         (
+            self.sample_phis,
+            self.sample_thetas,
             self.mask_boundary_phis,
             self.mask_boundary_phi_idxs,
             self.mask_boundary_base_values,
+            self.sample_base_values,
+            self.sample_sh_directions,
         ) = toPreLoadDatas(
             self.anchor_num,
             self.mask_degree_max,
             self.mask_boundary_sample_num,
+            self.sample_polar_num,
             self.idx_dtype,
             self.dtype,
             self.device,
@@ -330,10 +339,13 @@ class Mash(object):
             self.sh_params,
             self.rotate_vectors,
             self.positions,
+            self.sample_phis,
+            self.sample_thetas,
             self.mask_boundary_phis,
-            self.mask_boundary_base_values,
             self.mask_boundary_phi_idxs,
-            self.inner_sample_row_num,
+            self.mask_boundary_base_values,
+            self.sample_base_values,
+            self.sample_sh_directions,
             self.sample_point_scale,
             self.use_inv,
         )

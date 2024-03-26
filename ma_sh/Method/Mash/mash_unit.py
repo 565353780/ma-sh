@@ -47,6 +47,18 @@ def toParams(
     return mask_params, sh_params, rotate_vectors, positions
 
 
+def toPreLoadUniformSamplePolars(sample_polar_num: int, dtype, device: str):
+    sample_phis = mash_cpp.toUniformSamplePhis(sample_polar_num).type(dtype).to(device)
+    sample_thetas = (
+        mash_cpp.toUniformSampleThetas(sample_polar_num).type(dtype).to(device)
+    )
+
+    assert checkFormat(sample_phis, dtype, device, [sample_polar_num], False)
+    assert checkFormat(sample_thetas, dtype, device, [sample_polar_num], False)
+
+    return sample_phis, sample_thetas
+
+
 def toPreLoadMaskBoundaryPhiIdxs(
     anchor_num: int, mask_boundary_sample_num: int, idx_dtype, device: str
 ):
@@ -71,17 +83,20 @@ def toPreLoadBaseValues(
     anchor_num: int,
     mask_boundary_sample_num: int,
     mask_degree_max: int,
-    dtype,
-    device: str,
+    sample_phis: torch.Tensor,
 ):
     mask_boundary_phis = (
         mash_cpp.toMaskBoundaryPhis(anchor_num, mask_boundary_sample_num)
-        .type(dtype)
-        .to(device)
+        .type(sample_phis.dtype)
+        .to(sample_phis.device)
     )
     mask_boundary_base_values = mash_cpp.toMaskBaseValues(
         mask_boundary_phis, mask_degree_max
     )
+    sample_base_values = mash_cpp.toMaskBaseValues(sample_phis, mask_degree_max)
+
+    dtype = sample_phis.dtype
+    device = str(sample_phis.device)
 
     assert checkFormat(
         mask_boundary_phis,
@@ -97,5 +112,25 @@ def toPreLoadBaseValues(
         [mask_degree_max * 2 + 1, mask_boundary_phis.shape[0]],
         False,
     )
+    assert checkFormat(
+        sample_base_values,
+        dtype,
+        device,
+        [mask_degree_max * 2 + 1, sample_phis.shape[0]],
+        False,
+    )
 
-    return mask_boundary_phis, mask_boundary_base_values
+    return mask_boundary_phis, mask_boundary_base_values, sample_base_values
+
+
+def toPreLoadSHDirections(sample_phis: torch.Tensor, sample_thetas: torch.Tensor):
+    sample_sh_directions = mash_cpp.toSHDirections(sample_phis, sample_thetas)
+
+    dtype = sample_phis.dtype
+    device = str(sample_phis.device)
+
+    assert checkFormat(
+        sample_sh_directions, dtype, device, [sample_phis.shape[0], 3], False
+    )
+
+    return sample_sh_directions
