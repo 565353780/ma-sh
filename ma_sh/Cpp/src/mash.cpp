@@ -1,6 +1,7 @@
 #include "mash.h"
 #include "constant.h"
 #include "mash_unit.h"
+#include "mask.h"
 #include "sh.h"
 
 const torch::Tensor toMashSamplePoints(
