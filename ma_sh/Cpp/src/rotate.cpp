@@ -31,8 +31,8 @@ const torch::Tensor toRotateMatrixs(const torch::Tensor &rotate_vectors) {
                         normed_rotate_vectors.index({slice_all, 2}));
   theta_hats.index_put_({slice_all, 1, 2},
                         -1.0 * normed_rotate_vectors.index({slice_all, 0}));
-  theta_hats.index_put_({slice_all, 2, 1},
-                        -1.0 * normed_rotate_vectors.index({slice_all, 0}));
+  theta_hats.index_put_({slice_all, 2, 0},
+                        -1.0 * normed_rotate_vectors.index({slice_all, 1}));
   theta_hats.index_put_({slice_all, 2, 1},
                         normed_rotate_vectors.index({slice_all, 0}));
 
