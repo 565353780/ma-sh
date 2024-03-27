@@ -123,8 +123,8 @@ def toPreLoadBaseValues(
     return mask_boundary_phis, mask_boundary_base_values, sample_base_values
 
 
-def toPreLoadSHDirections(sample_phis: torch.Tensor, sample_thetas: torch.Tensor):
-    sample_sh_directions = mash_cpp.toSHDirections(sample_phis, sample_thetas)
+def toPreLoadDirections(sample_phis: torch.Tensor, sample_thetas: torch.Tensor):
+    sample_sh_directions = mash_cpp.toDirections(sample_phis, sample_thetas)
 
     dtype = sample_phis.dtype
     device = str(sample_phis.device)

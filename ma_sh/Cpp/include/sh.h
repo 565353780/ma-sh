@@ -36,6 +36,3 @@ const torch::Tensor toSHBaseValue(const torch::Tensor &phis,
 const torch::Tensor toSHBaseValues(const torch::Tensor &phis,
                                    const torch::Tensor &thetas,
                                    const int &degree_max);
-
-const torch::Tensor toSHDirections(const torch::Tensor &phis,
-                                   const torch::Tensor &thetas);

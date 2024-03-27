@@ -3,7 +3,7 @@ from ma_sh.Method.Mash.mash_unit import (
     toPreLoadUniformSamplePolars,
     toPreLoadMaskBoundaryPhiIdxs,
     toPreLoadBaseValues,
-    toPreLoadSHDirections,
+    toPreLoadDirections,
 )
 
 
@@ -27,7 +27,7 @@ def toPreLoadDatas(
             anchor_num, mask_boundary_sample_num, mask_degree_max, sample_phis
         )
     )
-    sample_sh_directions = toPreLoadSHDirections(sample_phis, sample_thetas)
+    sample_sh_directions = toPreLoadDirections(sample_phis, sample_thetas)
 
     return (
         sample_phis,

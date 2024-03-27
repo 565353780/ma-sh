@@ -1,3 +1,4 @@
+#include "direction.h"
 #include "filter.h"
 #include "fps.h"
 #include "idx.h"
@@ -15,6 +16,9 @@
 
 PYBIND11_MODULE(mash_cpp, m) {
   m.doc() = "pybind11 mash cpp plugin";
+
+  m.def("toDirections", &toDirections, "direction.toDirections");
+  m.def("toPolars", &toPolars, "direction.toPolars");
 
   m.def("toMaxValues", &toMaxValues, "filter.toMaxValues");
 
@@ -67,12 +71,12 @@ PYBIND11_MODULE(mash_cpp, m) {
   m.def("toSampleThetas", &toSampleThetas, "sample.toSampleThetas");
 
   m.def("toSHBaseValues", &toSHBaseValues, "sh.toSHBaseValues");
-  m.def("toSHDirections", &toSHDirections, "sh.toSHDirections");
 
   m.def("toSingleRotateMatrix", &toSingleRotateMatrix,
         "single_ops.toSingleRotateMatrix");
   m.def("toSingleMaskBoundaryThetas", &toSingleMaskBoundaryThetas,
         "single_ops.toSingleMaskBoundaryThetas");
+  m.def("toSingleSHDists", &toSingleSHDists, "single_ops.toSingleSHDists");
 
   m.def("toValues", &toValues, "value.toValues");
 }

@@ -1,5 +1,6 @@
 #include "mash.h"
 #include "constant.h"
+#include "direction.h"
 #include "mash_unit.h"
 #include "mask.h"
 #include "sh.h"
@@ -84,7 +85,7 @@ const torch::Tensor toMashSamplePoints(
                  mask_boundary_thetas, mask_boundary_phi_idxs);
 
   const torch::Tensor mask_boundary_sh_directions =
-      toSHDirections(mask_boundary_phis, mask_boundary_thetas);
+      toDirections(mask_boundary_phis, mask_boundary_thetas);
 
   const torch::Tensor mask_boundary_sh_points = toSHPoints(
       sh_params, rotate_vectors, positions, mask_boundary_sh_directions,

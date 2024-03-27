@@ -1,9 +1,10 @@
 #include "mash_unit.h"
+#include "direction.h"
 #include "filter.h"
+#include "fps.h"
 #include "idx.h"
 #include "inv.h"
 #include "rotate.h"
-#include "fps.h"
 #include "sh.h"
 #include "value.h"
 
@@ -157,7 +158,8 @@ const torch::Tensor toFPSPoints(const torch::Tensor &points,
                                 const torch::Tensor &point_idxs,
                                 const float &sample_point_scale,
                                 const int &idx_num) {
-  const torch::Tensor fps_point_idxs = toFPSPointIdxs(points, point_idxs, sample_point_scale, idx_num);
+  const torch::Tensor fps_point_idxs =
+      toFPSPointIdxs(points, point_idxs, sample_point_scale, idx_num);
 
   const torch::Tensor fps_points = points.index({fps_point_idxs});
 
