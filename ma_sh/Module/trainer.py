@@ -4,10 +4,11 @@ import numpy as np
 from tqdm import tqdm
 from typing import Union
 from copy import deepcopy
-from torch.optim import AdamW as OPTIMIZER
-from torch.optim.lr_scheduler import ReduceLROnPlateau as SCHEDULER
+from torch.optim import AdamW
+from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 
 from ma_sh.Config.constant import EPSILON
+from ma_sh.Config.weights import W0
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
 from ma_sh.Data.mesh import Mesh
 from ma_sh.Loss.chamfer_distance import chamferDistance
@@ -117,17 +118,19 @@ class Trainer(object):
             print("\t mesh_file_path:", mesh_file_path)
             return False
 
+        surface_dist = 0.1
+
         self.mesh.samplePoints(self.mash.anchor_num)
 
         assert self.mesh.sample_normals is not None
         assert self.mesh.sample_pts is not None
 
         sh_params = torch.zeros_like(self.mash.sh_params)
-        sh_params[:, 0] = 10.0
+        sh_params[:, 0] = surface_dist / W0[0]
 
         self.mash.loadParams(
             sh_params=sh_params,
-            positions=self.mesh.sample_pts + self.mesh.sample_normals,
+            positions=self.mesh.sample_pts + surface_dist * self.mesh.sample_normals,
             face_forward_vectors=-self.mesh.sample_normals,
         )
         return True
@@ -224,7 +227,7 @@ class Trainer(object):
         fit_dists2, coverage_dists2 = chamferDistance(
             detect_points.reshape(1, -1, 3).type(gt_points.dtype),
             gt_points,
-            self.mash.device == "cpu",
+            'cuda' not in self.mash.device,
         )[:2]
 
         fit_dists = torch.mean(torch.sqrt(fit_dists2) + EPSILON)
@@ -233,17 +236,7 @@ class Trainer(object):
         mean_fit_loss = torch.mean(fit_dists)
         mean_coverage_loss = torch.mean(coverage_dists)
 
-        fit_safe_scale = 0.2
-        current_lr_coeff = np.log(self.getLr(optimizer))
-        min_lr_coeff = np.log(self.min_lr)
-        lr_coeff = np.log(self.lr)
-        lr_remain_scale = (current_lr_coeff - min_lr_coeff) / (lr_coeff - min_lr_coeff)
-        fit_scale = fit_safe_scale + (1.0 - fit_safe_scale) * (1.0 - lr_remain_scale)
-        coverage_scale = fit_safe_scale + (1.0 - fit_safe_scale) * lr_remain_scale
-        fit_loss = fit_scale * mean_fit_loss
-        coverage_loss = coverage_scale * mean_coverage_loss
-
-        loss = fit_loss + coverage_loss
+        loss = mean_fit_loss + mean_coverage_loss
 
         loss.backward()
 
@@ -294,7 +287,7 @@ class Trainer(object):
     ) -> bool:
         self.mash.setGradState(True)
 
-        optimizer = OPTIMIZER(
+        optimizer = AdamW(
             [
                 self.mash.mask_params,
                 self.mash.sh_params,
@@ -304,13 +297,17 @@ class Trainer(object):
             lr=self.lr,
             weight_decay=self.weight_decay,
         )
-        scheduler = SCHEDULER(
+        scheduler = CosineAnnealingWarmRestarts(
             optimizer,
-            mode="min",
-            factor=self.factor,
-            patience=self.patience,
-            min_lr=self.min_lr,
+            T_0=1,
+            T_mult=1
         )
+        epoch_step_num=40
+        warm_time = 10
+        if scheduler.T_mult == 1:
+            warn_epoch_num = scheduler.T_0 * warm_time
+        else:
+            warn_epoch_num = int(scheduler.T_mult * (1.0 - pow(scheduler.T_mult, warm_time)) / (1.0 - scheduler.T_mult))
 
         if self.mash.device == "cpu":
             gt_points_dtype = self.mash.dtype
@@ -327,10 +324,10 @@ class Trainer(object):
 
         print("[INFO][MashModelOp::train]")
         print("\t start training ...")
-        pbar = tqdm(total=self.epoch)
+        pbar = tqdm(total=epoch_step_num * (warm_time + 1))
         pbar.update(self.step)
         while self.step < self.epoch:
-            if self.render and self.step % 100 == 0:
+            if self.render and self.step % 10 == 0:
                 with torch.no_grad():
                     self.o3d_viewer.clearGeometries()
 
@@ -346,6 +343,9 @@ class Trainer(object):
                     mesh = self.mesh.toO3DMesh()
                     mesh.translate([mesh_abb_length, 0, 0])
                     self.o3d_viewer.addGeometry(mesh)
+                    trans_pcd = deepcopy(pcd)
+                    trans_pcd.translate([mesh_abb_length, 0, 0])
+                    self.o3d_viewer.addGeometry(trans_pcd)
 
                     """
                     for j in range(self.mash.mask_params.shape[0]):
@@ -375,16 +375,18 @@ class Trainer(object):
                     self.logger.addScalar("Train/" + key, item, self.step)
                 self.logger.addScalar("Train/lr", self.getLr(optimizer), self.step)
 
-            scheduler.step(loss_dict["loss"])
+            current_warn_epoch = self.step / epoch_step_num
+            scheduler.step(current_warn_epoch)
 
             pbar.set_description(
-                "LOSS %.6f LR %.4f" % (loss_dict["loss"], self.getLr(optimizer))
+                "LOSS %.6f LR %.4f EP %.4f" % (loss_dict["loss"], self.getLr(optimizer) / self.lr, current_warn_epoch)
             )
 
             self.updateBestParams(loss_dict["loss"])
 
-            if self.getLr(optimizer) <= self.min_lr:
-                best_result_reached_num += 1
+            if current_warn_epoch > warn_epoch_num:
+                if self.getLr(optimizer) <= self.min_lr:
+                    best_result_reached_num += 1
 
             if best_result_reached_num > self.patience:
                 break

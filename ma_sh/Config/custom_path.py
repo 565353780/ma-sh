@@ -25,6 +25,17 @@ if os.path.exists(mac_chair_folder_path):
         )
         chair_idx += 1
 
+append_dict = {}
+
+for key, item in mesh_file_path_dict.items():
+    if key.startswith("mac_"):
+        new_key = "mac_linux_" + key[4:]
+        new_item = item.replace("/Users/fufu", "/media/psf/Home")
+
+        append_dict[new_key] = new_item
+
+mesh_file_path_dict.update(append_dict)
+
 asdf_folder_path_dict = {
     "mac_bunny_v2-err10": "/Users/fufu/Nutstore Files/paper-materials-ASDF/Data/bunny/v2-err10/params/",
 }

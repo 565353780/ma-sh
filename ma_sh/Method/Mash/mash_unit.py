@@ -13,7 +13,7 @@ def toParams(
         torch.ones([anchor_num, mask_degree_max * 2 + 1]).type(dtype).to(device)
         * EPSILON
     )
-    mask_params[:, 0] = -4.0
+    mask_params[:, 0] = -2.0
 
     sh_params = (
         torch.ones([anchor_num, (sh_degree_max + 1) ** 2]).type(dtype).to(device)

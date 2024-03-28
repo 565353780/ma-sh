@@ -3,7 +3,7 @@
 ## Setup
 
 ```bash
-conda create -n mash python=3.10
+conda create -n mash python=3.8
 conda activate mash
 ./setup.sh
 ```
@@ -11,8 +11,13 @@ conda activate mash
 ## Run
 
 ```bash
-python test.py
-# python demo.py
+python demo.py
+```
+
+## Fit your mesh
+
+```bash
+python train.py
 ```
 
 ## Enjoy it~

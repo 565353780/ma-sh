@@ -5,34 +5,34 @@ from ma_sh.Module.trainer import Trainer
 
 
 def demo():
-    anchor_num = 10
-    mask_degree_max = 1
-    sh_degree_max = 3
+    anchor_num = 20
+    mask_degree_max = 4
+    sh_degree_max = 4
     mask_boundary_sample_num = 10
-    sample_polar_num = 40000
+    sample_polar_num = 4000
     sample_point_scale = 0.5
     use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float64
-    device = "cuda:0"
+    device = "cpu"
 
     epoch = 10000
-    lr = 1e-1
+    lr = 1e-2
     weight_decay = 1e-4
-    factor = 0.99
+    factor = 0.98
     patience = 1
-    min_lr = 1e-3
+    min_lr = 1e-4
 
-    render = False
+    render = True
 
-    mesh_name = "linux_2"
+    mesh_name = "mac_airplane"
 
     save_result_folder_path = "auto"
     save_log_folder_path = "auto"
 
     mesh_file_path = mesh_file_path_dict[mesh_name]
 
-    gt_points_num = 40000
+    gt_points_num = 4000
 
     save_params_file_path = "./output/" + mesh_name + ".npy"
     save_pcd_file_path = "./output/" + mesh_name + ".ply"
@@ -66,6 +66,6 @@ def demo():
     trainer.mash.saveParamsFile(save_params_file_path, overwrite)
     trainer.mash.saveAsPcdFile(save_pcd_file_path, overwrite, print_progress)
 
-    # trainer.o3d_viewer.run()
-    # trainer.mash.renderSamplePoints()
+    trainer.o3d_viewer.run()
+    trainer.mash.renderSamplePoints()
     return True
