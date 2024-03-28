@@ -4,7 +4,6 @@ import torch
 from setuptools import find_packages, setup
 from torch.utils.cpp_extension import CUDAExtension, CppExtension, BuildExtension
 
-os.environ["TORCH_CUDA_ARCH_LIST"] = "6.0;6.1;6.2;7.0;7.5;8.0;8.6;8.9"
 
 mash_root_path = os.getcwd() + "/../ma-sh/ma_sh/Cpp/"
 mash_src_path = mash_root_path + "src/"
@@ -20,6 +19,8 @@ mash_extra_compile_args = [
 ]
 
 if torch.cuda.is_available():
+    os.environ["TORCH_CUDA_ARCH_LIST"] = "6.0;6.1;6.2;7.0;7.5;8.0;8.6;8.9"
+
     mash_sources += glob.glob(mash_src_path + "*.cu")
 
     extra_compile_args = {
