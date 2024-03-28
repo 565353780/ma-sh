@@ -81,7 +81,7 @@ toRotateVectorsByFaceForwardVectors(const torch::Tensor face_forward_vectors) {
   valid_z_axis.index_put_({slice_all, 2}, 1.0);
 
   const torch::Tensor valid_rotate_vectors =
-      torch::cross(valid_z_axis, valid_normed_face_forward_vectors, 1);
+      -1.0 * torch::cross(valid_z_axis, valid_normed_face_forward_vectors, 1);
 
   const torch::Tensor valid_cos_thetas =
       valid_normed_face_forward_vectors.index({slice_all, 2});
