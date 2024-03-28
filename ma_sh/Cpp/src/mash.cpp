@@ -2,8 +2,6 @@
 #include "constant.h"
 #include "direction.h"
 #include "mash_unit.h"
-#include "mask.h"
-#include "sh.h"
 
 const torch::Tensor toMashSamplePoints(
     const int &anchor_num, const int &sh_degree_max,

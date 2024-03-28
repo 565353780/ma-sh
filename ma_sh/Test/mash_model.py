@@ -49,7 +49,7 @@ def test():
             },
         )
 
-        g.render("./output/Mash.gv", view=False)
+        g.render("./output/grad_graph/Mash.gv", view=False)
 
         mean_point_value.backward()
 

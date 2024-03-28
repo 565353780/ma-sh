@@ -64,7 +64,7 @@ def test():
             },
         )
 
-        g.render("./output/" + graph_name + ".gv", view=False)
+        g.render("./output/grad_graph/" + graph_name + ".gv", view=False)
         return
 
     timer = Timer()

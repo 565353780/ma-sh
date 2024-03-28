@@ -5,12 +5,12 @@ from ma_sh.Module.trainer import Trainer
 
 
 def demo():
-    anchor_num = 100
+    anchor_num = 10
     mask_degree_max = 1
     sh_degree_max = 3
-    mask_boundary_sample_num = 36
-    sample_polar_num = 10000
-    sample_point_scale = 0.8
+    mask_boundary_sample_num = 10
+    sample_polar_num = 40000
+    sample_point_scale = 0.5
     use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float64
@@ -21,7 +21,7 @@ def demo():
     weight_decay = 1e-4
     factor = 0.99
     patience = 1
-    min_lr = 1e-4
+    min_lr = 1e-3
 
     render = False
 
@@ -32,7 +32,7 @@ def demo():
 
     mesh_file_path = mesh_file_path_dict[mesh_name]
 
-    gt_points_num = 10000
+    gt_points_num = 40000
 
     save_params_file_path = "./output/" + mesh_name + ".npy"
     save_pcd_file_path = "./output/" + mesh_name + ".ply"
