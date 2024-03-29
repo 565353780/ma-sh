@@ -317,42 +317,22 @@ class Trainer(object):
                 with torch.no_grad():
                     self.o3d_viewer.clearGeometries()
 
+                    mesh_abb_length = 2.0 * self.mesh.toABBLength()
+
+                    gt_pcd = getPointCloud(gt_points.reshape(-1, 3).cpu().numpy())
+                    gt_pcd.translate([-mesh_abb_length, 0, 0])
+                    self.o3d_viewer.addGeometry(gt_pcd)
+
                     detect_points = (
                         self.mash.toSamplePoints().detach().clone().cpu().numpy()
                     )
                     pcd = getPointCloud(detect_points)
                     self.o3d_viewer.addGeometry(pcd)
 
-                    mesh_abb_length = 2.0 * self.mesh.toABBLength()
-
                     self.mesh.paintJetColorsByPoints(detect_points)
                     mesh = self.mesh.toO3DMesh()
-                    # mesh.translate([mesh_abb_length, 0, 0])
+                    mesh.translate([mesh_abb_length, 0, 0])
                     self.o3d_viewer.addGeometry(mesh)
-
-                    anchor_position = (
-                        self.mesh.sample_pts + 0.1 * self.mesh.sample_normals
-                    )
-                    anchor_pcd = getPointCloud(anchor_position)
-                    self.o3d_viewer.addGeometry(anchor_pcd)
-
-                    for i in range(self.mesh.sample_pts.shape[0]):
-                        line_set = getLineSet(
-                            self.mesh.sample_pts[i],
-                            [0.1 * self.mesh.sample_normals[i]],
-                            [1, 0, 0],
-                        )
-                        self.o3d_viewer.addGeometry(line_set)
-
-                    """
-                    trans_pcd = deepcopy(pcd)
-                    trans_pcd.translate([mesh_abb_length, 0, 0])
-                    self.o3d_viewer.addGeometry(trans_pcd)
-
-                    gt_pcd = getPointCloud(gt_points.reshape(-1, 3).cpu().numpy())
-                    gt_pcd.translate([2 * mesh_abb_length, 0, 0])
-                    self.o3d_viewer.addGeometry(gt_pcd)
-                    """
 
                     """
                     for j in range(self.mash.mask_params.shape[0]):

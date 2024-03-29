@@ -26,8 +26,8 @@ def demo():
     min_lr = 1e-4
 
     render = True
-    render_freq = 1
-    render_init_only = True
+    render_freq = 10
+    render_init_only = False
 
     mesh_name = "mac_chair_2"
 
@@ -36,7 +36,7 @@ def demo():
 
     mesh_file_path = mesh_file_path_dict[mesh_name]
 
-    gt_points_num = 1000
+    gt_points_num = 10000
 
     save_params_file_path = "./output/" + mesh_name + ".npy"
     save_pcd_file_path = "./output/" + mesh_name + ".ply"
