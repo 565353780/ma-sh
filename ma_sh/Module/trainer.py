@@ -4,8 +4,12 @@ import numpy as np
 from tqdm import tqdm
 from typing import Union
 from copy import deepcopy
-from torch.optim import AdamW
-from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
+from torch.optim import Optimizer, AdamW
+from torch.optim.lr_scheduler import (
+    LRScheduler,
+    CosineAnnealingWarmRestarts,
+    ReduceLROnPlateau,
+)
 
 from ma_sh.Config.constant import EPSILON
 from ma_sh.Config.weights import W0
@@ -32,7 +36,9 @@ class Trainer(object):
         idx_dtype=torch.int64,
         dtype=torch.float64,
         device: str = "cuda:0",
-        epoch: int = 10000,
+        warm_epoch_step_num: int = 40,
+        warm_epoch_num: int = 10,
+        finetune_step_num: int = 10000,
         lr: float = 1e-1,
         weight_decay: float = 1e-4,
         factor: float = 0.99,
@@ -41,6 +47,7 @@ class Trainer(object):
         render: bool = False,
         save_result_folder_path: Union[str, None] = None,
         save_log_folder_path: Union[str, None] = None,
+        render_init_only: bool = False,
     ) -> None:
         self.mash = Mash(
             anchor_num,
@@ -55,9 +62,10 @@ class Trainer(object):
             device,
         )
 
-        self.use_inv = False
+        self.warm_epoch_step_num = warm_epoch_step_num
+        self.warm_epoch_num = warm_epoch_num
 
-        self.epoch = epoch
+        self.finetune_step_num = finetune_step_num
 
         self.step = 0
         self.loss_min = float("inf")
@@ -71,6 +79,7 @@ class Trainer(object):
         self.min_lr = min_lr
 
         self.render = render
+        self.render_init_only = render_init_only
 
         self.save_result_folder_path = save_result_folder_path
         self.save_log_folder_path = save_log_folder_path
@@ -86,6 +95,8 @@ class Trainer(object):
         if self.render:
             self.o3d_viewer = O3DViewer()
             self.o3d_viewer.createWindow()
+
+        self.min_lr_reach_time = 0
         return
 
     def initRecords(self) -> bool:
@@ -215,9 +226,24 @@ class Trainer(object):
     def getLr(self, optimizer) -> float:
         return optimizer.state_dict()["param_groups"][0]["lr"]
 
+    def toTrainStepNum(self, scheduler: LRScheduler) -> int:
+        if not isinstance(scheduler, CosineAnnealingWarmRestarts):
+            return self.finetune_step_num
+
+        if scheduler.T_mult == 1:
+            warm_epoch_num = scheduler.T_0 * self.warm_epoch_num
+        else:
+            warm_epoch_num = int(
+                scheduler.T_mult
+                * (1.0 - pow(scheduler.T_mult, self.warm_epoch_num))
+                / (1.0 - scheduler.T_mult)
+            )
+
+        return self.warm_epoch_step_num * warm_epoch_num
+
     def trainStep(
         self,
-        optimizer,
+        optimizer: Optimizer,
         gt_points: torch.Tensor,
     ) -> Union[dict, None]:
         optimizer.zero_grad()
@@ -227,7 +253,7 @@ class Trainer(object):
         fit_dists2, coverage_dists2 = chamferDistance(
             detect_points.reshape(1, -1, 3).type(gt_points.dtype),
             gt_points,
-            'cuda' not in self.mash.device,
+            "cuda" not in self.mash.device,
         )[:2]
 
         fit_dists = torch.mean(torch.sqrt(fit_dists2) + EPSILON)
@@ -240,94 +266,49 @@ class Trainer(object):
 
         loss.backward()
 
-        """
-        nn.utils.clip_grad_norm_(self.mash.mask_params, max_norm=1e5, norm_type=2)
-        nn.utils.clip_grad_norm_(self.mash.sh_params, max_norm=1e5, norm_type=2)
-        nn.utils.clip_grad_norm_(self.mash.rotate_vectors, max_norm=1e5, norm_type=2)
-        nn.utils.clip_grad_norm_(self.mash.positions, max_norm=1e5, norm_type=2)
-
-        if torch.isnan(self.mash.mask_params.grad).any():
-            print("grad contains nan, set it to 0!")
-            self.mash.mask_params.grad[torch.isnan(self.mash.mask_params.grad)] = 0.0
-            exit()
-        if torch.isnan(self.mash.sh_params.grad).any():
-            print("grad contains nan, set it to 0!")
-            self.mash.sh_params.grad[torch.isnan(self.mash.sh_params.grad)] = 0.0
-            exit()
-        if torch.isnan(self.mash.rotate_vectors.grad).any():
-            print("grad contains nan, set it to 0!")
-            self.mash.rotate_vectors.grad[
-                torch.isnan(self.mash.rotate_vectors.grad)
-            ] = 0.0
-            exit()
-        if torch.isnan(self.mash.positions.grad).any():
-            print("grad contains nan, set it to 0!")
-            self.mash.positions.grad[torch.isnan(self.mash.positions.grad)] = 0.0
-            exit()
-        """
-
         optimizer.step()
 
         loss_dict = {
             "fit_loss": mean_fit_loss.detach().clone().cpu().numpy(),
             "coverage_loss": mean_coverage_loss.detach().clone().cpu().numpy(),
-            "chamfer_distance": (mean_fit_loss + mean_coverage_loss)
-            .detach()
-            .clone()
-            .cpu()
-            .numpy(),
             "loss": loss.detach().clone().cpu().numpy(),
         }
 
         return loss_dict
 
+    def checkStop(
+        self, optimizer: Optimizer, scheduler: LRScheduler, loss_dict: dict
+    ) -> bool:
+        if not isinstance(scheduler, CosineAnnealingWarmRestarts):
+            scheduler.step(loss_dict["loss"])
+
+            if self.getLr(optimizer) == self.min_lr:
+                self.min_lr_reach_time += 1
+
+            return self.min_lr_reach_time >= self.patience
+
+        current_warm_epoch = self.step / self.warm_epoch_step_num
+        scheduler.step(current_warm_epoch)
+
+        return current_warm_epoch >= self.warm_epoch_num
+
     def trainMash(
         self,
-        gt_points_num: int = 10000,
+        optimizer: Optimizer,
+        scheduler: LRScheduler,
+        gt_points: torch.Tensor,
     ) -> bool:
         self.mash.setGradState(True)
 
-        optimizer = AdamW(
-            [
-                self.mash.mask_params,
-                self.mash.sh_params,
-                self.mash.rotate_vectors,
-                self.mash.positions,
-            ],
-            lr=self.lr,
-            weight_decay=self.weight_decay,
-        )
-        scheduler = CosineAnnealingWarmRestarts(
-            optimizer,
-            T_0=1,
-            T_mult=1
-        )
-        epoch_step_num=40
-        warm_time = 10
-        if scheduler.T_mult == 1:
-            warn_epoch_num = scheduler.T_0 * warm_time
-        else:
-            warn_epoch_num = int(scheduler.T_mult * (1.0 - pow(scheduler.T_mult, warm_time)) / (1.0 - scheduler.T_mult))
-
-        if self.mash.device == "cpu":
-            gt_points_dtype = self.mash.dtype
-        else:
-            gt_points_dtype = torch.float32
-        gt_points = (
-            torch.from_numpy(self.mesh.toSamplePoints(gt_points_num))
-            .type(gt_points_dtype)
-            .to(self.mash.device)
-            .reshape(1, -1, 3)
-        )
-
-        best_result_reached_num = 0
+        train_step_num = self.toTrainStepNum(scheduler)
+        final_step = self.step + train_step_num
 
         print("[INFO][MashModelOp::train]")
         print("\t start training ...")
-        pbar = tqdm(total=epoch_step_num * (warm_time + 1))
+        pbar = tqdm(total=final_step)
         pbar.update(self.step)
-        while self.step < self.epoch:
-            if self.render and self.step % 10 == 0:
+        while self.step < final_step:
+            if self.render and self.step % 100 == 0:
                 with torch.no_grad():
                     self.o3d_viewer.clearGeometries()
 
@@ -360,7 +341,7 @@ class Trainer(object):
 
                     self.o3d_viewer.update()
 
-                    if False:
+                    if self.render_init_only:
                         self.o3d_viewer.run()
                         exit()
 
@@ -375,23 +356,20 @@ class Trainer(object):
                     self.logger.addScalar("Train/" + key, item, self.step)
                 self.logger.addScalar("Train/lr", self.getLr(optimizer), self.step)
 
-            current_warn_epoch = self.step / epoch_step_num
-            scheduler.step(current_warn_epoch)
-
-            pbar.set_description(
-                "LOSS %.6f LR %.4f EP %.4f" % (loss_dict["loss"], self.getLr(optimizer) / self.lr, current_warn_epoch)
-            )
-
             self.updateBestParams(loss_dict["loss"])
 
-            if current_warn_epoch > warn_epoch_num:
-                if self.getLr(optimizer) <= self.min_lr:
-                    best_result_reached_num += 1
-
-            if best_result_reached_num > self.patience:
-                break
+            pbar.set_description(
+                "LOSS %.6f LR %.4f"
+                % (
+                    loss_dict["loss"],
+                    self.getLr(optimizer) / self.lr,
+                )
+            )
 
             self.autoSaveMash("train")
+
+            if self.checkStop(optimizer, scheduler, loss_dict):
+                break
 
             self.step += 1
             pbar.update(1)
@@ -411,10 +389,41 @@ class Trainer(object):
             self.mash.sh_degree_max,
         )
 
+        if self.mash.device == "cpu":
+            gt_points_dtype = self.mash.dtype
+        else:
+            gt_points_dtype = torch.float32
+        gt_points = (
+            torch.from_numpy(self.mesh.toSamplePoints(gt_points_num))
+            .type(gt_points_dtype)
+            .to(self.mash.device)
+            .reshape(1, -1, 3)
+        )
+
         while True:
-            while not self.trainMash(gt_points_num):
-                self.mash.reset()
-                continue
+            optimizer = AdamW(
+                [
+                    self.mash.mask_params,
+                    self.mash.sh_params,
+                    self.mash.rotate_vectors,
+                    self.mash.positions,
+                ],
+                lr=self.lr,
+                weight_decay=self.weight_decay,
+            )
+            warm_scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=1, T_mult=1)
+            finetune_scheduler = ReduceLROnPlateau(
+                optimizer,
+                mode="min",
+                factor=self.factor,
+                patience=self.patience,
+                min_lr=self.min_lr,
+            )
+
+            self.trainMash(optimizer, warm_scheduler, gt_points)
+            for param_group in optimizer.param_groups:
+                param_group["lr"] = self.lr
+            self.trainMash(optimizer, finetune_scheduler, gt_points)
 
             break
 

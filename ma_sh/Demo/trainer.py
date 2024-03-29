@@ -16,7 +16,9 @@ def demo():
     dtype = torch.float64
     device = "cpu"
 
-    epoch = 10000
+    warm_epoch_step_num = 10
+    warm_epoch_num = 2
+    finetune_step_num = 10000
     lr = 1e-2
     weight_decay = 1e-4
     factor = 0.98
@@ -24,6 +26,7 @@ def demo():
     min_lr = 1e-4
 
     render = True
+    render_init_only = False
 
     mesh_name = "mac_airplane"
 
@@ -50,7 +53,9 @@ def demo():
         idx_dtype,
         dtype,
         device,
-        epoch,
+        warm_epoch_step_num,
+        warm_epoch_num,
+        finetune_step_num,
         lr,
         weight_decay,
         factor,
@@ -59,6 +64,7 @@ def demo():
         render,
         save_result_folder_path,
         save_log_folder_path,
+        render_init_only,
     )
 
     trainer.loadMeshFile(mesh_file_path)

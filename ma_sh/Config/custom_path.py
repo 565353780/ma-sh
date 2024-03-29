@@ -12,7 +12,7 @@ mesh_file_path_dict = {
 }
 
 mac_chair_folder_path = (
-    "/Users/fufu/Nutstore Files/paper-materials/Dataset/ShapeNet/mini/03001627/"
+    "/Users/fufu/Nutstore Files/paper-materials-ASDF/Dataset/mini/03001627/"
 )
 if os.path.exists(mac_chair_folder_path):
     obj_filename_list = os.listdir(mac_chair_folder_path)
