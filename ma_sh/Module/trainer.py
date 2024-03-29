@@ -17,7 +17,6 @@ from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
 from ma_sh.Data.mesh import Mesh
 from ma_sh.Loss.chamfer_distance import chamferDistance
 from ma_sh.Method.pcd import getPointCloud
-from ma_sh.Method.render import getLineSet
 from ma_sh.Method.time import getCurrentTime
 from ma_sh.Model.mash import Mash
 from ma_sh.Module.logger import Logger
@@ -27,29 +26,29 @@ from ma_sh.Module.o3d_viewer import O3DViewer
 class Trainer(object):
     def __init__(
         self,
-        anchor_num: int = 100,
-        mask_degree_max: int = 1,
-        sh_degree_max: int = 3,
-        mask_boundary_sample_num: int = 36,
-        sample_polar_num: int = 2000,
-        sample_point_scale: float = 0.8,
+        anchor_num: int = 40,
+        mask_degree_max: int = 4,
+        sh_degree_max: int = 4,
+        mask_boundary_sample_num: int = 18,
+        sample_polar_num: int = 4000,
+        sample_point_scale: float = 0.4,
         use_inv: bool = True,
         idx_dtype=torch.int64,
         dtype=torch.float64,
-        device: str = "cuda:0",
-        warm_epoch_step_num: int = 40,
+        device: str = "cpu",
+        warm_epoch_step_num: int = 20,
         warm_epoch_num: int = 10,
-        finetune_step_num: int = 10000,
-        lr: float = 1e-1,
+        finetune_step_num: int = 400,
+        lr: float = 1e-2,
         weight_decay: float = 1e-4,
-        factor: float = 0.99,
+        factor: float = 0.9,
         patience: int = 1,
-        min_lr: float = 1e-3,
+        min_lr: float = 1e-4,
         render: bool = False,
-        save_result_folder_path: Union[str, None] = None,
-        save_log_folder_path: Union[str, None] = None,
         render_freq: int = 1,
         render_init_only: bool = False,
+        save_result_folder_path: Union[str, None] = None,
+        save_log_folder_path: Union[str, None] = None,
     ) -> None:
         self.mash = Mash(
             anchor_num,

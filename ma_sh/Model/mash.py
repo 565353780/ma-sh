@@ -17,12 +17,12 @@ from ma_sh.Method.path import createFileFolder, removeFile, renameFile
 class Mash(object):
     def __init__(
         self,
-        anchor_num: int,
-        mask_degree_max: int,
-        sh_degree_max: int,
-        mask_boundary_sample_num: int = 36,
-        sample_polar_num: int = 2000,
-        sample_point_scale: float = 0.8,
+        anchor_num: int = 40,
+        mask_degree_max: int = 4,
+        sh_degree_max: int = 4,
+        mask_boundary_sample_num: int = 18,
+        sample_polar_num: int = 4000,
+        sample_point_scale: float = 0.4,
         use_inv: bool = True,
         idx_dtype=torch.int64,
         dtype=torch.float64,
@@ -242,12 +242,12 @@ class Mash(object):
             if isinstance(face_forward_vectors, np.ndarray):
                 face_forward_vectors = torch.from_numpy(face_forward_vectors)
 
-            rotate_vectors = mash_cpp.toRotateVectorsByFaceForwardVectors(
+            trans_rotate_vectors = mash_cpp.toRotateVectorsByFaceForwardVectors(
                 face_forward_vectors
             )
 
             self.rotate_vectors.data = (
-                rotate_vectors.detach().clone().type(self.dtype).to(self.device)
+                trans_rotate_vectors.detach().clone().type(self.dtype).to(self.device)
             )
 
         return True

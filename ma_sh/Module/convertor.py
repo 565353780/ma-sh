@@ -13,22 +13,24 @@ class Convertor(object):
         save_root_folder_path: str,
         force_start: bool = False,
         gt_points_num: int = 10000,
-        anchor_num: int = 4,
-        mask_degree_max: int = 5,
-        sh_degree_max: int = 3,
-        mask_boundary_sample_num: int = 10,
-        sample_polar_num: int = 10,
-        sample_point_scale: float = 0.5,
+        anchor_num: int = 40,
+        mask_degree_max: int = 4,
+        sh_degree_max: int = 4,
+        mask_boundary_sample_num: int = 18,
+        sample_polar_num: int = 4000,
+        sample_point_scale: float = 0.4,
         use_inv: bool = True,
         idx_dtype=torch.int64,
         dtype=torch.float64,
         device: str = "cpu",
-        epoch: int = 1000,
+        warm_epoch_step_num: int = 20,
+        warm_epoch_num: int = 10,
+        finetune_step_num: int = 400,
         lr: float = 1e-2,
-        weight_decay: float = 1e-10,
-        factor: float = 0.8,
-        patience: int = 10,
-        min_lr: float = 1e-3,
+        weight_decay: float = 1e-4,
+        factor: float = 0.9,
+        patience: int = 1,
+        min_lr: float = 1e-4,
     ) -> None:
         self.shape_root_folder_path = shape_root_folder_path
         self.save_root_folder_path = save_root_folder_path
@@ -44,7 +46,9 @@ class Convertor(object):
         self.idx_dtype = idx_dtype
         self.dtype = dtype
         self.device = device
-        self.epoch = epoch
+        self.warm_epoch_step_num = warm_epoch_step_num
+        self.warm_epoch_num = warm_epoch_num
+        self.finetune_step_num = finetune_step_num
         self.lr = lr
         self.weight_decay = weight_decay
         self.factor = factor
@@ -68,12 +72,16 @@ class Convertor(object):
             self.idx_dtype,
             self.dtype,
             self.device,
-            self.epoch,
+            self.warm_epoch_step_num,
+            self.warm_epoch_num,
+            self.finetune_step_num,
             self.lr,
             self.weight_decay,
             self.factor,
             self.patience,
             self.min_lr,
+            False,
+            1,
             False,
             save_result_folder_path,
             save_log_folder_path,

@@ -29,10 +29,10 @@ def demo():
     render_freq = 10
     render_init_only = False
 
-    mesh_name = "mac_chair_2"
-
     save_result_folder_path = "auto"
     save_log_folder_path = "auto"
+
+    mesh_name = "mac_chair_2"
 
     mesh_file_path = mesh_file_path_dict[mesh_name]
 
@@ -63,10 +63,10 @@ def demo():
         patience,
         min_lr,
         render,
-        save_result_folder_path,
-        save_log_folder_path,
         render_freq,
         render_init_only,
+        save_result_folder_path,
+        save_log_folder_path,
     )
 
     trainer.loadMeshFile(mesh_file_path)
