@@ -17,6 +17,7 @@ from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
 from ma_sh.Data.mesh import Mesh
 from ma_sh.Loss.chamfer_distance import chamferDistance
 from ma_sh.Method.pcd import getPointCloud
+from ma_sh.Method.render import getLineSet
 from ma_sh.Method.time import getCurrentTime
 from ma_sh.Model.mash import Mash
 from ma_sh.Module.logger import Logger
@@ -47,6 +48,7 @@ class Trainer(object):
         render: bool = False,
         save_result_folder_path: Union[str, None] = None,
         save_log_folder_path: Union[str, None] = None,
+        render_freq: int = 1,
         render_init_only: bool = False,
     ) -> None:
         self.mash = Mash(
@@ -79,6 +81,7 @@ class Trainer(object):
         self.min_lr = min_lr
 
         self.render = render
+        self.render_freq = render_freq
         self.render_init_only = render_init_only
 
         self.save_result_folder_path = save_result_folder_path
@@ -309,7 +312,8 @@ class Trainer(object):
         pbar = tqdm(total=final_step)
         pbar.update(self.step)
         while self.step < final_step:
-            if self.render and self.step % 1 == 0:
+            if self.render and self.step % self.render_freq == 0:
+                assert self.o3d_viewer is not None
                 with torch.no_grad():
                     self.o3d_viewer.clearGeometries()
 
@@ -323,11 +327,32 @@ class Trainer(object):
 
                     self.mesh.paintJetColorsByPoints(detect_points)
                     mesh = self.mesh.toO3DMesh()
-                    mesh.translate([mesh_abb_length, 0, 0])
+                    # mesh.translate([mesh_abb_length, 0, 0])
                     self.o3d_viewer.addGeometry(mesh)
+
+                    anchor_position = (
+                        self.mesh.sample_pts + 0.1 * self.mesh.sample_normals
+                    )
+                    anchor_pcd = getPointCloud(anchor_position)
+                    self.o3d_viewer.addGeometry(anchor_pcd)
+
+                    for i in range(self.mesh.sample_pts.shape[0]):
+                        line_set = getLineSet(
+                            self.mesh.sample_pts[i],
+                            [0.1 * self.mesh.sample_normals[i]],
+                            [1, 0, 0],
+                        )
+                        self.o3d_viewer.addGeometry(line_set)
+
+                    """
                     trans_pcd = deepcopy(pcd)
                     trans_pcd.translate([mesh_abb_length, 0, 0])
                     self.o3d_viewer.addGeometry(trans_pcd)
+
+                    gt_pcd = getPointCloud(gt_points.reshape(-1, 3).cpu().numpy())
+                    gt_pcd.translate([2 * mesh_abb_length, 0, 0])
+                    self.o3d_viewer.addGeometry(gt_pcd)
+                    """
 
                     """
                     for j in range(self.mash.mask_params.shape[0]):

@@ -64,7 +64,7 @@ const torch::Tensor toSampleThetaNums(const torch::Tensor &mask_boundary_thetas,
   const torch::Tensor detach_mask_boundary_thetas =
       mask_boundary_thetas.detach();
 
-  const float delta_theta = M_PI / 90.0 * delta_theta_angle;
+  const float delta_theta = M_PI / 180.0 * delta_theta_angle;
 
   const torch::Tensor sample_theta_nums =
       torch::ceil(detach_mask_boundary_thetas / delta_theta)

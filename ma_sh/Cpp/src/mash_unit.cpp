@@ -139,10 +139,10 @@ const torch::Tensor toSHPoints(const torch::Tensor &sh_params,
       toRotateMatrixs(index_rotate_vectors);
 
   const torch::Tensor v_sh_local_inv_points =
-      sh_local_inv_points.reshape({-1, 1, 3});
+      sh_local_inv_points.reshape({-1, 3, 1});
 
   const torch::Tensor v_sh_local_inv_rotate_points =
-      torch::matmul(v_sh_local_inv_points, index_rotate_matrixs);
+      torch::matmul(index_rotate_matrixs, v_sh_local_inv_points);
 
   const torch::Tensor sh_local_inv_rotate_points =
       v_sh_local_inv_rotate_points.reshape({-1, 3});

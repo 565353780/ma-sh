@@ -22,5 +22,4 @@ def test():
     print("start calculate 2 * a, a.shape=", a.shape)
     b = 2 * a
     print("finish calculate 2 * a")
-    exit()
     return True

@@ -1,5 +1,6 @@
 #include "rotate.h"
 #include "constant.h"
+#include <iostream>
 
 using namespace torch::indexing;
 
@@ -71,17 +72,42 @@ toRotateVectorsByFaceForwardVectors(const torch::Tensor face_forward_vectors) {
   const torch::Tensor valid_face_forward_vector_mask =
       face_forward_vector_norms > 0;
 
+  const torch::Tensor valid_face_forward_vectors =
+      face_forward_vectors.index({valid_face_forward_vector_mask});
+
+  const torch::Tensor valid_face_forward_vector_norms =
+      face_forward_vector_norms.index({valid_face_forward_vector_mask});
+
+  const torch::Tensor v_valid_face_forward_vector_norms =
+      valid_face_forward_vector_norms.reshape({-1, 1});
+
   const torch::Tensor valid_normed_face_forward_vectors =
-      face_forward_vectors.index({valid_face_forward_vector_mask}) /
-      face_forward_vector_norms.index({valid_face_forward_vector_mask})
-          .reshape({-1, 1});
+      valid_face_forward_vectors / v_valid_face_forward_vector_norms;
 
   torch::Tensor valid_z_axis =
       torch::zeros_like(valid_normed_face_forward_vectors);
+
   valid_z_axis.index_put_({slice_all, 2}, 1.0);
 
-  const torch::Tensor valid_rotate_vectors =
-      -1.0 * torch::cross(valid_z_axis, valid_normed_face_forward_vectors, 1);
+  torch::Tensor valid_rotate_vectors =
+      torch::cross(valid_z_axis, valid_normed_face_forward_vectors, 1);
+
+  torch::Tensor valid_rotate_vector_norms =
+      torch::norm(valid_rotate_vectors, 2, 1);
+
+  const torch::Tensor zero_valid_rotate_vector_mask =
+      valid_rotate_vector_norms == 0;
+
+  valid_rotate_vector_norms.index_put_({zero_valid_rotate_vector_mask}, 1.0);
+
+  const torch::Tensor v_valid_rotate_vector_norms =
+      valid_rotate_vector_norms.reshape({-1, 1});
+
+  torch::Tensor normed_valid_rotate_vectors =
+      valid_rotate_vectors / v_valid_rotate_vector_norms;
+
+  normed_valid_rotate_vectors.index_put_({zero_valid_rotate_vector_mask, 0},
+                                         1.0);
 
   const torch::Tensor valid_cos_thetas =
       valid_normed_face_forward_vectors.index({slice_all, 2});
@@ -91,7 +117,7 @@ toRotateVectorsByFaceForwardVectors(const torch::Tensor face_forward_vectors) {
   const torch::Tensor v_valid_thetas = valid_thetas.reshape({-1, 1});
 
   rotate_vectors.index_put_({valid_face_forward_vector_mask},
-                            valid_rotate_vectors * v_valid_thetas);
+                            normed_valid_rotate_vectors * v_valid_thetas);
 
   return rotate_vectors;
 }

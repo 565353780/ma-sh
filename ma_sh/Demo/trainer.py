@@ -26,16 +26,17 @@ def demo():
     min_lr = 1e-4
 
     render = True
-    render_init_only = False
+    render_freq = 1
+    render_init_only = True
 
-    mesh_name = "mac_airplane"
+    mesh_name = "mac_chair_2"
 
     save_result_folder_path = "auto"
     save_log_folder_path = "auto"
 
     mesh_file_path = mesh_file_path_dict[mesh_name]
 
-    gt_points_num = 10000
+    gt_points_num = 1000
 
     save_params_file_path = "./output/" + mesh_name + ".npy"
     save_pcd_file_path = "./output/" + mesh_name + ".ply"
@@ -64,6 +65,7 @@ def demo():
         render,
         save_result_folder_path,
         save_log_folder_path,
+        render_freq,
         render_init_only,
     )
 
