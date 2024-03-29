@@ -92,6 +92,7 @@ class Trainer(object):
 
         self.initRecords()
 
+        self.o3d_viewer = None
         if self.render:
             self.o3d_viewer = O3DViewer()
             self.o3d_viewer.createWindow()
@@ -285,7 +286,7 @@ class Trainer(object):
             if self.getLr(optimizer) == self.min_lr:
                 self.min_lr_reach_time += 1
 
-            return self.min_lr_reach_time >= self.patience
+            return self.min_lr_reach_time > self.patience
 
         current_warm_epoch = self.step / self.warm_epoch_step_num
         scheduler.step(current_warm_epoch)
@@ -308,7 +309,7 @@ class Trainer(object):
         pbar = tqdm(total=final_step)
         pbar.update(self.step)
         while self.step < final_step:
-            if self.render and self.step % 100 == 0:
+            if self.render and self.step % 1 == 0:
                 with torch.no_grad():
                     self.o3d_viewer.clearGeometries()
 
