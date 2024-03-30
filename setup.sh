@@ -1,8 +1,6 @@
-UNAME=$(uname -s)
-
-if [ "$UNAME" == "Darwin" ]; then
+if [ "$(uname)" == "Darwin" ]; then
 	brew install bear
-elif [ "$UNAME" == "Linux" ]; then
+elif [ "$(uname)" = "Linux" ]; then
 	sudo apt install bear -y
 fi
 
