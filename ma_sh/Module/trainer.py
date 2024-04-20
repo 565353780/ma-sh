@@ -259,21 +259,53 @@ class Trainer(object):
             "cuda" not in self.mash.device,
         )[:2]
 
-        fit_dists = torch.mean(torch.sqrt(fit_dists2 + EPSILON))
-        coverage_dists = torch.mean(torch.sqrt(coverage_dists2 + EPSILON))
+        fit_dists = torch.sqrt(fit_dists2 + EPSILON)
+        coverage_dists = torch.sqrt(coverage_dists2 + EPSILON)
 
-        mean_fit_loss = torch.mean(fit_dists)
-        mean_coverage_loss = torch.mean(coverage_dists)
+        if True:
+            min_fit_dist = torch.min(fit_dists).detach().clone()
+            min_coverage_dist = torch.min(coverage_dists).detach().clone()
 
-        loss = mean_fit_loss + mean_coverage_loss
+            max_fit_dist = torch.max(fit_dists).detach().clone()
+            max_coverage_dist = torch.max(coverage_dists).detach().clone()
+
+            fit_dist_thresh = 0.8 * max_fit_dist + 0.2 * min_fit_dist
+            coverage_dist_thresh = 0.8 * max_coverage_dist + 0.2 * min_coverage_dist
+
+            accurate_fit_dists = fit_dists[fit_dists < fit_dist_thresh]
+            accurate_coverage_dists = coverage_dists[
+                coverage_dists < coverage_dist_thresh
+            ]
+
+            unaccurate_fit_dists = fit_dists[fit_dists >= fit_dist_thresh]
+            unaccurate_coverage_dists = coverage_dists[
+                coverage_dists >= coverage_dist_thresh
+            ]
+
+            fit_loss = torch.mean(accurate_fit_dists) + 10.0 * torch.mean(
+                unaccurate_fit_dists
+            )
+            coverage_loss = torch.mean(accurate_coverage_dists) + 10.0 * torch.mean(
+                unaccurate_coverage_dists
+            )
+        else:
+            fit_loss = torch.mean(fit_dists)
+            coverage_loss = torch.mean(coverage_dists)
+
+        loss = fit_loss + coverage_loss
 
         loss.backward()
 
         optimizer.step()
 
+        mean_fit_dist = torch.mean(fit_dists)
+        mean_coverage_dist = torch.mean(coverage_dists)
+        cd = mean_fit_dist + mean_coverage_dist
+
         loss_dict = {
-            "fit_loss": mean_fit_loss.detach().clone().cpu().numpy(),
-            "coverage_loss": mean_coverage_loss.detach().clone().cpu().numpy(),
+            "fit_loss": fit_loss.detach().clone().cpu().numpy(),
+            "coverage_loss": coverage_loss.detach().clone().cpu().numpy(),
+            "chamfer_distance": cd.detach().clone().cpu().numpy(),
             "loss": loss.detach().clone().cpu().numpy(),
         }
 
@@ -328,7 +360,7 @@ class Trainer(object):
                     pcd = getPointCloud(detect_points)
                     self.o3d_viewer.addGeometry(pcd)
 
-                    self.mesh.paintJetColorsByPoints(detect_points)
+                    # self.mesh.paintJetColorsByPoints(detect_points)
                     mesh = self.mesh.toO3DMesh()
                     mesh.translate([mesh_abb_length, 0, 0])
                     self.o3d_viewer.addGeometry(mesh)
@@ -364,9 +396,10 @@ class Trainer(object):
             self.updateBestParams(loss_dict["loss"])
 
             pbar.set_description(
-                "LOSS %.6f LR %.4f"
+                "LOSS %.6f CD %.6f LR %.4f"
                 % (
                     loss_dict["loss"],
+                    loss_dict["chamfer_distance"],
                     self.getLr(optimizer) / self.lr,
                 )
             )

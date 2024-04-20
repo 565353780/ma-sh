@@ -5,28 +5,28 @@ from ma_sh.Module.trainer import Trainer
 
 
 def demo():
-    anchor_num = 200
-    mask_degree_max = 2
-    sh_degree_max = 2
+    anchor_num = 40
+    mask_degree_max = 4
+    sh_degree_max = 4
     mask_boundary_sample_num = 18
-    sample_polar_num = 2000
+    sample_polar_num = 4000
     sample_point_scale = 0.4
     use_inv = True
     idx_dtype = torch.int64
-    dtype = torch.float32
+    dtype = torch.float64
     device = "cpu"
 
     warm_epoch_step_num = 20
     warm_epoch_num = 10
     finetune_step_num = 400
-    lr = 1e-2
+    lr = 2e-2
     weight_decay = 1e-4
     factor = 0.9
     patience = 1
     min_lr = 1e-4
 
-    render = False
-    render_freq = 10
+    render = True
+    render_freq = 1
     render_init_only = False
 
     save_result_folder_path = "auto"
@@ -36,8 +36,8 @@ def demo():
 
     mesh_file_path = mesh_file_path_dict[mesh_name]
 
-    mesh_name = "airplane0"
-    mesh_file_path = "/Users/fufu/github/OCC/mash-occ-decoder/output/test-gt-airplane/test_mash_mesh_gt0.obj"
+    mesh_name = "chair0"
+    mesh_file_path = "/Users/fufu/github/OCC/mash-occ-decoder/output/test-gt-chair/test_mash_mesh_gt0.obj"
 
     gt_points_num = 10000
 
