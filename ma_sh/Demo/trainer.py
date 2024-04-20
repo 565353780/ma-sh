@@ -24,8 +24,8 @@ def demo():
     dtype = torch.float32
     device = "cuda:0"
 
-    warm_epoch_step_num = 40
-    warm_epoch_num = 20
+    warm_epoch_step_num = 10
+    warm_epoch_num = 40
     finetune_step_num = 1000
     lr = 5e-3
     weight_decay = 1e-10
@@ -37,7 +37,7 @@ def demo():
     render_freq = 1
     render_init_only = False
 
-    gt_points_num = 50000
+    gt_points_num = 200000
 
     save_result_folder_path = "auto"
     save_log_folder_path = "auto"
@@ -57,6 +57,10 @@ def demo():
         sdf_dataset.sdf_folder_path + "ShapeNet/sdf/",
         "/home/chli/chLi/Dataset/ShapeNet/Core/ShapeNetCore.v2/",
     ).replace("_obj.npy", ".obj")
+    mesh_file_path = sdf_file_path.replace(
+        sdf_dataset.sdf_folder_path + "ShapeNet/sdf/",
+        "/home/chli/chLi/Dataset/SDF/ShapeNet/manifold/",
+    ).replace("_obj.npy", "_obj.obj")
 
     # copyfile(gt_mesh_file_path, "./output/test_mash_mesh_gt" + str(i) + ".obj")
 
