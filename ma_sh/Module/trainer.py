@@ -351,6 +351,8 @@ class Trainer(object):
                     self.o3d_viewer.clearGeometries()
 
                     mesh_abb_length = 2.0 * self.mesh.toABBLength()
+                    if mesh_abb_length == 0:
+                        mesh_abb_length = 1.1
 
                     gt_pcd = getPointCloud(gt_points.reshape(-1, 3).cpu().numpy())
                     gt_pcd.translate([-mesh_abb_length, 0, 0])

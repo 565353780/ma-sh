@@ -1,5 +1,6 @@
-import open3d as o3d
+from math import ceil
 import numpy as np
+import open3d as o3d
 
 from ma_sh.Data.abb import ABB
 
@@ -16,7 +17,13 @@ def downSample(pcd, sample_point_num):
         print("\t sample_point_num < 1!")
         return None
 
-    return pcd.farthest_point_down_sample(sample_point_num)
+    try:
+        down_sample_pcd = pcd.farthest_point_down_sample(sample_point_num)
+    except:
+        every_k_points = ceil(np.asarray(pcd.points).shape[0] / sample_point_num)
+        down_sample_pcd = pcd.uniform_down_sample(every_k_points)
+
+    return down_sample_pcd
 
 
 def getCropPointCloud(

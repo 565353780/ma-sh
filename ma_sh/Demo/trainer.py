@@ -3,7 +3,10 @@ import sys
 sys.path.append("../mash-occ-decoder")
 import torch
 
-from mash_occ_decoder.Dataset.sdf import SDFDataset
+try:
+    from mash_occ_decoder.Dataset.sdf import SDFDataset
+except:
+    pass
 
 from ma_sh.Config.custom_path import mesh_file_path_dict
 from ma_sh.Method.pcd import getPointCloud
@@ -32,7 +35,7 @@ def demo():
     patience = 4
     min_lr = 1e-4
 
-    render = False
+    render = True
     render_freq = 1
     render_init_only = False
 
@@ -94,6 +97,7 @@ def demo():
 
     # trainer.loadMeshFile(mesh_file_path)
     gt_points_file_path = "/home/chli/chLi/Dataset/Mash/ShapeNet/pcd/04090263/22d2782aa73ea40960abd8a115f9899/models/model_normalized_obj.npy"
+    gt_points_file_path = "/Users/fufu/Downloads/model_normalized_obj.npy"
     trainer.loadGTPointsFile(gt_points_file_path)
     trainer.autoTrainMash(gt_points_num)
     trainer.mash.saveParamsFile(save_params_file_path, overwrite)
@@ -105,7 +109,7 @@ def demo():
 
     mesh_abb_length = 2.0 * trainer.mesh.toABBLength()
     if mesh_abb_length == 0:
-        mesh_abb_length = 2.0
+        mesh_abb_length = 1.1
 
     gt_pcd = getPointCloud(trainer.gt_points)
     gt_pcd.translate([-mesh_abb_length, 0, 0])
