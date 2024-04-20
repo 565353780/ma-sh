@@ -41,27 +41,25 @@ def demo():
     save_result_folder_path = "auto"
     save_log_folder_path = "auto"
 
-    mesh_name = "linux_airplane"
+    if True:
+        mesh_name = "linux_airplane"
+        mesh_file_path = mesh_file_path_dict[mesh_name]
+    else:
+        dataset_root_folder_path = "/home/chli/Dataset/"
+        sdf_dataset = SDFDataset(dataset_root_folder_path, "test")
 
-    mesh_file_path = mesh_file_path_dict[mesh_name]
+        object_id = 8
+        _, sdf_file_path = sdf_dataset.paths_list[object_id]
 
-    dataset_root_folder_path = "/home/chli/Dataset/"
-    sdf_dataset = SDFDataset(dataset_root_folder_path, "test")
-
-    object_id = 8
-    _, sdf_file_path = sdf_dataset.paths_list[object_id]
-
-    mesh_name = "chair" + str(object_id)
-    mesh_file_path = sdf_file_path.replace(
-        sdf_dataset.sdf_folder_path + "ShapeNet/sdf/",
-        "/home/chli/chLi/Dataset/ShapeNet/Core/ShapeNetCore.v2/",
-    ).replace("_obj.npy", ".obj")
-    mesh_file_path = sdf_file_path.replace(
-        sdf_dataset.sdf_folder_path + "ShapeNet/sdf/",
-        "/home/chli/chLi/Dataset/SDF/ShapeNet/manifold/",
-    ).replace("_obj.npy", "_obj.obj")
-
-    # copyfile(gt_mesh_file_path, "./output/test_mash_mesh_gt" + str(i) + ".obj")
+        mesh_name = "chair" + str(object_id)
+        mesh_file_path = sdf_file_path.replace(
+            sdf_dataset.sdf_folder_path + "ShapeNet/sdf/",
+            "/home/chli/chLi/Dataset/ShapeNet/Core/ShapeNetCore.v2/",
+        ).replace("_obj.npy", ".obj")
+        mesh_file_path = sdf_file_path.replace(
+            sdf_dataset.sdf_folder_path + "ShapeNet/sdf/",
+            "/home/chli/chLi/Dataset/SDF/ShapeNet/manifold/",
+        ).replace("_obj.npy", "_obj.obj")
 
     save_params_file_path = "./output/" + mesh_name + ".npy"
     save_pcd_file_path = "./output/" + mesh_name + ".ply"
@@ -95,9 +93,8 @@ def demo():
     )
 
     # trainer.loadMeshFile(mesh_file_path)
-    trainer.loadGTPointsFile(
-        "/home/chli/Dataset/aro_net/data/shapenet/02_qry_pts_occnet/02691156/2af04ef09d49221b85e5214b0d6a7.npy"
-    )
+    gt_points_file_path = "/home/chli/chLi/Dataset/Mash/ShapeNet/pcd/04090263/22d2782aa73ea40960abd8a115f9899/models/model_normalized_obj.npy"
+    trainer.loadGTPointsFile(gt_points_file_path)
     trainer.autoTrainMash(gt_points_num)
     trainer.mash.saveParamsFile(save_params_file_path, overwrite)
     trainer.mash.saveAsPcdFile(save_pcd_file_path, overwrite, print_progress)
