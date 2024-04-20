@@ -16,7 +16,7 @@ from ma_sh.Config.weights import W0
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
 from ma_sh.Data.mesh import Mesh
 from ma_sh.Loss.chamfer_distance import chamferDistance
-from ma_sh.Method.pcd import getPointCloud
+from ma_sh.Method.pcd import getPointCloud, downSample
 from ma_sh.Method.time import getCurrentTime
 from ma_sh.Model.mash import Mash
 from ma_sh.Module.logger import Logger
@@ -26,23 +26,23 @@ from ma_sh.Module.o3d_viewer import O3DViewer
 class Trainer(object):
     def __init__(
         self,
-        anchor_num: int = 40,
+        anchor_num: int = 400,
         mask_degree_max: int = 4,
-        sh_degree_max: int = 4,
-        mask_boundary_sample_num: int = 18,
-        sample_polar_num: int = 4000,
+        sh_degree_max: int = 3,
+        mask_boundary_sample_num: int = 10,
+        sample_polar_num: int = 10000,
         sample_point_scale: float = 0.4,
         use_inv: bool = True,
         idx_dtype=torch.int64,
         dtype=torch.float64,
         device: str = "cpu",
-        warm_epoch_step_num: int = 20,
-        warm_epoch_num: int = 10,
-        finetune_step_num: int = 400,
-        lr: float = 1e-2,
-        weight_decay: float = 1e-4,
+        warm_epoch_step_num: int = 10,
+        warm_epoch_num: int = 40,
+        finetune_step_num: int = 2000,
+        lr: float = 5e-3,
+        weight_decay: float = 1e-10,
         factor: float = 0.9,
-        patience: int = 1,
+        patience: int = 4,
         min_lr: float = 1e-4,
         render: bool = False,
         render_freq: int = 1,
@@ -89,6 +89,7 @@ class Trainer(object):
         self.logger = Logger()
 
         self.mesh = Mesh()
+        self.gt_points = None
 
         self.initRecords()
 
@@ -115,6 +116,40 @@ class Trainer(object):
         if self.save_log_folder_path is not None:
             os.makedirs(self.save_log_folder_path, exist_ok=True)
             self.logger.setLogFolder(self.save_log_folder_path)
+        return True
+
+    def loadGTPointsFile(self, gt_points_file_path: str) -> bool:
+        if not os.path.exists(gt_points_file_path):
+            print("[ERROR][Trainer::loadGTPointsFile]")
+            print("\t gt points file not exist!")
+            print("\t gt_points_file_path:", gt_points_file_path)
+            return False
+
+        self.gt_points = np.load(gt_points_file_path)
+
+        gt_pcd = getPointCloud(self.gt_points)
+        gt_pcd.estimate_normals()
+
+        surface_dist = 0.1
+
+        anchor_pcd = downSample(gt_pcd, self.mash.anchor_num)
+
+        if anchor_pcd is None:
+            print("[ERROR][Trainer::loadGTPointsFile]")
+            print("\t downSample failed!")
+            return False
+
+        sample_pts = np.asarray(anchor_pcd.points)
+        sample_normals = np.asarray(anchor_pcd.normals)
+
+        sh_params = torch.zeros_like(self.mash.sh_params)
+        sh_params[:, 0] = surface_dist / W0[0]
+
+        self.mash.loadParams(
+            sh_params=sh_params,
+            positions=sample_pts + surface_dist * sample_normals,
+            face_forward_vectors=-sample_normals,
+        )
         return True
 
     def loadMeshFile(self, mesh_file_path: str) -> bool:
@@ -272,6 +307,7 @@ class Trainer(object):
         loss_dict = {
             "fit_loss": fit_loss.detach().clone().cpu().numpy(),
             "coverage_loss": coverage_loss.detach().clone().cpu().numpy(),
+            "point_num": detect_points.shape[0],
             "loss": loss.detach().clone().cpu().numpy(),
         }
 
@@ -381,7 +417,7 @@ class Trainer(object):
 
     def autoTrainMash(
         self,
-        gt_points_num: int = 10000,
+        gt_points_num: int = 400000,
     ) -> bool:
         print("[INFO][Trainer::autoTrainMash]")
         print("\t start auto train Mash...")
@@ -396,14 +432,23 @@ class Trainer(object):
             gt_points_dtype = self.mash.dtype
         else:
             gt_points_dtype = torch.float32
+
+        if self.gt_points is not None:
+            gt_points = self.gt_points
+        else:
+            if not self.mesh.isValid():
+                print("[ERROR][Trainer::autoTrainMash]")
+                print("\t mesh is not valid!")
+                return False
+
+            gt_points = self.mesh.toSamplePoints(gt_points_num)
+
         gt_points = (
-            torch.from_numpy(self.mesh.toSamplePoints(gt_points_num))
+            torch.from_numpy(gt_points)
             .type(gt_points_dtype)
             .to(self.mash.device)
             .reshape(1, -1, 3)
         )
-
-        self.gt_points_ = gt_points
 
         while True:
             optimizer = AdamW(

@@ -2,7 +2,6 @@ import sys
 
 sys.path.append("../mash-occ-decoder")
 import torch
-from shutil import copyfile
 
 from mash_occ_decoder.Dataset.sdf import SDFDataset
 
@@ -21,12 +20,12 @@ def demo():
     sample_point_scale = 0.4
     use_inv = True
     idx_dtype = torch.int64
-    dtype = torch.float32
+    dtype = torch.float64
     device = "cuda:0"
 
     warm_epoch_step_num = 10
     warm_epoch_num = 40
-    finetune_step_num = 1000
+    finetune_step_num = 2000
     lr = 5e-3
     weight_decay = 1e-10
     factor = 0.9
@@ -37,7 +36,7 @@ def demo():
     render_freq = 1
     render_init_only = False
 
-    gt_points_num = 200000
+    gt_points_num = 400000
 
     save_result_folder_path = "auto"
     save_log_folder_path = "auto"
@@ -49,7 +48,7 @@ def demo():
     dataset_root_folder_path = "/home/chli/Dataset/"
     sdf_dataset = SDFDataset(dataset_root_folder_path, "test")
 
-    object_id = 1
+    object_id = 8
     _, sdf_file_path = sdf_dataset.paths_list[object_id]
 
     mesh_name = "chair" + str(object_id)
@@ -95,7 +94,10 @@ def demo():
         save_log_folder_path,
     )
 
-    trainer.loadMeshFile(mesh_file_path)
+    # trainer.loadMeshFile(mesh_file_path)
+    trainer.loadGTPointsFile(
+        "/home/chli/Dataset/aro_net/data/shapenet/02_qry_pts_occnet/02691156/2af04ef09d49221b85e5214b0d6a7.npy"
+    )
     trainer.autoTrainMash(gt_points_num)
     trainer.mash.saveParamsFile(save_params_file_path, overwrite)
     trainer.mash.saveAsPcdFile(save_pcd_file_path, overwrite, print_progress)
@@ -105,8 +107,10 @@ def demo():
     # trainer.mash.renderSamplePoints()
 
     mesh_abb_length = 2.0 * trainer.mesh.toABBLength()
+    if mesh_abb_length == 0:
+        mesh_abb_length = 2.0
 
-    gt_pcd = getPointCloud(trainer.gt_points_.reshape(-1, 3).cpu().numpy())
+    gt_pcd = getPointCloud(trainer.gt_points)
     gt_pcd.translate([-mesh_abb_length, 0, 0])
 
     detect_points = trainer.mash.toSamplePoints().detach().clone().cpu().numpy()

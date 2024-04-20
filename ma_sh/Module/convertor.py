@@ -1,7 +1,9 @@
 import os
 import torch
+import numpy as np
 from typing import Union
 
+from ma_sh.Data.mesh import Mesh
 from ma_sh.Method.path import createFileFolder
 from ma_sh.Module.trainer import Trainer
 
@@ -12,24 +14,24 @@ class Convertor(object):
         shape_root_folder_path: str,
         save_root_folder_path: str,
         force_start: bool = False,
-        gt_points_num: int = 10000,
-        anchor_num: int = 40,
+        gt_points_num: int = 400000,
+        anchor_num: int = 400,
         mask_degree_max: int = 4,
-        sh_degree_max: int = 4,
-        mask_boundary_sample_num: int = 18,
-        sample_polar_num: int = 4000,
+        sh_degree_max: int = 3,
+        mask_boundary_sample_num: int = 10,
+        sample_polar_num: int = 10000,
         sample_point_scale: float = 0.4,
         use_inv: bool = True,
         idx_dtype=torch.int64,
         dtype=torch.float64,
         device: str = "cpu",
-        warm_epoch_step_num: int = 20,
-        warm_epoch_num: int = 10,
-        finetune_step_num: int = 400,
-        lr: float = 1e-2,
-        weight_decay: float = 1e-4,
+        warm_epoch_step_num: int = 10,
+        warm_epoch_num: int = 40,
+        finetune_step_num: int = 2000,
+        lr: float = 5e-3,
+        weight_decay: float = 1e-10,
         factor: float = 0.9,
-        patience: int = 1,
+        patience: int = 4,
         min_lr: float = 1e-4,
     ) -> None:
         self.shape_root_folder_path = shape_root_folder_path
@@ -103,16 +105,25 @@ class Convertor(object):
             return False
 
         unit_rel_folder_path = rel_shape_folder_path + shape_file_name.replace(".", "_")
+        unit_rel_folder_path = rel_shape_folder_path + shape_file_name.split(".")[0]
 
         finish_tag_file_path = (
-            self.save_root_folder_path + "tag/" + unit_rel_folder_path + "/finish.txt"
+            self.save_root_folder_path
+            + "tag"
+            + "/"
+            + unit_rel_folder_path
+            + "/finish.txt"
         )
 
         if os.path.exists(finish_tag_file_path):
             return True
 
         start_tag_file_path = (
-            self.save_root_folder_path + "tag/" + unit_rel_folder_path + "/start.txt"
+            self.save_root_folder_path
+            + "tag"
+            + "/"
+            + unit_rel_folder_path
+            + "/start.txt"
         )
 
         if os.path.exists(start_tag_file_path):
@@ -122,7 +133,32 @@ class Convertor(object):
         createFileFolder(start_tag_file_path)
 
         with open(start_tag_file_path, "w") as f:
-            f.write("start!\n")
+            f.write("\n")
+
+        save_pcd_file_path = (
+            self.save_root_folder_path + "pcd/" + unit_rel_folder_path + ".npy"
+        )
+
+        if not os.path.exists(save_pcd_file_path):
+            createFileFolder(save_pcd_file_path)
+
+            mesh = Mesh(shape_file_path)
+
+            if not mesh.isValid():
+                print("[ERROR][Convertor::convertOneShape]")
+                print("\t mesh is not valid!")
+                print("\t shape_file_path:", shape_file_path)
+                return False
+
+            points = mesh.toSamplePoints(self.gt_points_num)
+
+            if points is None:
+                print("[ERROR][Convertor::convertOneShape]")
+                print("\t toSamplePoints failed!")
+                print("\t shape_file_path:", shape_file_path)
+                return False
+
+            np.save(save_pcd_file_path, points)
 
         if False:
             trainer = self.createTrainer(
@@ -132,10 +168,12 @@ class Convertor(object):
         else:
             trainer = self.createTrainer()
 
-        trainer.loadMeshFile(shape_file_path)
+        # trainer.loadMeshFile(shape_file_path)
+        trainer.loadGTPointsFile(save_pcd_file_path)
         trainer.autoTrainMash(self.gt_points_num)
         trainer.mash.saveParamsFile(
-            self.save_root_folder_path + "mash/" + unit_rel_folder_path + ".npy", True
+            self.save_root_folder_path + "mash/" + unit_rel_folder_path + ".npy",
+            True,
         )
 
         with open(finish_tag_file_path, "w") as f:

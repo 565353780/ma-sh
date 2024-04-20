@@ -8,8 +8,8 @@ class PcdConvertor(object):
     def __init__(
         self,
         save_root_folder_path: str,
-        mask_boundary_sample_num: int = 18,
-        sample_polar_num: int = 4000,
+        mask_boundary_sample_num: int = 10,
+        sample_polar_num: int = 10000,
         sample_point_scale: float = 0.4,
         use_inv: bool = True,
         idx_dtype=torch.int64,

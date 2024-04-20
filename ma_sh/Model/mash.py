@@ -17,11 +17,11 @@ from ma_sh.Method.path import createFileFolder, removeFile, renameFile
 class Mash(object):
     def __init__(
         self,
-        anchor_num: int = 40,
+        anchor_num: int = 400,
         mask_degree_max: int = 4,
-        sh_degree_max: int = 4,
-        mask_boundary_sample_num: int = 18,
-        sample_polar_num: int = 4000,
+        sh_degree_max: int = 3,
+        mask_boundary_sample_num: int = 10,
+        sample_polar_num: int = 10000,
         sample_point_scale: float = 0.4,
         use_inv: bool = True,
         idx_dtype=torch.int64,
