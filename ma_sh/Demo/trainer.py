@@ -1,45 +1,64 @@
+import sys
+
+sys.path.append("../mash-occ-decoder")
 import torch
+from shutil import copyfile
+
+from mash_occ_decoder.Dataset.sdf import SDFDataset
 
 from ma_sh.Config.custom_path import mesh_file_path_dict
+from ma_sh.Method.pcd import getPointCloud
+from ma_sh.Method.render import renderGeometries
 from ma_sh.Module.trainer import Trainer
 
 
 def demo():
-    anchor_num = 40
+    anchor_num = 400
     mask_degree_max = 4
-    sh_degree_max = 4
-    mask_boundary_sample_num = 18
-    sample_polar_num = 4000
+    sh_degree_max = 3
+    mask_boundary_sample_num = 10
+    sample_polar_num = 10000
     sample_point_scale = 0.4
     use_inv = True
     idx_dtype = torch.int64
-    dtype = torch.float64
-    device = "cpu"
+    dtype = torch.float32
+    device = "cuda:0"
 
-    warm_epoch_step_num = 20
-    warm_epoch_num = 10
-    finetune_step_num = 400
-    lr = 2e-2
-    weight_decay = 1e-4
+    warm_epoch_step_num = 40
+    warm_epoch_num = 20
+    finetune_step_num = 1000
+    lr = 5e-3
+    weight_decay = 1e-10
     factor = 0.9
-    patience = 1
+    patience = 4
     min_lr = 1e-4
 
-    render = True
+    render = False
     render_freq = 1
     render_init_only = False
+
+    gt_points_num = 50000
 
     save_result_folder_path = "auto"
     save_log_folder_path = "auto"
 
-    mesh_name = "mac_chair_2"
+    mesh_name = "linux_airplane"
 
     mesh_file_path = mesh_file_path_dict[mesh_name]
 
-    mesh_name = "chair0"
-    mesh_file_path = "/Users/fufu/github/OCC/mash-occ-decoder/output/test-gt-chair/test_mash_mesh_gt0.obj"
+    dataset_root_folder_path = "/home/chli/Dataset/"
+    sdf_dataset = SDFDataset(dataset_root_folder_path, "test")
 
-    gt_points_num = 10000
+    object_id = 1
+    _, sdf_file_path = sdf_dataset.paths_list[object_id]
+
+    mesh_name = "chair" + str(object_id)
+    mesh_file_path = sdf_file_path.replace(
+        sdf_dataset.sdf_folder_path + "ShapeNet/sdf/",
+        "/home/chli/chLi/Dataset/ShapeNet/Core/ShapeNetCore.v2/",
+    ).replace("_obj.npy", ".obj")
+
+    # copyfile(gt_mesh_file_path, "./output/test_mash_mesh_gt" + str(i) + ".obj")
 
     save_params_file_path = "./output/" + mesh_name + ".npy"
     save_pcd_file_path = "./output/" + mesh_name + ".ply"
@@ -79,5 +98,24 @@ def demo():
 
     if trainer.o3d_viewer is not None:
         trainer.o3d_viewer.run()
-    trainer.mash.renderSamplePoints()
+    # trainer.mash.renderSamplePoints()
+
+    mesh_abb_length = 2.0 * trainer.mesh.toABBLength()
+
+    gt_pcd = getPointCloud(trainer.gt_points_.reshape(-1, 3).cpu().numpy())
+    gt_pcd.translate([-mesh_abb_length, 0, 0])
+
+    detect_points = trainer.mash.toSamplePoints().detach().clone().cpu().numpy()
+    print("detect_points:", detect_points.shape)
+    print(
+        "inner points for each anchor:",
+        detect_points.shape[0] / anchor_num - mask_boundary_sample_num,
+    )
+    pcd = getPointCloud(detect_points)
+
+    # trainer.mesh.paintJetColorsByPoints(detect_points)
+    mesh = trainer.mesh.toO3DMesh()
+    mesh.translate([mesh_abb_length, 0, 0])
+
+    renderGeometries([gt_pcd, pcd, mesh])
     return True
