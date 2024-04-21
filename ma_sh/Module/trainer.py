@@ -435,18 +435,16 @@ class Trainer(object):
         else:
             gt_points_dtype = torch.float32
 
-        if self.gt_points is not None:
-            gt_points = self.gt_points
-        else:
+        if self.gt_points is None:
             if not self.mesh.isValid():
                 print("[ERROR][Trainer::autoTrainMash]")
                 print("\t mesh is not valid!")
                 return False
 
-            gt_points = self.mesh.toSamplePoints(gt_points_num)
+            self.gt_points = self.mesh.toSamplePoints(gt_points_num)
 
         gt_points = (
-            torch.from_numpy(gt_points)
+            torch.from_numpy(self.gt_points)
             .type(gt_points_dtype)
             .to(self.mash.device)
             .reshape(1, -1, 3)
