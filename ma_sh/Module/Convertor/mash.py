@@ -1,10 +1,8 @@
 import os
 import torch
-import numpy as np
 from typing import Union
 
-from ma_sh.Data.mesh import Mesh
-from ma_sh.Method.path import createFileFolder, removeFile
+from ma_sh.Method.path import createFileFolder
 from ma_sh.Module.trainer import Trainer
 
 
@@ -108,19 +106,28 @@ class Convertor(object):
         unit_rel_folder_path = rel_shape_folder_path + shape_file_name.split(".")[0]
 
         finish_tag_file_path = (
-            self.save_root_folder_path + "tag/" + unit_rel_folder_path + "/finish.txt"
+            self.save_root_folder_path
+            + "tag_mash/"
+            + unit_rel_folder_path
+            + "/finish.txt"
         )
 
         if os.path.exists(finish_tag_file_path):
             return True
 
         start_tag_file_path = (
-            self.save_root_folder_path + "tag/" + unit_rel_folder_path + "/start.txt"
+            self.save_root_folder_path
+            + "tag_mash/"
+            + unit_rel_folder_path
+            + "/start.txt"
         )
 
         save_pcd_file_path = (
             self.save_root_folder_path + "pcd/" + unit_rel_folder_path + ".npy"
         )
+
+        if not os.path.exists(save_pcd_file_path):
+            return False
 
         if os.path.exists(start_tag_file_path):
             if not self.force_start:
@@ -131,35 +138,15 @@ class Convertor(object):
         with open(start_tag_file_path, "w") as f:
             f.write("\n")
 
-        save_pcd_file_path = (
-            self.save_root_folder_path + "pcd/" + unit_rel_folder_path + ".npy"
+        save_mash_file_path = (
+            self.save_root_folder_path + "mash/" + unit_rel_folder_path + ".npy"
         )
 
-        # FIXME: only trans point cloud here
-        if not os.path.exists(save_pcd_file_path):
-            createFileFolder(save_pcd_file_path)
+        if os.path.exists(save_mash_file_path):
+            with open(finish_tag_file_path, "w") as f:
+                f.write("\n")
+            return True
 
-            mesh = Mesh(shape_file_path)
-
-            if not mesh.isValid():
-                print("[ERROR][Convertor::convertOneShape]")
-                print("\t mesh is not valid!")
-                print("\t shape_file_path:", shape_file_path)
-                return False
-
-            points = mesh.toSamplePoints(self.gt_points_num)
-
-            if points is None:
-                print("[ERROR][Convertor::convertOneShape]")
-                print("\t toSamplePoints failed!")
-                print("\t shape_file_path:", shape_file_path)
-                return False
-
-            np.save(save_pcd_file_path, points)
-
-        return True
-
-        # FIXME: only trans mash here
         if False:
             with open(finish_tag_file_path, "w") as f:
                 f.write("\n")
@@ -177,10 +164,7 @@ class Convertor(object):
         # trainer.loadMeshFile(shape_file_path)
         trainer.loadGTPointsFile(save_pcd_file_path)
         trainer.autoTrainMash(self.gt_points_num)
-        trainer.mash.saveParamsFile(
-            self.save_root_folder_path + "mash/" + unit_rel_folder_path + ".npy",
-            True,
-        )
+        trainer.mash.saveParamsFile(save_mash_file_path, True)
 
         with open(finish_tag_file_path, "w") as f:
             f.write("\n")

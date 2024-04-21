@@ -15,11 +15,11 @@ from ma_sh.Module.trainer import Trainer
 
 
 def demo():
-    anchor_num = 400
+    anchor_num = 40
     mask_degree_max = 4
-    sh_degree_max = 3
-    mask_boundary_sample_num = 10
-    sample_polar_num = 10000
+    sh_degree_max = 6
+    mask_boundary_sample_num = 18
+    sample_polar_num = 100000
     sample_point_scale = 0.4
     use_inv = True
     idx_dtype = torch.int64
@@ -27,15 +27,15 @@ def demo():
     device = "cuda:0"
 
     warm_epoch_step_num = 10
-    warm_epoch_num = 40
-    finetune_step_num = 2000
-    lr = 5e-3
+    warm_epoch_num = 2000
+    finetune_step_num = 200000
+    lr = 2e-2
     weight_decay = 1e-10
-    factor = 0.9
-    patience = 4
+    factor = 0.99
+    patience = 400
     min_lr = 1e-4
 
-    render = True
+    render = False
     render_freq = 1
     render_init_only = False
 
@@ -44,14 +44,14 @@ def demo():
     save_result_folder_path = "auto"
     save_log_folder_path = "auto"
 
-    if True:
+    if False:
         mesh_name = "linux_airplane"
         mesh_file_path = mesh_file_path_dict[mesh_name]
     else:
-        dataset_root_folder_path = "/home/chli/Dataset/"
+        dataset_root_folder_path = "/home/chli/chLi/Dataset/"
         sdf_dataset = SDFDataset(dataset_root_folder_path, "test")
 
-        object_id = 8
+        object_id = 2
         _, sdf_file_path = sdf_dataset.paths_list[object_id]
 
         mesh_name = "chair" + str(object_id)
@@ -95,10 +95,12 @@ def demo():
         save_log_folder_path,
     )
 
-    # trainer.loadMeshFile(mesh_file_path)
-    gt_points_file_path = "/home/chli/chLi/Dataset/Mash/ShapeNet/pcd/04090263/22d2782aa73ea40960abd8a115f9899/models/model_normalized_obj.npy"
-    gt_points_file_path = "/Users/fufu/Downloads/model_normalized_obj.npy"
-    trainer.loadGTPointsFile(gt_points_file_path)
+    if False:
+        trainer.loadMeshFile(mesh_file_path)
+    else:
+        gt_points_file_path = "/home/chli/chLi/Dataset/Mash/ShapeNet/pcd/04090263/22d2782aa73ea40960abd8a115f9899/models/model_normalized_obj.npy"
+        # gt_points_file_path = "/Users/fufu/Downloads/model_normalized_obj.npy"
+        trainer.loadGTPointsFile(gt_points_file_path)
     trainer.autoTrainMash(gt_points_num)
     trainer.mash.saveParamsFile(save_params_file_path, overwrite)
     trainer.mash.saveAsPcdFile(save_pcd_file_path, overwrite, print_progress)

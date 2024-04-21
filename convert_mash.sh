@@ -5,7 +5,7 @@ elif [ "$(uname)" = "Linux" ]; then
 fi
 
 for i in $(seq 1 ${PROCESSOR_NUM}); do
-	python convert.py &
+	python convert_mash.py &
 	sleep 1
 	echo "started Convertor No."$i
 done
