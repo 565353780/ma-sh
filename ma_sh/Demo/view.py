@@ -38,7 +38,7 @@ def demo():
 
             mash.renderSamplePoints()
 
-    if True:
+    if False:
         mash_params_file_path = "/Users/fufu/Downloads/model_normalized_obj.npy"
 
         mash = Mash.fromParamsFile(mash_params_file_path, 10, 10000, 0.4, device="cpu")
@@ -50,6 +50,28 @@ def demo():
         pcd = getPointCloud(points)
 
         o3d.io.write_point_cloud("./output/test.ply", pcd)
+
+    if True:
+        mash_params_folder_path = "/Volumes/chLi/Dataset/Mash/ShapeNet/mash/"
+
+        class_name_list = os.listdir(mash_params_folder_path)
+
+        for class_name in class_name_list:
+            class_folder_path = mash_params_folder_path + class_name + "/"
+
+            model_id_list = os.listdir(class_folder_path)
+
+            for i, model_id in enumerate(model_id_list):
+                mash_file_path = (
+                    class_folder_path + model_id + "/models/model_normalized_obj.npy"
+                )
+
+                mash = Mash.fromParamsFile(mash_file_path, 10, 10000, 0.4, device="cpu")
+
+                mash.renderSamplePoints()
+
+                if i >= 3:
+                    break
 
     if False:
         o3d_viewer = O3DViewer()
