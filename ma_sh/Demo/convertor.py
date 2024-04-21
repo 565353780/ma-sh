@@ -14,7 +14,7 @@ def demo():
         shape_root_folder_path = HOME + "/Dataset/aro_net/data/shapenet/00_meshes/"
         save_root_folder_path = HOME + "/Dataset/aro_net/data/shapenet/"
 
-    force_start = False
+    force_start = True
     gt_points_num = 400000
     anchor_num = 400
     mask_degree_max = 4

@@ -116,7 +116,9 @@ class Convertor(object):
             if not os.path.exists(
                 self.save_root_folder_path + "mash/" + unit_rel_folder_path + ".npy"
             ):
-                removeFile(finish_tag_file_path)
+                if os.path.exists(finish_tag_file_path):
+                    print("mash not found, remove finish!")
+                    removeFile(finish_tag_file_path)
 
         if os.path.exists(finish_tag_file_path):
             return True
@@ -124,6 +126,18 @@ class Convertor(object):
         start_tag_file_path = (
             self.save_root_folder_path + "tag/" + unit_rel_folder_path + "/start.txt"
         )
+
+        save_pcd_file_path = (
+            self.save_root_folder_path + "pcd/" + unit_rel_folder_path + ".npy"
+        )
+
+        # FIXME: only trans mash here
+        if not os.path.exists(save_pcd_file_path):
+            if os.path.exists(start_tag_file_path):
+                print("pcd not found, remove start!")
+                removeFile(start_tag_file_path)
+
+        return True
 
         if os.path.exists(start_tag_file_path):
             if not self.force_start:
@@ -138,6 +152,7 @@ class Convertor(object):
             self.save_root_folder_path + "pcd/" + unit_rel_folder_path + ".npy"
         )
 
+        # FIXME: only trans mash here
         if not os.path.exists(save_pcd_file_path):
             return False
             createFileFolder(save_pcd_file_path)
@@ -159,6 +174,8 @@ class Convertor(object):
                 return False
 
             np.save(save_pcd_file_path, points)
+
+        return True
 
         # FIXME: only trans point cloud here
         if False:
