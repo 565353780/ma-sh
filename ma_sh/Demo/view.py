@@ -1,7 +1,20 @@
 import os
+import functools
 
+from ma_sh.Method.pcd import getPointCloud
 from ma_sh.Model.mash import Mash
 from ma_sh.Module.o3d_viewer import O3DViewer
+
+
+def compare(str_a: str, str_b: str) -> int:
+    id_a = int(str_a.split("_")[0])
+    id_b = int(str_b.split("_")[0])
+
+    if id_a > id_b:
+        return 1
+    elif id_a == id_b:
+        return 0
+    return -1
 
 
 def demo():
@@ -38,14 +51,27 @@ def demo():
         mash_folder_path = "./output/20240421_00:51:09/"
 
         mash_filename_list = os.listdir(mash_folder_path)
-        mash_filename_list.sort()
+        mash_filename_list.sort(key=functools.cmp_to_key(compare))
 
-        print(mash_filename_list)
-        exit()
+        for i, mash_filename in enumerate(mash_filename_list):
+            if i != len(mash_filename_list) - 1:
+                if i % 1000 != 0:
+                    continue
 
-        mash_params_file_path = "./output/mac_chair_2.npy"
+            mash_file_path = mash_folder_path + mash_filename
 
-        mash = Mash.fromParamsFile(mash_params_file_path, 18, 4000, 0.4, device="cpu")
+            mash = Mash.fromParamsFile(mash_file_path, 10, 10000, 0.4, device="cpu")
 
-        mash.renderSamplePoints()
+            points = mash.toSamplePoints().detach().clone().cpu().numpy()
+
+            pcd = getPointCloud(points)
+
+            o3d_viewer.clearGeometries()
+            o3d_viewer.addGeometry(pcd)
+
+            print("now render is", i)
+
+            o3d_viewer.update()
+
+        o3d_viewer.run()
     return True
