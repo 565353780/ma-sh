@@ -4,7 +4,7 @@ import numpy as np
 from typing import Union
 
 from ma_sh.Data.mesh import Mesh
-from ma_sh.Method.path import createFileFolder
+from ma_sh.Method.path import createFileFolder, removeFile
 from ma_sh.Module.trainer import Trainer
 
 
@@ -108,22 +108,21 @@ class Convertor(object):
         unit_rel_folder_path = rel_shape_folder_path + shape_file_name.split(".")[0]
 
         finish_tag_file_path = (
-            self.save_root_folder_path
-            + "tag"
-            + "/"
-            + unit_rel_folder_path
-            + "/finish.txt"
+            self.save_root_folder_path + "tag/" + unit_rel_folder_path + "/finish.txt"
         )
+
+        # FIXME: tmp remove unfinished mash finish tag
+        if True:
+            if not os.path.exists(
+                self.save_root_folder_path + "mash/" + unit_rel_folder_path + ".npy"
+            ):
+                removeFile(finish_tag_file_path)
 
         if os.path.exists(finish_tag_file_path):
             return True
 
         start_tag_file_path = (
-            self.save_root_folder_path
-            + "tag"
-            + "/"
-            + unit_rel_folder_path
-            + "/start.txt"
+            self.save_root_folder_path + "tag/" + unit_rel_folder_path + "/start.txt"
         )
 
         if os.path.exists(start_tag_file_path):
@@ -140,6 +139,7 @@ class Convertor(object):
         )
 
         if not os.path.exists(save_pcd_file_path):
+            return False
             createFileFolder(save_pcd_file_path)
 
             mesh = Mesh(shape_file_path)
@@ -160,6 +160,13 @@ class Convertor(object):
 
             np.save(save_pcd_file_path, points)
 
+        # FIXME: only trans point cloud here
+        if False:
+            with open(finish_tag_file_path, "w") as f:
+                f.write("\n")
+
+            return True
+
         if False:
             trainer = self.createTrainer(
                 self.save_root_folder_path + "result/" + unit_rel_folder_path + "/",
@@ -177,7 +184,7 @@ class Convertor(object):
         )
 
         with open(finish_tag_file_path, "w") as f:
-            f.write("finish!\n")
+            f.write("\n")
 
         return True
 
