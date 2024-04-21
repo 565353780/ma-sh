@@ -83,7 +83,13 @@ class Convertor(object):
             print("\t shape_file_path:", shape_file_path)
             return False
 
-        points = mesh.toSamplePoints(self.gt_points_num)
+        try:
+            points = mesh.toSamplePoints(self.gt_points_num)
+        except:
+            print("[ERROR][Convertor::convertOneShape]")
+            print("\t toSamplePoints failed!")
+            print("\t shape_file_path:", shape_file_path)
+            return False
 
         if points is None:
             print("[ERROR][Convertor::convertOneShape]")
