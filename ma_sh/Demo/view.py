@@ -1,5 +1,6 @@
 import os
 import functools
+import open3d as o3d
 
 from ma_sh.Method.pcd import getPointCloud
 from ma_sh.Model.mash import Mash
@@ -37,14 +38,20 @@ def demo():
 
             mash.renderSamplePoints()
 
-    if False:
-        mash_params_file_path = "./output/mac_chair_2.npy"
+    if True:
+        mash_params_file_path = "/Users/fufu/Downloads/model_normalized_obj.npy"
 
-        mash = Mash.fromParamsFile(mash_params_file_path, 18, 4000, 0.4, device="cpu")
+        mash = Mash.fromParamsFile(mash_params_file_path, 10, 10000, 0.4, device="cpu")
 
         mash.renderSamplePoints()
 
-    if True:
+        points = mash.toSamplePoints().detach().clone().cpu().numpy()
+
+        pcd = getPointCloud(points)
+
+        o3d.io.write_point_cloud("./output/test.ply", pcd)
+
+    if False:
         o3d_viewer = O3DViewer()
         o3d_viewer.createWindow()
 
