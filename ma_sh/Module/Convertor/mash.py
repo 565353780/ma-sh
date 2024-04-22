@@ -123,7 +123,7 @@ class Convertor(object):
         )
 
         save_pcd_file_path = (
-            self.save_root_folder_path + "pcd/" + unit_rel_folder_path + ".npy"
+            self.save_root_folder_path + "normalized_pcd/" + unit_rel_folder_path + ".npy"
         )
 
         if not os.path.exists(save_pcd_file_path):
@@ -139,18 +139,12 @@ class Convertor(object):
             f.write("\n")
 
         save_mash_file_path = (
-            self.save_root_folder_path + "mash/" + unit_rel_folder_path + ".npy"
+            self.save_root_folder_path + "normalized_mash/" + unit_rel_folder_path + ".npy"
         )
 
         if os.path.exists(save_mash_file_path):
             with open(finish_tag_file_path, "w") as f:
                 f.write("\n")
-            return True
-
-        if False:
-            with open(finish_tag_file_path, "w") as f:
-                f.write("\n")
-
             return True
 
         if False:

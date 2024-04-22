@@ -85,6 +85,12 @@ class Mesh(object):
                 print("\t triangles is None! please load mesh first!")
             return False
 
+        if self.vertices.shape[0] == 0:
+            if output_info:
+                print("[ERROR][Mesh::isValid]")
+                print("\t vertices is empty! please check this mesh!")
+            return False
+
         return True
 
     def center(self) -> Point:
