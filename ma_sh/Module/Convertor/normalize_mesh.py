@@ -66,11 +66,6 @@ class Convertor(object):
             + unit_rel_folder_path.replace("_obj", ".obj")
         )
 
-        if os.path.exists(save_mesh_file_path):
-            with open(finish_tag_file_path, "w") as f:
-                f.write("\n")
-            return True
-
         createFileFolder(save_mesh_file_path)
 
         mesh = Mesh(shape_file_path)
@@ -90,7 +85,8 @@ class Convertor(object):
 
         mesh.vertices = mesh.vertices * scale + move_vector
 
-        mesh.save(save_mesh_file_path)
+        if not os.path.exists(save_mesh_file_path):
+            mesh.save(save_mesh_file_path)
 
         save_pcd_file_path = (
             self.save_root_folder_path + "pcd/" + unit_rel_folder_path + ".npy"
@@ -103,12 +99,13 @@ class Convertor(object):
             + ".npy"
         )
 
-        if os.path.exists(save_pcd_file_path):
-            points = np.load(save_pcd_file_path)
-            points = points * scale + move_vector
+        if not os.path.exists(save_normalize_pcd_file_path):
+            if os.path.exists(save_pcd_file_path):
+                points = np.load(save_pcd_file_path)
+                points = points * scale + move_vector
 
-            createFileFolder(save_normalize_pcd_file_path)
-            np.save(save_normalize_pcd_file_path, points)
+                createFileFolder(save_normalize_pcd_file_path)
+                np.save(save_normalize_pcd_file_path, points)
 
         save_mash_file_path = (
             self.save_root_folder_path + "mash/" + unit_rel_folder_path + ".npy"
@@ -121,12 +118,13 @@ class Convertor(object):
             + ".npy"
         )
 
-        if os.path.exists(save_mash_file_path):
-            mash = Mash.fromParamsFile(save_mash_file_path, device="cpu")
-            mash.positions = mash.positions * scale + torch.from_numpy(move_vector)
-            mash.sh_params *= scale
+        if not os.path.exists(save_normalize_mash_file_path):
+            if os.path.exists(save_mash_file_path):
+                mash = Mash.fromParamsFile(save_mash_file_path, device="cpu")
+                mash.positions = mash.positions * scale + torch.from_numpy(move_vector)
+                mash.sh_params *= scale
 
-            mash.saveParamsFile(save_normalize_mash_file_path, True)
+                mash.saveParamsFile(save_normalize_mash_file_path, True)
 
         with open(finish_tag_file_path, "w") as f:
             f.write("\n")
