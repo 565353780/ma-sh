@@ -90,6 +90,8 @@ class Convertor(object):
 
         mesh.vertices = mesh.vertices * scale + move_vector
 
+        mesh.save(save_mesh_file_path)
+
         save_pcd_file_path = (
             self.save_root_folder_path + "pcd/" + unit_rel_folder_path + ".npy"
         )
@@ -139,8 +141,14 @@ class Convertor(object):
         solved_shape_num = 0
         for root, _, files in os.walk(self.shape_root_folder_path):
             for filename in files:
+                if solved_shape_num < 20000:
+                    solved_shape_num += 1
+                    print("solved shape num:", solved_shape_num)
+                    continue
+
                 if filename[-4:] not in [".obj", ".ply"]:
                     continue
+
 
                 rel_file_path = (
                     root.split(self.shape_root_folder_path)[1] + "/" + filename
