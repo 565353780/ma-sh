@@ -10,7 +10,7 @@ def demo():
     shape_root_folder_path = HOME + "/chLi/Dataset/SDF/ShapeNet/manifold/"
     save_root_folder_path = HOME + "/chLi/Dataset/Mash/ShapeNet/"
 
-    force_start = False
+    force_start = True
 
     convertor = Convertor(
         shape_root_folder_path,
