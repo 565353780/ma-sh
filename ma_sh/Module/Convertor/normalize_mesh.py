@@ -139,11 +139,6 @@ class Convertor(object):
         solved_shape_num = 0
         for root, _, files in os.walk(self.shape_root_folder_path):
             for filename in files:
-                if solved_shape_num < 20000:
-                    solved_shape_num += 1
-                    print("solved shape num:", solved_shape_num)
-                    continue
-
                 if filename[-4:] not in [".obj", ".ply"]:
                     continue
 
