@@ -380,7 +380,7 @@ class Mesh(object):
 
         o3d_mesh = self.toO3DMesh()
 
-        o3d.io.write_triangle_mesh(save_mesh_file_path, o3d_mesh)
+        o3d.io.write_triangle_mesh(save_mesh_file_path, o3d_mesh, write_ascii=True)
         return True
 
     def render(self):

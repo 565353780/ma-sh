@@ -10,9 +10,6 @@ def demo():
     shape_root_folder_path = HOME + "/chLi/Dataset/ShapeNet/Core/ShapeNetCore.v2/"
     shape_root_folder_path = HOME + "/chLi/Dataset/SDF/ShapeNet/manifold/"
     save_root_folder_path = HOME + "/chLi/Dataset/Mash/ShapeNet/"
-    if False:
-        shape_root_folder_path = HOME + "/Dataset/aro_net/data/shapenet/00_meshes/"
-        save_root_folder_path = HOME + "/Dataset/aro_net/data/shapenet/"
 
     force_start = False
     gt_points_num = 400000
