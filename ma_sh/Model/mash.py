@@ -4,13 +4,16 @@ import numpy as np
 import open3d as o3d
 from math import sqrt
 from typing import Union
+import matplotlib.pyplot as plt
 
+from ma_sh.Method.pcd import getPointCloud
 import mash_cpp
 
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
+from ma_sh.Data.mesh import Mesh
 from ma_sh.Method.check import checkShape
 from ma_sh.Method.Mash.mash import toParams, toPreLoadDatas
-from ma_sh.Method.render import renderPoints
+from ma_sh.Method.render import renderGeometries, renderPoints
 from ma_sh.Method.path import createFileFolder, removeFile, renameFile
 
 
@@ -357,6 +360,57 @@ class Mash(object):
         print(sample_points.shape)
 
         renderPoints(sample_points)
+        return True
+
+    def renderSamplePatches(self) -> bool:
+        sample_points = self.toSamplePoints().detach().clone().cpu().numpy()
+
+        pcd = getPointCloud(sample_points)
+        pcd.estimate_normals()
+        pcd.orient_normals_consistent_tangent_plane(4)
+
+        if True:
+            o3d.visualization.draw_geometries([pcd], point_show_normal=True)
+
+        # FIXME: this algo looks not too bad, can be used to extract outer points
+        if True:
+            alpha = 0.03
+            mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_alpha_shape(
+                pcd, alpha
+            )
+            mesh.compute_vertex_normals()
+            o3d.visualization.draw_geometries([mesh], mesh_show_back_face=True)
+
+        # FIXME: this algo looks bad, can only solve surface points, no inner point allowed
+        if False:
+            with o3d.utility.VerbosityContextManager(
+                o3d.utility.VerbosityLevel.Debug
+            ) as cm:
+                mesh, densities = (
+                    o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(
+                        pcd, depth=10
+                    )
+                )
+
+            densities = np.asarray(densities)
+            density_colors = plt.get_cmap("plasma")(
+                (densities - densities.min()) / (densities.max() - densities.min())
+            )
+            density_colors = density_colors[:, :3]
+            density_mesh = o3d.geometry.TriangleMesh()
+            density_mesh.vertices = mesh.vertices
+            density_mesh.triangles = mesh.triangles
+            density_mesh.triangle_normals = mesh.triangle_normals
+            density_mesh.vertex_colors = o3d.utility.Vector3dVector(density_colors)
+
+            renderGeometries(density_mesh)
+
+            vertices_to_remove = densities < np.quantile(densities, 0.01)
+            mesh.remove_vertices_by_mask(vertices_to_remove)
+
+            mesh.translate([0, 1, 0])
+
+            renderGeometries([pcd, mesh])
         return True
 
     def toParamsDict(self) -> dict:
