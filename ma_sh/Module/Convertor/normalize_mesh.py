@@ -41,8 +41,15 @@ class Convertor(object):
             + "/finish.txt"
         )
 
+        save_mesh_file_path = (
+            self.save_root_folder_path
+            + "normalized_mesh/"
+            + unit_rel_folder_path.replace("_obj", ".obj")
+        )
+
         if os.path.exists(finish_tag_file_path):
-            return True
+            if os.path.exists(save_mesh_file_path):
+                return True
 
         start_tag_file_path = (
             self.save_root_folder_path
@@ -137,11 +144,34 @@ class Convertor(object):
         print("[INFO][Convertor::convertAll]")
         print("\t start convert all shapes to mashes...")
         solved_shape_num = 0
+
+        classname_list = os.listdir(self.shape_root_folder_path)
+        for classname in classname_list:
+            class_folder_path = self.shape_root_folder_path + classname + "/"
+
+            modelid_list = os.listdir(class_folder_path)
+
+            for modelid in modelid_list:
+                mesh_file_path = (
+                    class_folder_path + modelid + "/models/model_normalized_obj.obj"
+                )
+
+                if not os.path.exists(mesh_file_path):
+                    continue
+
+                rel_file_path = mesh_file_path.split(self.shape_root_folder_path)[1]
+
+                self.convertOneShape(rel_file_path)
+
+                solved_shape_num += 1
+                print("solved shape num:", solved_shape_num)
+
+        return True
+
         for root, _, files in os.walk(self.shape_root_folder_path):
             for filename in files:
                 if filename[-4:] not in [".obj", ".ply"]:
                     continue
-
 
                 rel_file_path = (
                     root.split(self.shape_root_folder_path)[1] + "/" + filename
