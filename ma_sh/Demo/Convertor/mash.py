@@ -8,7 +8,6 @@ def demo():
     HOME = os.environ["HOME"]
     dataset_root_folder_path = HOME + "/chLi/Dataset/"
 
-    force_start = False
     gt_points_num = 400000
     anchor_num = 400
     mask_degree_max = 4
@@ -30,9 +29,10 @@ def demo():
     patience = 4
     min_lr = 1e-4
 
+    force_start = False
+
     convertor = Convertor(
         dataset_root_folder_path,
-        force_start,
         gt_points_num,
         anchor_num,
         mask_degree_max,
@@ -52,6 +52,7 @@ def demo():
         factor,
         patience,
         min_lr,
+        force_start,
     )
 
     convertor.convertAll()

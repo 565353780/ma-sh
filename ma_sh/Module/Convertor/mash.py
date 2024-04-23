@@ -10,7 +10,6 @@ class Convertor(object):
     def __init__(
         self,
         dataset_root_folder_path: str,
-        force_start: bool = False,
         gt_points_num: int = 400000,
         anchor_num: int = 400,
         mask_degree_max: int = 4,
@@ -30,9 +29,9 @@ class Convertor(object):
         factor: float = 0.9,
         patience: int = 4,
         min_lr: float = 1e-4,
+        force_start: bool = False,
     ) -> None:
         self.dataset_root_folder_path = dataset_root_folder_path
-        self.force_start = force_start
         self.gt_points_num = gt_points_num
         self.anchor_num = anchor_num
         self.mask_degree_max = mask_degree_max
@@ -52,6 +51,7 @@ class Convertor(object):
         self.factor = factor
         self.patience = patience
         self.min_lr = min_lr
+        self.force_start = force_start
 
         self.sampled_pcd_folder_path = self.dataset_root_folder_path + "SampledPcd/"
         self.mash_folder_path = self.dataset_root_folder_path + "Mash/"
