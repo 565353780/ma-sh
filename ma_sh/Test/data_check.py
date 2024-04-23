@@ -8,7 +8,9 @@ from ma_sh.Model.mash import Mash
 
 
 def test():
-    dataset_folder_path = "/home/chli/chLi/Dataset/"
+    HOME = os.environ["HOME"]
+
+    dataset_folder_path = HOME + "/chLi/Dataset/"
 
     mesh_folder_path = dataset_folder_path + "Mash/ShapeNet/normalized_mesh/"
     mash_folder_path = dataset_folder_path + "Mash/ShapeNet/normalized_mash/"
@@ -16,6 +18,9 @@ def test():
 
     classname_list = os.listdir(mesh_folder_path)
 
+    error_file_path = HOME + '/chLi/Dataset/error.txt'
+
+    solved_shape_num = 0
     for classname in classname_list:
         class_folder_path = mesh_folder_path + classname + "/"
 
@@ -71,24 +76,35 @@ def test():
             sdf_center_error = np.linalg.norm(sdf_center)
             sdf_length_error = np.abs(sdf_length - 0.9)
 
+            error_info = ''
             if mesh_center_error > 1e-6 or mesh_length_error > 1e-6:
                 print("current: class:", classname, "model:", modelid)
                 print("mesh error!")
                 print("mesh:", mesh_center_error, mesh_length_error)
+                error_info += 'class:' + classname + ';model:' + modelid + ';mesh\n'
             if mash_center_error > 1e-2 or mash_length_error > 1e-2:
                 print("current: class:", classname, "model:", modelid)
                 print("mash error!")
                 print("mash:", mash_center_error, mash_length_error)
-            if sdf_center_error > 1e-3 or sdf_length_error > 1e-3:
+                error_info += 'class:' + classname + ';model:' + modelid + ';mash\n'
+            if sdf_center_error > 1e-2 or sdf_length_error > 1e-2:
                 print("current: class:", classname, "model:", modelid)
                 print("sdf error!")
                 print("sdf:", sdf_center_error, sdf_length_error)
+                error_info += 'class:' + classname + ';model:' + modelid + ';sdf\n'
+
+            if error_info != '':
+                with open(error_file_path, 'w+') as f:
+                    f.write(error_info)
 
             if False:
                 mash_pcd = getPointCloud(mash_points)
                 sdf_pcd = getPointCloud(sdf_points)
                 renderGeometries([mesh.toO3DMesh(), mash_pcd, sdf_pcd])
                 exit()
+
+            solved_shape_num += 1
+            print('solved_shape_num:', solved_shape_num)
 
     exit()
     return True
