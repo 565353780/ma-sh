@@ -108,23 +108,7 @@ class Convertor(object):
                 if not os.path.exists(mesh_file_path):
                     continue
 
-                self.convertOneShape('ShapeNet', classname, modelid)
-
-                solved_shape_num += 1
-                print("solved shape num:", solved_shape_num)
-
-        return True
-
-        for root, _, files in os.walk(self.shape_root_folder_path):
-            for filename in files:
-                if filename[-4:] not in [".obj", ".ply"]:
-                    continue
-
-                rel_file_path = (
-                    root.split(self.shape_root_folder_path)[1] + "/" + filename
-                )
-
-                self.convertOneShape(rel_file_path)
+                self.convertOneShape("ShapeNet", classname, modelid)
 
                 solved_shape_num += 1
                 print("solved shape num:", solved_shape_num)

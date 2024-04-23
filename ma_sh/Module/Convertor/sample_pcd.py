@@ -8,52 +8,42 @@ from ma_sh.Method.path import createFileFolder
 class Convertor(object):
     def __init__(
         self,
-        shape_root_folder_path: str,
-        save_root_folder_path: str,
-        force_start: bool = False,
+        dataset_root_folder_path: str,
         gt_points_num: int = 400000,
+        force_start: bool = False,
     ) -> None:
-        self.shape_root_folder_path = shape_root_folder_path
-        self.save_root_folder_path = save_root_folder_path
-        self.force_start = force_start
+        self.dataset_root_folder_path = dataset_root_folder_path
         self.gt_points_num = gt_points_num
+        self.force_start = force_start
+
+        self.normalized_mesh_folder_path = (
+            self.dataset_root_folder_path + "NormalizedMesh/"
+        )
+        self.sampled_pcd_folder_path = self.dataset_root_folder_path + "SampledPcd/"
+        self.tag_folder_path = self.dataset_root_folder_path + "Tag/SampledPcd/"
         return
 
-    def convertOneShape(self, rel_shape_file_path: str) -> bool:
-        shape_file_name = rel_shape_file_path.split("/")[-1]
+    def convertOneShape(
+        self, dataset_name: str, class_name: str, model_id: str
+    ) -> bool:
+        rel_file_path = dataset_name + "/" + class_name + "/" + model_id
 
-        rel_shape_folder_path = rel_shape_file_path.split(shape_file_name)[0]
+        normalized_mesh_file_path = (
+            self.normalized_mesh_folder_path + rel_file_path + ".obj"
+        )
 
-        shape_file_path = self.shape_root_folder_path + rel_shape_file_path
-
-        if not os.path.exists(shape_file_path):
+        if not os.path.exists(normalized_mesh_file_path):
             print("[ERROR][Convertor::convertOneShape]")
             print("\t shape file not exist!")
-            print("\t shape_file_path:", shape_file_path)
+            print("\t normalized_mesh_file_path:", normalized_mesh_file_path)
             return False
 
-        unit_rel_folder_path = rel_shape_folder_path + shape_file_name.split(".")[0]
-
-        finish_tag_file_path = (
-            self.save_root_folder_path
-            + "tag_pcd/"
-            + unit_rel_folder_path
-            + "/finish.txt"
-        )
+        finish_tag_file_path = self.tag_folder_path + rel_file_path + "/finish.txt"
 
         if os.path.exists(finish_tag_file_path):
             return True
 
-        start_tag_file_path = (
-            self.save_root_folder_path
-            + "tag_pcd/"
-            + unit_rel_folder_path
-            + "/start.txt"
-        )
-
-        save_pcd_file_path = (
-            self.save_root_folder_path + "pcd/" + unit_rel_folder_path + ".npy"
-        )
+        start_tag_file_path = self.tag_folder_path + rel_file_path + "/start.txt"
 
         if os.path.exists(start_tag_file_path):
             if not self.force_start:
@@ -64,23 +54,16 @@ class Convertor(object):
         with open(start_tag_file_path, "w") as f:
             f.write("\n")
 
-        save_pcd_file_path = (
-            self.save_root_folder_path + "pcd/" + unit_rel_folder_path + ".npy"
-        )
+        sampled_pcd_file_path = self.sampled_pcd_folder_path + rel_file_path + ".npy"
 
-        if os.path.exists(save_pcd_file_path):
-            with open(finish_tag_file_path, "w") as f:
-                f.write("\n")
-            return True
+        createFileFolder(sampled_pcd_file_path)
 
-        createFileFolder(save_pcd_file_path)
-
-        mesh = Mesh(shape_file_path)
+        mesh = Mesh(normalized_mesh_file_path)
 
         if not mesh.isValid():
             print("[ERROR][Convertor::convertOneShape]")
             print("\t mesh is not valid!")
-            print("\t shape_file_path:", shape_file_path)
+            print("\t normalized_mesh_file_path:", normalized_mesh_file_path)
             return False
 
         try:
@@ -88,16 +71,16 @@ class Convertor(object):
         except:
             print("[ERROR][Convertor::convertOneShape]")
             print("\t toSamplePoints failed!")
-            print("\t shape_file_path:", shape_file_path)
+            print("\t normalized_mesh_file_path:", normalized_mesh_file_path)
             return False
 
         if points is None:
             print("[ERROR][Convertor::convertOneShape]")
             print("\t toSamplePoints failed!")
-            print("\t shape_file_path:", shape_file_path)
+            print("\t normalized_mesh_file_path:", normalized_mesh_file_path)
             return False
 
-        np.save(save_pcd_file_path, points)
+        np.save(sampled_pcd_file_path, points)
 
         with open(finish_tag_file_path, "w") as f:
             f.write("\n")
@@ -105,23 +88,23 @@ class Convertor(object):
         return True
 
     def convertAll(self) -> bool:
-        os.makedirs(self.save_root_folder_path, exist_ok=True)
-
         print("[INFO][Convertor::convertAll]")
         print("\t start convert all shapes to mashes...")
         solved_shape_num = 0
-        for root, _, files in os.walk(self.shape_root_folder_path):
-            for filename in files:
-                if filename[-4:] not in [".obj", ".ply"]:
-                    continue
 
-                rel_file_path = (
-                    root.split(self.shape_root_folder_path)[1] + "/" + filename
-                )
+        dataset_folder_path = self.normalized_mesh_folder_path + "ShapeNet/"
 
-                self.convertOneShape(rel_file_path)
+        classname_list = os.listdir(dataset_folder_path)
+        for classname in classname_list:
+            class_folder_path = dataset_folder_path + classname + "/"
+
+            modelid_list = os.listdir(class_folder_path)
+
+            for model_file_name in modelid_list:
+                modelid = model_file_name.split(".obj")[0]
+
+                self.convertOneShape("ShapeNet", classname, modelid)
 
                 solved_shape_num += 1
                 print("solved shape num:", solved_shape_num)
-
         return True
