@@ -6,10 +6,7 @@ from ma_sh.Module.Convertor.mash import Convertor
 
 def demo():
     HOME = os.environ["HOME"]
-
-    shape_root_folder_path = HOME + "/chLi/Dataset/ShapeNet/Core/ShapeNetCore.v2/"
-    shape_root_folder_path = HOME + "/chLi/Dataset/SDF/ShapeNet/manifold/"
-    save_root_folder_path = HOME + "/chLi/Dataset/Mash/ShapeNet/"
+    dataset_root_folder_path = HOME + "/chLi/Dataset/"
 
     force_start = False
     gt_points_num = 400000
@@ -34,8 +31,7 @@ def demo():
     min_lr = 1e-4
 
     convertor = Convertor(
-        shape_root_folder_path,
-        save_root_folder_path,
+        dataset_root_folder_path,
         force_start,
         gt_points_num,
         anchor_num,

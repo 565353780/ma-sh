@@ -9,8 +9,7 @@ from ma_sh.Module.trainer import Trainer
 class Convertor(object):
     def __init__(
         self,
-        shape_root_folder_path: str,
-        save_root_folder_path: str,
+        dataset_root_folder_path: str,
         force_start: bool = False,
         gt_points_num: int = 400000,
         anchor_num: int = 400,
@@ -32,8 +31,7 @@ class Convertor(object):
         patience: int = 4,
         min_lr: float = 1e-4,
     ) -> None:
-        self.shape_root_folder_path = shape_root_folder_path
-        self.save_root_folder_path = save_root_folder_path
+        self.dataset_root_folder_path = dataset_root_folder_path
         self.force_start = force_start
         self.gt_points_num = gt_points_num
         self.anchor_num = anchor_num
@@ -54,6 +52,10 @@ class Convertor(object):
         self.factor = factor
         self.patience = patience
         self.min_lr = min_lr
+
+        self.sampled_pcd_folder_path = self.dataset_root_folder_path + "SampledPcd/"
+        self.mash_folder_path = self.dataset_root_folder_path + "Mash/"
+        self.tag_folder_path = self.dataset_root_folder_path + "Tag/Mash/"
         return
 
     def createTrainer(
@@ -89,48 +91,25 @@ class Convertor(object):
 
         return trainer
 
-    def convertOneShape(self, rel_shape_file_path: str) -> bool:
-        shape_file_name = rel_shape_file_path.split("/")[-1]
+    def convertOneShape(
+        self, dataset_name: str, class_name: str, model_id: str
+    ) -> bool:
+        rel_file_path = dataset_name + "/" + class_name + "/" + model_id
 
-        rel_shape_folder_path = rel_shape_file_path.split(shape_file_name)[0]
+        sampled_pcd_file_path = self.sampled_pcd_folder_path + rel_file_path + ".npy"
 
-        shape_file_path = self.shape_root_folder_path + rel_shape_file_path
-
-        if not os.path.exists(shape_file_path):
+        if not os.path.exists(sampled_pcd_file_path):
             print("[ERROR][Convertor::convertOneShape]")
             print("\t shape file not exist!")
-            print("\t shape_file_path:", shape_file_path)
+            print("\t sampled_pcd_file_path:", sampled_pcd_file_path)
             return False
 
-        unit_rel_folder_path = rel_shape_folder_path + shape_file_name.replace(".", "_")
-        unit_rel_folder_path = rel_shape_folder_path + shape_file_name.split(".")[0]
-
-        finish_tag_file_path = (
-            self.save_root_folder_path
-            + "tag_mash/"
-            + unit_rel_folder_path
-            + "/finish.txt"
-        )
+        finish_tag_file_path = self.tag_folder_path + rel_file_path + "/finish.txt"
 
         if os.path.exists(finish_tag_file_path):
             return True
 
-        start_tag_file_path = (
-            self.save_root_folder_path
-            + "tag_mash/"
-            + unit_rel_folder_path
-            + "/start.txt"
-        )
-
-        save_pcd_file_path = (
-            self.save_root_folder_path
-            + "normalized_pcd/"
-            + unit_rel_folder_path
-            + ".npy"
-        )
-
-        if not os.path.exists(save_pcd_file_path):
-            return False
+        start_tag_file_path = self.tag_folder_path + rel_file_path + "/start.txt"
 
         if os.path.exists(start_tag_file_path):
             if not self.force_start:
@@ -141,17 +120,9 @@ class Convertor(object):
         with open(start_tag_file_path, "w") as f:
             f.write("\n")
 
-        save_mash_file_path = (
-            self.save_root_folder_path
-            + "normalized_mash/"
-            + unit_rel_folder_path
-            + ".npy"
-        )
+        mash_file_path = self.mash_folder_path + rel_file_path + ".npy"
 
-        if os.path.exists(save_mash_file_path):
-            with open(finish_tag_file_path, "w") as f:
-                f.write("\n")
-            return True
+        createFileFolder(mash_file_path)
 
         if False:
             trainer = self.createTrainer(
@@ -161,39 +132,32 @@ class Convertor(object):
         else:
             trainer = self.createTrainer()
 
-        # trainer.loadMeshFile(shape_file_path)
-        trainer.loadGTPointsFile(save_pcd_file_path)
+        trainer.loadGTPointsFile(sampled_pcd_file_path)
         trainer.autoTrainMash(self.gt_points_num)
-        trainer.mash.saveParamsFile(save_mash_file_path, True)
+        trainer.mash.saveParamsFile(mash_file_path, True)
 
         with open(finish_tag_file_path, "w") as f:
             f.write("\n")
-
         return True
 
     def convertAll(self) -> bool:
-        os.makedirs(self.save_root_folder_path, exist_ok=True)
-
         print("[INFO][Convertor::convertAll]")
         print("\t start convert all shapes to mashes...")
         solved_shape_num = 0
-        for root, _, files in os.walk(self.shape_root_folder_path):
-            if "03001627" not in root:
-                solved_shape_num += 1
-                print("solved shape num:", solved_shape_num)
-                continue
 
-            for filename in files:
-                if filename[-4:] not in [".obj", ".ply"]:
-                    continue
+        dataset_folder_path = self.sampled_pcd_folder_path + "ShapeNet/"
 
-                rel_file_path = (
-                    root.split(self.shape_root_folder_path)[1] + "/" + filename
-                )
+        classname_list = os.listdir(dataset_folder_path)
+        for classname in classname_list:
+            class_folder_path = dataset_folder_path + classname + "/"
 
-                self.convertOneShape(rel_file_path)
+            modelid_list = os.listdir(class_folder_path)
+
+            for model_file_name in modelid_list:
+                modelid = model_file_name.split(".npy")[0]
+
+                self.convertOneShape("ShapeNet", classname, modelid)
 
                 solved_shape_num += 1
                 print("solved shape num:", solved_shape_num)
-
         return True
