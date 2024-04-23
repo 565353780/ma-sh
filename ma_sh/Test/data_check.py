@@ -7,6 +7,58 @@ from ma_sh.Method.path import createFileFolder
 from ma_sh.Method.render import renderGeometries
 from ma_sh.Model.mash import Mash
 
+
+def view_data():
+    HOME = os.environ["HOME"]
+
+    dataset_folder_path = HOME + "/Dataset/"
+
+    mesh_folder_path = HOME + "/chLi/Dataset/Mash/ShapeNet/normalized_mesh/"
+    mash_folder_path = dataset_folder_path + "Mash/ShapeNet/mash/"
+    sdf_folder_path = dataset_folder_path + "SDF/ShapeNet/sdf/"
+
+    classname_list = os.listdir(mash_folder_path)
+
+    for classname in classname_list:
+        class_folder_path = mash_folder_path + classname + "/"
+
+        modelid_list = os.listdir(class_folder_path)
+
+        for modelid in modelid_list:
+            mash_file_path = (
+                class_folder_path + modelid + "/models/model_normalized_obj.npy"
+            )
+            mesh_file_path = (
+                mesh_folder_path
+                + classname
+                + "/"
+                + modelid
+                + "/models/model_normalized.obj"
+            )
+            sdf_file_path = (
+                sdf_folder_path
+                + classname
+                + "/"
+                + modelid
+                + "/models/model_normalized_obj.npy"
+            )
+
+            mesh = Mesh(mesh_file_path)
+
+            mash = Mash.fromParamsFile(mash_file_path, device="cpu")
+            mash_points = mash.toSamplePoints().numpy()
+
+            sdf = np.load(sdf_file_path)
+            sdf_points = sdf[sdf[:, 3] <= 0][:, :3]
+
+            mash_pcd = getPointCloud(mash_points)
+            sdf_pcd = getPointCloud(sdf_points)
+            renderGeometries([mesh.toO3DMesh(), mash_pcd, sdf_pcd])
+
+    exit()
+    return True
+
+
 def view_error_data():
     HOME = os.environ["HOME"]
 
@@ -15,21 +67,39 @@ def view_error_data():
     mesh_folder_path = dataset_folder_path + "Mash/ShapeNet/normalized_mesh/"
     mash_folder_path = dataset_folder_path + "Mash/ShapeNet/normalized_mash/"
     sdf_folder_path = dataset_folder_path + "SDF-Coarse/ShapeNet/sdf/"
-    error_file_path = HOME + '/chLi/Dataset/error.txt'
+    error_file_path = HOME + "/chLi/Dataset/error.txt"
 
-    with open(error_file_path, 'r') as f:
+    with open(error_file_path, "r") as f:
         error_data_list = f.readlines()
 
     for error_data in error_data_list:
-        error_item_list = error_data.split('\n')[0].split(';')
+        error_item_list = error_data.split("\n")[0].split(";")
 
-        error_classname = error_item_list[0].split('class:')[1]
-        error_modelid = error_item_list[1].split('model:')[1]
+        error_classname = error_item_list[0].split("class:")[1]
+        error_modelid = error_item_list[1].split("model:")[1]
         error_type = error_item_list[2]
 
-        mesh_file_path = mesh_folder_path + error_classname + '/' + error_modelid + "/models/model_normalized.obj"
-        mash_file_path = mash_folder_path + error_classname + '/' + error_modelid + "/models/model_normalized_obj.npy"
-        sdf_file_path = sdf_folder_path + error_classname + '/' + error_modelid + "/models/model_normalized_obj.npy"
+        mesh_file_path = (
+            mesh_folder_path
+            + error_classname
+            + "/"
+            + error_modelid
+            + "/models/model_normalized.obj"
+        )
+        mash_file_path = (
+            mash_folder_path
+            + error_classname
+            + "/"
+            + error_modelid
+            + "/models/model_normalized_obj.npy"
+        )
+        sdf_file_path = (
+            sdf_folder_path
+            + error_classname
+            + "/"
+            + error_modelid
+            + "/models/model_normalized_obj.npy"
+        )
 
         print(error_data)
 
@@ -44,9 +114,15 @@ def view_error_data():
         mash_pcd = getPointCloud(mash_points)
         sdf_pcd = getPointCloud(sdf_points)
         renderGeometries([mesh.toO3DMesh(), mash_pcd, sdf_pcd])
+
+    exit()
     return True
 
+
 def test():
+    # view_data()
+    # view_error_data()
+
     HOME = os.environ["HOME"]
 
     dataset_folder_path = HOME + "/chLi/Dataset/"
@@ -54,8 +130,8 @@ def test():
     mesh_folder_path = dataset_folder_path + "Mash/ShapeNet/normalized_mesh/"
     mash_folder_path = dataset_folder_path + "Mash/ShapeNet/normalized_mash/"
     sdf_folder_path = dataset_folder_path + "SDF-Coarse/ShapeNet/sdf/"
-    tag_folder_path = dataset_folder_path + 'tag_data_check/'
-    error_file_path = HOME + '/chLi/Dataset/error.txt'
+    tag_folder_path = dataset_folder_path + "tag_data_check/"
+    error_file_path = HOME + "/chLi/Dataset/error.txt"
 
     os.makedirs(tag_folder_path, exist_ok=True)
 
@@ -86,11 +162,13 @@ def test():
                 + "/models/model_normalized_obj.npy"
             )
 
-            finish_tag_file_path = tag_folder_path + classname + '/' + modelid + '/finish.txt'
+            finish_tag_file_path = (
+                tag_folder_path + classname + "/" + modelid + "/finish.txt"
+            )
 
             if os.path.exists(finish_tag_file_path):
                 solved_shape_num += 1
-                print('solved_shape_num:', solved_shape_num)
+                print("solved_shape_num:", solved_shape_num)
                 continue
 
             if os.path.exists(mesh_file_path):
@@ -108,9 +186,9 @@ def test():
                     print("current: class:", classname, "model:", modelid)
                     print("mesh error!")
                     print("mesh:", mesh_center_error, mesh_length_error)
-                    error_info = 'class:' + classname + ';model:' + modelid + ';mesh\n'
+                    error_info = "class:" + classname + ";model:" + modelid + ";mesh\n"
 
-                    with open(error_file_path, 'a+') as f:
+                    with open(error_file_path, "a+") as f:
                         f.write(error_info)
 
             if os.path.exists(mash_file_path):
@@ -129,9 +207,9 @@ def test():
                     print("current: class:", classname, "model:", modelid)
                     print("mash error!")
                     print("mash:", mash_center_error, mash_length_error)
-                    error_info = 'class:' + classname + ';model:' + modelid + ';mash\n'
+                    error_info = "class:" + classname + ";model:" + modelid + ";mash\n"
 
-                    with open(error_file_path, 'a+') as f:
+                    with open(error_file_path, "a+") as f:
                         f.write(error_info)
 
             if os.path.exists(sdf_file_path):
@@ -150,9 +228,9 @@ def test():
                     print("current: class:", classname, "model:", modelid)
                     print("sdf error!")
                     print("sdf:", sdf_center_error, sdf_length_error)
-                    error_info = 'class:' + classname + ';model:' + modelid + ';sdf\n'
+                    error_info = "class:" + classname + ";model:" + modelid + ";sdf\n"
 
-                    with open(error_file_path, 'a+') as f:
+                    with open(error_file_path, "a+") as f:
                         f.write(error_info)
 
             if False:
@@ -162,10 +240,10 @@ def test():
                 exit()
 
             createFileFolder(finish_tag_file_path)
-            with open(finish_tag_file_path, 'w') as f:
-                f.write('\n')
+            with open(finish_tag_file_path, "w") as f:
+                f.write("\n")
             solved_shape_num += 1
-            print('solved_shape_num:', solved_shape_num)
+            print("solved_shape_num:", solved_shape_num)
 
     exit()
     return True
