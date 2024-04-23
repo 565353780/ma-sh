@@ -39,7 +39,7 @@ def demo():
             mash.renderSamplePoints()
 
     if True:
-        mash_params_file_path = "/Users/fufu/Downloads/model_normalized_obj.npy"
+        mash_params_file_path = "/Users/fufu/Downloads/Mash/chairs/4.npy"
 
         mash = Mash.fromParamsFile(mash_params_file_path, 10, 10000, 0.4, device="cpu")
 

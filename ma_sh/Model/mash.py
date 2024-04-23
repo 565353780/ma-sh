@@ -1,3 +1,4 @@
+from copy import deepcopy
 import os
 import torch
 import numpy as np
@@ -382,15 +383,19 @@ class Mash(object):
             o3d.visualization.draw_geometries([mesh], mesh_show_back_face=True)
 
         # FIXME: this algo looks bad, can only solve surface points, no inner point allowed
-        if False:
+        if True:
             with o3d.utility.VerbosityContextManager(
                 o3d.utility.VerbosityLevel.Debug
             ) as cm:
                 mesh, densities = (
                     o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(
-                        pcd, depth=10
+                        pcd, depth=9
                     )
                 )
+
+            render_mesh = deepcopy(mesh)
+            render_mesh.compute_triangle_normals()
+            render_mesh.compute_vertex_normals()
 
             densities = np.asarray(densities)
             density_colors = plt.get_cmap("plasma")(
@@ -403,14 +408,10 @@ class Mash(object):
             density_mesh.triangle_normals = mesh.triangle_normals
             density_mesh.vertex_colors = o3d.utility.Vector3dVector(density_colors)
 
-            renderGeometries(density_mesh)
+            density_mesh.translate([0, 0, -1])
+            render_mesh.translate([0, 0, 1])
 
-            vertices_to_remove = densities < np.quantile(densities, 0.01)
-            mesh.remove_vertices_by_mask(vertices_to_remove)
-
-            mesh.translate([0, 1, 0])
-
-            renderGeometries([pcd, mesh])
+            renderGeometries([density_mesh, pcd, render_mesh])
         return True
 
     def toParamsDict(self) -> dict:
