@@ -179,6 +179,8 @@ class Convertor(object):
         solved_shape_num = 0
         for root, _, files in os.walk(self.shape_root_folder_path):
             if "03001627" not in root:
+                solved_shape_num += 1
+                print("solved shape num:", solved_shape_num)
                 continue
 
             for filename in files:
