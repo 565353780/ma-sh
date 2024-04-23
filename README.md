@@ -11,9 +11,14 @@ conda activate mash
 ## Prepare Dataset
 
 ```bash
+# Step 1
 python convert_normalize_mesh.py
+
+# Step 2, can run parallel
 python convert_sample_pcd.py
 python convert_to_manifold.py
+
+# Step 3, after to manifold
 python convert_sample_sdf.py
 ```
 
