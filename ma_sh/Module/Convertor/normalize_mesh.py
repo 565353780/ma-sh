@@ -67,12 +67,6 @@ class Convertor(object):
         with open(start_tag_file_path, "w") as f:
             f.write("\n")
 
-        save_mesh_file_path = (
-            self.save_root_folder_path
-            + "normalized_mesh/"
-            + unit_rel_folder_path.replace("_obj", ".obj")
-        )
-
         createFileFolder(save_mesh_file_path)
 
         mesh = Mesh(shape_file_path)
