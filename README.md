@@ -8,6 +8,15 @@ conda activate mash
 ./setup.sh
 ```
 
+## Prepare Dataset
+
+```bash
+python convert_normalize_mesh.py
+python convert_sample_pcd.py
+python convert_to_manifold.py
+python convert_sample_sdf.py
+```
+
 ## Run
 
 ```bash
