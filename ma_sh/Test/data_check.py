@@ -120,7 +120,7 @@ def view_error_data():
 
 
 def test():
-    # view_data()
+    view_data()
     # view_error_data()
 
     HOME = os.environ["HOME"]

@@ -1,30 +1,39 @@
 import os
 import numpy as np
-import torch
 
 from ma_sh.Data.mesh import Mesh
 from ma_sh.Method.path import createFileFolder
-from ma_sh.Model.mash import Mash
 
 
 class Convertor(object):
     def __init__(
         self,
         shape_root_folder_path: str,
-        save_root_folder_path: str,
+        dataset_root_folder_path: str,
         force_start: bool = False,
     ) -> None:
         self.shape_root_folder_path = shape_root_folder_path
-        self.save_root_folder_path = save_root_folder_path
+        self.dataset_root_folder_path = dataset_root_folder_path
         self.force_start = force_start
+
+        self.normalized_mesh_folder_path = (
+            self.dataset_root_folder_path + "NormalizedMesh/"
+        )
+        self.tag_folder_path = self.dataset_root_folder_path + "Tag/NormalizedMesh/"
         return
 
-    def convertOneShape(self, rel_shape_file_path: str) -> bool:
-        shape_file_name = rel_shape_file_path.split("/")[-1]
+    def convertOneShape(
+        self, dataset_name: str, class_name: str, model_id: str
+    ) -> bool:
+        rel_file_path = dataset_name + "/" + class_name + "/" + model_id
 
-        rel_shape_folder_path = rel_shape_file_path.split(shape_file_name)[0]
-
-        shape_file_path = self.shape_root_folder_path + rel_shape_file_path
+        shape_file_path = (
+            self.shape_root_folder_path
+            + class_name
+            + "/"
+            + model_id
+            + "/models/model_normalized.obj"
+        )
 
         if not os.path.exists(shape_file_path):
             print("[ERROR][Convertor::convertOneShape]")
@@ -32,31 +41,12 @@ class Convertor(object):
             print("\t shape_file_path:", shape_file_path)
             return False
 
-        unit_rel_folder_path = rel_shape_folder_path + shape_file_name.split(".")[0]
-
-        finish_tag_file_path = (
-            self.save_root_folder_path
-            + "tag_normalize/"
-            + unit_rel_folder_path
-            + "/finish.txt"
-        )
-
-        save_mesh_file_path = (
-            self.save_root_folder_path
-            + "normalized_mesh/"
-            + unit_rel_folder_path.replace("_obj", ".obj")
-        )
+        finish_tag_file_path = self.tag_folder_path + rel_file_path + "/finish.txt"
 
         if os.path.exists(finish_tag_file_path):
-            if os.path.exists(save_mesh_file_path):
-                return True
+            return True
 
-        start_tag_file_path = (
-            self.save_root_folder_path
-            + "tag_normalize/"
-            + unit_rel_folder_path
-            + "/start.txt"
-        )
+        start_tag_file_path = self.tag_folder_path + rel_file_path + "/start.txt"
 
         if os.path.exists(start_tag_file_path):
             if not self.force_start:
@@ -67,7 +57,11 @@ class Convertor(object):
         with open(start_tag_file_path, "w") as f:
             f.write("\n")
 
-        createFileFolder(save_mesh_file_path)
+        normalized_mesh_file_path = (
+            self.normalized_mesh_folder_path + rel_file_path + ".obj"
+        )
+
+        createFileFolder(normalized_mesh_file_path)
 
         mesh = Mesh(shape_file_path)
 
@@ -82,50 +76,10 @@ class Convertor(object):
         length = np.max(max_bound - min_bound)
         scale = 0.9 / length
         center = (min_bound + max_bound) / 2.0
-        move_vector = -scale * center
 
-        mesh.vertices = mesh.vertices * scale + move_vector
+        mesh.vertices = (mesh.vertices - center) * scale
 
-        if not os.path.exists(save_mesh_file_path):
-            mesh.save(save_mesh_file_path)
-
-        save_pcd_file_path = (
-            self.save_root_folder_path + "pcd/" + unit_rel_folder_path + ".npy"
-        )
-
-        save_normalize_pcd_file_path = (
-            self.save_root_folder_path
-            + "normalized_pcd/"
-            + unit_rel_folder_path
-            + ".npy"
-        )
-
-        if not os.path.exists(save_normalize_pcd_file_path):
-            if os.path.exists(save_pcd_file_path):
-                points = np.load(save_pcd_file_path)
-                points = points * scale + move_vector
-
-                createFileFolder(save_normalize_pcd_file_path)
-                np.save(save_normalize_pcd_file_path, points)
-
-        save_mash_file_path = (
-            self.save_root_folder_path + "mash/" + unit_rel_folder_path + ".npy"
-        )
-
-        save_normalize_mash_file_path = (
-            self.save_root_folder_path
-            + "normalized_mash/"
-            + unit_rel_folder_path
-            + ".npy"
-        )
-
-        if not os.path.exists(save_normalize_mash_file_path):
-            if os.path.exists(save_mash_file_path):
-                mash = Mash.fromParamsFile(save_mash_file_path, device="cpu")
-                mash.positions = mash.positions * scale + torch.from_numpy(move_vector)
-                mash.sh_params *= scale
-
-                mash.saveParamsFile(save_normalize_mash_file_path, True)
+        mesh.save(normalized_mesh_file_path, True)
 
         with open(finish_tag_file_path, "w") as f:
             f.write("\n")
@@ -133,29 +87,28 @@ class Convertor(object):
         return True
 
     def convertAll(self) -> bool:
-        os.makedirs(self.save_root_folder_path, exist_ok=True)
-
         print("[INFO][Convertor::convertAll]")
         print("\t start convert all shapes to mashes...")
         solved_shape_num = 0
 
         classname_list = os.listdir(self.shape_root_folder_path)
         for classname in classname_list:
+            if classname != "03001627":
+                continue
+
             class_folder_path = self.shape_root_folder_path + classname + "/"
 
             modelid_list = os.listdir(class_folder_path)
 
             for modelid in modelid_list:
                 mesh_file_path = (
-                    class_folder_path + modelid + "/models/model_normalized_obj.obj"
+                    class_folder_path + modelid + "/models/model_normalized.obj"
                 )
 
                 if not os.path.exists(mesh_file_path):
                     continue
 
-                rel_file_path = mesh_file_path.split(self.shape_root_folder_path)[1]
-
-                self.convertOneShape(rel_file_path)
+                self.convertOneShape('ShapeNet', classname, modelid)
 
                 solved_shape_num += 1
                 print("solved shape num:", solved_shape_num)
