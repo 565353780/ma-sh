@@ -54,7 +54,7 @@ class Convertor(object):
         self.force_start = force_start
 
         self.sampled_pcd_folder_path = self.dataset_root_folder_path + "SampledPcd/"
-        self.mash_folder_path = self.dataset_root_folder_path + "Mash/"
+        self.mash_folder_path = self.dataset_root_folder_path + "MashV2/"
         self.tag_folder_path = self.dataset_root_folder_path + "Tag/Mash/"
         return
 
