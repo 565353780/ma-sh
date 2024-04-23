@@ -7,6 +7,44 @@ from ma_sh.Method.path import createFileFolder
 from ma_sh.Method.render import renderGeometries
 from ma_sh.Model.mash import Mash
 
+def view_error_data():
+    HOME = os.environ["HOME"]
+
+    dataset_folder_path = HOME + "/chLi/Dataset/"
+
+    mesh_folder_path = dataset_folder_path + "Mash/ShapeNet/normalized_mesh/"
+    mash_folder_path = dataset_folder_path + "Mash/ShapeNet/normalized_mash/"
+    sdf_folder_path = dataset_folder_path + "SDF-Coarse/ShapeNet/sdf/"
+    error_file_path = HOME + '/chLi/Dataset/error.txt'
+
+    with open(error_file_path, 'r') as f:
+        error_data_list = f.readlines()
+
+    for error_data in error_data_list:
+        error_item_list = error_data.split('\n')[0].split(';')
+
+        error_classname = error_item_list[0].split('class:')[1]
+        error_modelid = error_item_list[1].split('model:')[1]
+        error_type = error_item_list[2]
+
+        mesh_file_path = mesh_folder_path + error_classname + '/' + error_modelid + "/models/model_normalized.obj"
+        mash_file_path = mash_folder_path + error_classname + '/' + error_modelid + "/models/model_normalized_obj.npy"
+        sdf_file_path = sdf_folder_path + error_classname + '/' + error_modelid + "/models/model_normalized_obj.npy"
+
+        print(error_data)
+
+        mesh = Mesh(mesh_file_path)
+
+        mash = Mash.fromParamsFile(mash_file_path, device="cpu")
+        mash_points = mash.toSamplePoints().numpy()
+
+        sdf = np.load(sdf_file_path)
+        sdf_points = sdf[sdf[:, 3] <= 0][:, :3]
+
+        mash_pcd = getPointCloud(mash_points)
+        sdf_pcd = getPointCloud(sdf_points)
+        renderGeometries([mesh.toO3DMesh(), mash_pcd, sdf_pcd])
+    return True
 
 def test():
     HOME = os.environ["HOME"]
@@ -17,12 +55,11 @@ def test():
     mash_folder_path = dataset_folder_path + "Mash/ShapeNet/normalized_mash/"
     sdf_folder_path = dataset_folder_path + "SDF-Coarse/ShapeNet/sdf/"
     tag_folder_path = dataset_folder_path + 'tag_data_check/'
+    error_file_path = HOME + '/chLi/Dataset/error.txt'
 
     os.makedirs(tag_folder_path, exist_ok=True)
 
     classname_list = os.listdir(mesh_folder_path)
-
-    error_file_path = HOME + '/chLi/Dataset/error.txt'
 
     solved_shape_num = 0
     for classname in classname_list:
