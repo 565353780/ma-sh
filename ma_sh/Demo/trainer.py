@@ -47,7 +47,7 @@ def demo():
     if False:
         mesh_name = "linux_airplane"
         mesh_file_path = mesh_file_path_dict[mesh_name]
-    else:
+    elif False:
         dataset_root_folder_path = "/home/chli/chLi/Dataset/"
         sdf_dataset = SDFDataset(dataset_root_folder_path, "train")
 
@@ -63,6 +63,8 @@ def demo():
             sdf_dataset.sdf_folder_path + "ShapeNet/sdf/",
             "/home/chli/chLi/Dataset/SDF/ShapeNet/manifold/",
         ).replace("_obj.npy", "_obj.obj")
+    else:
+        mesh_name = "test_chair"
 
     save_params_file_path = "./output/" + mesh_name + ".npy"
     save_pcd_file_path = "./output/" + mesh_name + ".ply"
@@ -99,6 +101,7 @@ def demo():
         trainer.loadMeshFile(mesh_file_path)
     else:
         gt_points_file_path = "/home/chli/chLi/Dataset/Mash/ShapeNet/pcd/04090263/22d2782aa73ea40960abd8a115f9899/models/model_normalized_obj.npy"
+        gt_points_file_path = "/home/chli/chLi/Dataset/Mash/ShapeNet/normalized_pcd/03001627/46e1939ce6ee14d6a4689f3cf5c22e6/models/model_normalized_obj.npy"
         # gt_points_file_path = "/Users/fufu/Downloads/model_normalized_obj.npy"
         trainer.loadGTPointsFile(gt_points_file_path)
     trainer.autoTrainMash(gt_points_num)
