@@ -18,8 +18,9 @@ python convert_normalize_mesh.py
 python convert_sample_pcd.py
 python convert_to_manifold.py
 
-# Step 3, after to manifold
+# Step 3, can run parallel
 python convert_sample_sdf.py
+python convert_mash.py
 ```
 
 ## Run
