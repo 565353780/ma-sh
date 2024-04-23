@@ -49,7 +49,7 @@ def demo():
         mesh_file_path = mesh_file_path_dict[mesh_name]
     else:
         dataset_root_folder_path = "/home/chli/chLi/Dataset/"
-        sdf_dataset = SDFDataset(dataset_root_folder_path, "test")
+        sdf_dataset = SDFDataset(dataset_root_folder_path, "train")
 
         object_id = 2
         _, sdf_file_path = sdf_dataset.paths_list[object_id]

@@ -123,7 +123,10 @@ class Convertor(object):
         )
 
         save_pcd_file_path = (
-            self.save_root_folder_path + "normalized_pcd/" + unit_rel_folder_path + ".npy"
+            self.save_root_folder_path
+            + "normalized_pcd/"
+            + unit_rel_folder_path
+            + ".npy"
         )
 
         if not os.path.exists(save_pcd_file_path):
@@ -139,7 +142,10 @@ class Convertor(object):
             f.write("\n")
 
         save_mash_file_path = (
-            self.save_root_folder_path + "normalized_mash/" + unit_rel_folder_path + ".npy"
+            self.save_root_folder_path
+            + "normalized_mash/"
+            + unit_rel_folder_path
+            + ".npy"
         )
 
         if os.path.exists(save_mash_file_path):
@@ -172,6 +178,9 @@ class Convertor(object):
         print("\t start convert all shapes to mashes...")
         solved_shape_num = 0
         for root, _, files in os.walk(self.shape_root_folder_path):
+            if "03001627" not in root:
+                continue
+
             for filename in files:
                 if filename[-4:] not in [".obj", ".ply"]:
                     continue
