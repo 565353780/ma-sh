@@ -40,6 +40,8 @@ def view_data():
 
             mash_pcd = getPointCloud(mash_points)
             sdf_pcd = getPointCloud(sdf_points)
+            mash_pcd.translate([0, 1, 0])
+            sdf_pcd.translate([0, -1, 0])
             renderGeometries([mesh.toO3DMesh(), mash_pcd, sdf_pcd])
 
     exit()

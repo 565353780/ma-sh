@@ -18,9 +18,11 @@ class Convertor(object):
         self.gauss_noise = gauss_noise
         self.force_start = force_start
 
+        sdf_label = "SampledSDF_" + str(gauss_noise).replace(".", "_")
+
         self.manifold_mesh_folder_path = self.dataset_root_folder_path + "ManifoldMesh/"
-        self.sampled_sdf_folder_path = self.dataset_root_folder_path + "SampledSDF/"
-        self.tag_folder_path = self.dataset_root_folder_path + "Tag/SampledSDF/"
+        self.sampled_sdf_folder_path = self.dataset_root_folder_path + sdf_label + "/"
+        self.tag_folder_path = self.dataset_root_folder_path + "Tag/" + sdf_label + "/"
         return
 
     def convertOneShape(
