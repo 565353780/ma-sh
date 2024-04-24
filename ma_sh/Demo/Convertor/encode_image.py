@@ -8,7 +8,7 @@ def demo():
 
     dataset_root_folder_path = HOME + "/chLi/Dataset/"
     clip_model_id = "ViT-L/14"
-    device = "cpu"
+    device = "cuda:0"
     force_start = False
 
     convertor = Convertor(

@@ -1,10 +1,9 @@
 import os
 import clip
+import torch
 import numpy as np
-import matplotlib.pyplot as plt
 from PIL import Image
 
-from ma_sh.Data.mesh import Mesh
 from ma_sh.Method.path import createFileFolder
 
 
@@ -13,7 +12,7 @@ class Convertor(object):
         self,
         dataset_root_folder_path: str,
         clip_model_id: str = "ViT-L/14",
-        device: str = "cpu",
+        device: str = "cuda:0",
         force_start: bool = False,
     ) -> None:
         self.dataset_root_folder_path = dataset_root_folder_path
@@ -21,28 +20,16 @@ class Convertor(object):
         self.device = device
         self.force_start = force_start
 
-        self.normalized_mesh_folder_path = (
-            self.dataset_root_folder_path + "NormalizedMesh/"
+        self.captured_image_folder_path = (
+            self.dataset_root_folder_path + "CapturedImage/"
         )
-        self.sampled_pcd_folder_path = self.dataset_root_folder_path + "SampledPcd/"
-        self.tag_folder_path = self.dataset_root_folder_path + "Tag/SampledPcd/"
+        self.image_embedding_folder_path = (
+            self.dataset_root_folder_path + "ImageEmbedding/"
+        )
+        self.tag_folder_path = self.dataset_root_folder_path + "Tag/ImageEmbedding/"
 
         self.model, self.preprocess = clip.load(self.clip_model_id, device=self.device)
-
-        image_file_path = (
-            "/Users/fufu/github/ASDF/open3d-manage/output/test1/y_0_x_0.png"
-        )
-        image = Image.open(image_file_path)
-        image_t = self.preprocess(image).unsqueeze(0).to(self.device)
-        print(image_t.shape)
-
-        image_t_show = image_t.squeeze(0).permute(2, 1, 0).cpu().numpy()
-
-        plt.figure("dog")
-        plt.imshow(image_t_show)
-        plt.show()
-
-        exit()
+        self.model.eval()
         return
 
     def convertOneShape(
@@ -50,14 +37,14 @@ class Convertor(object):
     ) -> bool:
         rel_file_path = dataset_name + "/" + class_name + "/" + model_id
 
-        normalized_mesh_file_path = (
-            self.normalized_mesh_folder_path + rel_file_path + ".obj"
+        captured_image_folder_path = (
+            self.captured_image_folder_path + rel_file_path + "/"
         )
 
-        if not os.path.exists(normalized_mesh_file_path):
+        if not os.path.exists(captured_image_folder_path):
             print("[ERROR][Convertor::convertOneShape]")
-            print("\t shape file not exist!")
-            print("\t normalized_mesh_file_path:", normalized_mesh_file_path)
+            print("\t shape folder not exist!")
+            print("\t captured_image_folder_path:", captured_image_folder_path)
             return False
 
         finish_tag_file_path = self.tag_folder_path + rel_file_path + "/finish.txt"
@@ -76,33 +63,38 @@ class Convertor(object):
         with open(start_tag_file_path, "w") as f:
             f.write("\n")
 
-        sampled_pcd_file_path = self.sampled_pcd_folder_path + rel_file_path + ".npy"
+        image_embedding_file_path = (
+            self.image_embedding_folder_path + rel_file_path + ".npy"
+        )
 
-        createFileFolder(sampled_pcd_file_path)
+        createFileFolder(image_embedding_file_path)
 
-        mesh = Mesh(normalized_mesh_file_path)
+        image_filename_list = os.listdir(captured_image_folder_path)
 
-        if not mesh.isValid():
-            print("[ERROR][Convertor::convertOneShape]")
-            print("\t mesh is not valid!")
-            print("\t normalized_mesh_file_path:", normalized_mesh_file_path)
-            return False
+        image_embedding_dict = {}
 
-        try:
-            points = mesh.toSamplePoints(self.gt_points_num)
-        except:
-            print("[ERROR][Convertor::convertOneShape]")
-            print("\t toSamplePoints failed!")
-            print("\t normalized_mesh_file_path:", normalized_mesh_file_path)
-            return False
+        for image_filename in image_filename_list:
+            if ".png" not in image_filename:
+                continue
 
-        if points is None:
-            print("[ERROR][Convertor::convertOneShape]")
-            print("\t toSamplePoints failed!")
-            print("\t normalized_mesh_file_path:", normalized_mesh_file_path)
-            return False
+            image_file_path = captured_image_folder_path + image_filename
+            image = Image.open(image_file_path)
+            image = self.preprocess(image).unsqueeze(0).to(self.device)
 
-        np.save(sampled_pcd_file_path, points)
+            with torch.no_grad():
+                image_embedding = (
+                    self.model.encode_image(image).detach().clone().cpu().numpy()
+                )
+
+                image_embedding_dict[image_filename] = image_embedding
+
+        if len(image_embedding_dict.keys()) == 0:
+            print("[WARN][Convertor::convertOneShape]")
+            print("\t no valid image found!")
+            print("\t captured_image_folder_path:", captured_image_folder_path)
+            return True
+
+        np.save(image_embedding_file_path, image_embedding_dict)
 
         with open(finish_tag_file_path, "w") as f:
             f.write("\n")
@@ -114,7 +106,7 @@ class Convertor(object):
         print("\t start convert all shapes to mashes...")
         solved_shape_num = 0
 
-        dataset_folder_path = self.normalized_mesh_folder_path + "ShapeNet/"
+        dataset_folder_path = self.captured_image_folder_path + "ShapeNet/"
 
         classname_list = os.listdir(dataset_folder_path)
         for classname in classname_list:
