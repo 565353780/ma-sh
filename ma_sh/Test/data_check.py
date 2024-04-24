@@ -15,7 +15,7 @@ def view_data():
 
     mesh_folder_path = dataset_folder_path + "NormalizedMesh/ShapeNet/"
     mash_folder_path = dataset_folder_path + "MashV2/ShapeNet/"
-    sdf_folder_path = dataset_folder_path + "SampledSDF/ShapeNet/"
+    sdf_folder_path = dataset_folder_path + "SampledSDF_0_025/ShapeNet/"
 
     classname_list = os.listdir(mash_folder_path)
 
@@ -55,7 +55,7 @@ def view_error_data():
 
     mesh_folder_path = dataset_folder_path + "NormalizedMesh/ShapeNet/"
     mash_folder_path = dataset_folder_path + "MashV2/ShapeNet/"
-    sdf_folder_path = dataset_folder_path + "SampledSDF/ShapeNet/"
+    sdf_folder_path = dataset_folder_path + "SampledSDF_0_025/ShapeNet/"
     error_file_path = HOME + "/chLi/Dataset/error.txt"
 
     with open(error_file_path, "r") as f:
