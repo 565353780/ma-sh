@@ -11,11 +11,11 @@ from ma_sh.Model.mash import Mash
 def view_data():
     HOME = os.environ["HOME"]
 
-    dataset_folder_path = HOME + "/Dataset/"
+    dataset_folder_path = HOME + "/chLi/Dataset/"
 
-    mesh_folder_path = HOME + "/chLi/Dataset/Mash/ShapeNet/normalized_mesh/"
-    mash_folder_path = dataset_folder_path + "Mash/ShapeNet/mash/"
-    sdf_folder_path = dataset_folder_path + "SDF/ShapeNet/sdf/"
+    mesh_folder_path = dataset_folder_path + "NormalizedMesh/ShapeNet/"
+    mash_folder_path = dataset_folder_path + "MashV2/ShapeNet/"
+    sdf_folder_path = dataset_folder_path + "SampledSDF_0_025/ShapeNet/"
 
     classname_list = os.listdir(mash_folder_path)
 
@@ -24,24 +24,11 @@ def view_data():
 
         modelid_list = os.listdir(class_folder_path)
 
-        for modelid in modelid_list:
-            mash_file_path = (
-                class_folder_path + modelid + "/models/model_normalized_obj.npy"
-            )
-            mesh_file_path = (
-                mesh_folder_path
-                + classname
-                + "/"
-                + modelid
-                + "/models/model_normalized.obj"
-            )
-            sdf_file_path = (
-                sdf_folder_path
-                + classname
-                + "/"
-                + modelid
-                + "/models/model_normalized_obj.npy"
-            )
+        for modelname in modelid_list:
+            modelid = modelname.split(".npy")[0]
+            mash_file_path = class_folder_path + modelid + ".npy"
+            mesh_file_path = mesh_folder_path + classname + "/" + modelid + ".obj"
+            sdf_file_path = sdf_folder_path + classname + "/" + modelid + ".npy"
 
             mesh = Mesh(mesh_file_path)
 
@@ -53,6 +40,8 @@ def view_data():
 
             mash_pcd = getPointCloud(mash_points)
             sdf_pcd = getPointCloud(sdf_points)
+            mash_pcd.translate([0, 1, 0])
+            sdf_pcd.translate([0, -1, 0])
             renderGeometries([mesh.toO3DMesh(), mash_pcd, sdf_pcd])
 
     exit()
@@ -64,9 +53,9 @@ def view_error_data():
 
     dataset_folder_path = HOME + "/chLi/Dataset/"
 
-    mesh_folder_path = dataset_folder_path + "Mash/ShapeNet/normalized_mesh/"
-    mash_folder_path = dataset_folder_path + "Mash/ShapeNet/normalized_mash/"
-    sdf_folder_path = dataset_folder_path + "SDF-Coarse/ShapeNet/sdf/"
+    mesh_folder_path = dataset_folder_path + "NormalizedMesh/ShapeNet/"
+    mash_folder_path = dataset_folder_path + "MashV2/ShapeNet/"
+    sdf_folder_path = dataset_folder_path + "SampledSDF_0_025/ShapeNet/"
     error_file_path = HOME + "/chLi/Dataset/error.txt"
 
     with open(error_file_path, "r") as f:
@@ -80,26 +69,12 @@ def view_error_data():
         error_type = error_item_list[2]
 
         mesh_file_path = (
-            mesh_folder_path
-            + error_classname
-            + "/"
-            + error_modelid
-            + "/models/model_normalized.obj"
+            mesh_folder_path + error_classname + "/" + error_modelid + ".obj"
         )
         mash_file_path = (
-            mash_folder_path
-            + error_classname
-            + "/"
-            + error_modelid
-            + "/models/model_normalized_obj.npy"
+            mash_folder_path + error_classname + "/" + error_modelid + ".npy"
         )
-        sdf_file_path = (
-            sdf_folder_path
-            + error_classname
-            + "/"
-            + error_modelid
-            + "/models/model_normalized_obj.npy"
-        )
+        sdf_file_path = sdf_folder_path + error_classname + "/" + error_modelid + ".npy"
 
         print(error_data)
 
