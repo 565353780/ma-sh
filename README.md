@@ -15,7 +15,7 @@ conda activate mash
 python convert_normalize_mesh.py
 
 # Step 2, can run parallel
-python convert_sample_pcd.py
+./convert_sample_pcd.sh
 python convert_to_manifold.py
 
 # Step 3, can run parallel
