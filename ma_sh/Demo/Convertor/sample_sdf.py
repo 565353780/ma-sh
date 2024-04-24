@@ -11,7 +11,7 @@ def demo():
 
     dataset_root_folder_path = HOME + "/chLi/Dataset/"
     sample_sdf_point_num = 250000
-    gauss_noise = 0.025
+    gauss_noise = 0.0025
     force_start = False
 
     convertor = Convertor(
