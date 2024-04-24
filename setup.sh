@@ -1,8 +1,8 @@
 cd ..
-git clone https://github.com/565353780/sdf-manage.git
+git clone https://github.com/565353780/sdf-generate.git
 git clone https://github.com/565353780/open3d-manage.git
 
-cd sdf-manage
+cd sdf-generate
 ./setup.sh
 
 cd ../open3d-manage
