@@ -95,6 +95,9 @@ class Convertor(object):
         for classname in classname_list:
             class_folder_path = self.shape_root_folder_path + classname + "/"
 
+            if not os.path.exists(class_folder_path):
+                continue
+
             modelid_list = os.listdir(class_folder_path)
 
             for modelid in modelid_list:
