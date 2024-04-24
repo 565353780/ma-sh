@@ -88,6 +88,11 @@ class Convertor(object):
 
         classname_list = os.listdir(dataset_folder_path)
         for classname in classname_list:
+            if classname != "03001627":
+                solved_shape_num += 1
+                print("solved shape num:", solved_shape_num)
+                continue
+
             class_folder_path = dataset_folder_path + classname + "/"
 
             modelid_list = os.listdir(class_folder_path)
