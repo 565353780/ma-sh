@@ -11,16 +11,21 @@ conda activate mash
 ## Prepare Dataset
 
 ```bash
-# Step 1
-python convert_normalize_mesh.py
+1. python convert_normalize_mesh.py
+2. ./convert_sample_pcd.sh
+3. python convert_to_manifold.py
+4. python convert_sample_sdf.py
+5. python convert_mash.py
+6. python convert_capture_image.py
+7. python convert_encode_image.py
+```
 
-# Step 2, can run parallel
-./convert_sample_pcd.sh
-python convert_to_manifold.py
+You can run by this orders:
 
-# Step 3, can run parallel
-python convert_sample_sdf.py
-python convert_mash.py
+```bash
+1 --> 2 --> 5
+  |-> 3 --> 4
+        |-> 6 -> 7
 ```
 
 ## Run
