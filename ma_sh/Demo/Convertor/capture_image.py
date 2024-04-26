@@ -1,3 +1,7 @@
+import sys
+
+sys.path.append("../open3d-manage")
+
 import os
 
 from ma_sh.Module.Convertor.capture_image import Convertor

@@ -20,6 +20,9 @@ def view_data():
     classname_list = os.listdir(mash_folder_path)
 
     for classname in classname_list:
+        if classname != "03001627":
+            continue
+
         class_folder_path = mash_folder_path + classname + "/"
 
         modelid_list = os.listdir(class_folder_path)
@@ -30,19 +33,30 @@ def view_data():
             mesh_file_path = mesh_folder_path + classname + "/" + modelid + ".obj"
             sdf_file_path = sdf_folder_path + classname + "/" + modelid + ".npy"
 
-            mesh = Mesh(mesh_file_path)
+            render_list = []
 
-            mash = Mash.fromParamsFile(mash_file_path, device="cpu")
-            mash_points = mash.toSamplePoints().numpy()
+            if True:
+                mesh = Mesh(mesh_file_path)
+                render_list.append(mesh.toO3DMesh())
 
-            sdf = np.load(sdf_file_path)
-            sdf_points = sdf[sdf[:, 3] <= 0][:, :3]
+            if False:
+                mash = Mash.fromParamsFile(mash_file_path, device="cpu")
+                mash_points = mash.toSamplePoints().numpy()
 
-            mash_pcd = getPointCloud(mash_points)
-            sdf_pcd = getPointCloud(sdf_points)
-            mash_pcd.translate([0, 1, 0])
-            sdf_pcd.translate([0, -1, 0])
-            renderGeometries([mesh.toO3DMesh(), mash_pcd, sdf_pcd])
+                mash_pcd = getPointCloud(mash_points)
+                mash_pcd.translate([0, 1, 0])
+                render_list.append(mash_pcd)
+
+            if False:
+                sdf = np.load(sdf_file_path)
+                sdf_points = sdf[sdf[:, 3] <= 0][:, :3]
+
+                sdf_pcd = getPointCloud(sdf_points)
+                sdf_pcd.translate([0, -1, 0])
+                render_list.append(sdf_pcd)
+
+            print("current model:", classname, modelid)
+            renderGeometries(render_list)
 
     exit()
     return True
