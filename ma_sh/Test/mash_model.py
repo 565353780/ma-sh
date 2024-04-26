@@ -16,7 +16,7 @@ def test():
     use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float64
-    device = "cuda:0"
+    device = "cpu"
 
     mash = Mash(
         anchor_num,
@@ -69,6 +69,8 @@ def test():
     for _ in trange(1):
         sh_points2 = mash.toSamplePointsUnit()
 
-    print((sh_points == sh_points2).all())
-    # mash.renderSamplePoints()
+    if sh_points.shape[0] == sh_points2.shape[0]:
+        assert (sh_points == sh_points2).all()
+
+    mash.renderSamplePoints()
     return True
