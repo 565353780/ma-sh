@@ -17,11 +17,13 @@ class Convertor(object):
         visible: bool = True,
         y_rotate_num: int = 8,
         x_rotate_num: int = 5,
+        x_save_idxs: list = [1, 2, 3],
         force_start: bool = False,
     ) -> None:
         self.dataset_root_folder_path = dataset_root_folder_path
         self.y_rotate_num = y_rotate_num
         self.x_rotate_num = x_rotate_num
+        self.x_save_idxs = x_save_idxs
         self.force_start = force_start
 
         self.shape_image_sampler = ShapeImageSampler(
@@ -77,6 +79,7 @@ class Convertor(object):
             captured_image_folder_path,
             self.y_rotate_num,
             self.x_rotate_num,
+            self.x_save_idxs,
             True,
         )
 

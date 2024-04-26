@@ -16,9 +16,10 @@ def demo():
     height = 224
     left = 10
     top = 10
-    visible = False
+    visible = True
     y_rotate_num = 8
     x_rotate_num = 5
+    x_save_idxs = [1, 2, 3]
     force_start = False
 
     convertor = Convertor(
@@ -31,6 +32,7 @@ def demo():
         visible,
         y_rotate_num,
         x_rotate_num,
+        x_save_idxs,
         force_start,
     )
 
