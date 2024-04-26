@@ -1,18 +1,18 @@
-from copy import deepcopy
 import os
 import torch
 import numpy as np
 import open3d as o3d
-from math import sqrt
-from typing import Union
 import matplotlib.pyplot as plt
+from math import sqrt
+from copy import deepcopy
+from typing import Union, Tuple
 
-from ma_sh.Method.pcd import getPointCloud
 import mash_cpp
 
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
 from ma_sh.Data.mesh import Mesh
 from ma_sh.Method.check import checkShape
+from ma_sh.Method.pcd import getPointCloud
 from ma_sh.Method.Mash.mash import toParams, toPreLoadDatas
 from ma_sh.Method.render import renderGeometries, renderPoints
 from ma_sh.Method.path import createFileFolder, removeFile, renameFile
@@ -343,7 +343,9 @@ class Mash(object):
         )
         return mask_boundary_thetas
 
-    def toInMaskSamplePoints(self, mask_boundary_thetas: torch.Tensor) -> torch.Tensor:
+    def toInMaskSamplePoints(
+        self, mask_boundary_thetas: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         in_max_mask_sample_polar_idxs_vec = mash_cpp.toInMaxMaskSamplePolarIdxsVec(
             self.anchor_num,
             self.sample_thetas,
@@ -423,14 +425,20 @@ class Mash(object):
             self.use_inv,
         )
 
-        fps_in_mask_sh_points = mash_cpp.toFPSPoints(
+        fps_in_mask_sample_point_idxs = mash_cpp.toFPSPointIdxs(
             in_mask_sh_points,
             in_mask_sample_polar_idxs,
             self.sample_point_scale,
             self.anchor_num,
         )
 
-        return fps_in_mask_sh_points
+        fps_in_mask_sh_points = in_mask_sh_points[fps_in_mask_sample_point_idxs]
+
+        in_mask_sample_point_idxs = in_mask_sample_polar_idxs[
+            fps_in_mask_sample_point_idxs
+        ]
+
+        return fps_in_mask_sh_points, in_mask_sample_point_idxs
 
     def toMaskBoundarySamplePoints(
         self, mask_boundary_thetas: torch.Tensor
@@ -462,14 +470,19 @@ class Mash(object):
     def toSamplePointsUnit(self) -> torch.Tensor:
         mask_boundary_thetas = self.toMaskBoundaryThetas()
 
-        in_mask_sample_points = self.toInMaskSamplePoints(mask_boundary_thetas)
+        in_mask_sample_points, in_mask_sample_point_idxs = self.toInMaskSamplePoints(
+            mask_boundary_thetas
+        )
 
         mask_boundary_sample_points = self.toMaskBoundarySamplePoints(
             mask_boundary_thetas
         )
 
         sample_points = torch.vstack(
-            [in_mask_sample_points, mask_boundary_sample_points]
+            [
+                in_mask_sample_points[in_mask_sample_point_idxs == 0],
+                mask_boundary_sample_points[self.mask_boundary_phi_idxs == 0],
+            ]
         )
 
         return sample_points
@@ -496,7 +509,7 @@ class Mash(object):
         return sample_points
 
     def renderSamplePoints(self) -> bool:
-        sample_points = self.toSamplePoints().detach().clone().cpu().numpy()
+        sample_points = self.toSamplePointsUnit().detach().clone().cpu().numpy()
         print(sample_points.shape)
 
         renderPoints(sample_points)

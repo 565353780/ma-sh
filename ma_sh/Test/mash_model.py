@@ -7,12 +7,12 @@ from ma_sh.Test.init_values import initValues
 
 
 def test():
-    anchor_num = 100
+    anchor_num = 40
     mask_degree_max = 1
     sh_degree_max = 3
     mask_boundary_sample_num = 10
     sample_polar_num = 2000
-    sample_point_scale = 0.5
+    sample_point_scale = 0.4
     use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float64
@@ -53,7 +53,7 @@ def test():
 
         mean_point_value.backward()
 
-    for _ in trange(20):
+    for _ in trange(1):
         sh_points = mash.toSamplePoints()
 
         if False:
@@ -66,11 +66,9 @@ def test():
             print(mash.rotate_vectors.grad[0])
             print(mash.positions.grad[0])
 
-    for _ in trange(20):
+    for _ in trange(1):
         sh_points2 = mash.toSamplePointsUnit()
 
-    print(sh_points == sh_points2)
-    print(sh_points.shape)
-    print(sh_points2.shape)
+    print((sh_points == sh_points2).all())
     # mash.renderSamplePoints()
     return True
