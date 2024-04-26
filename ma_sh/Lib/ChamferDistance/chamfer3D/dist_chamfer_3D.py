@@ -3,24 +3,30 @@ from torch.autograd import Function
 import torch
 import importlib
 import os
+
 chamfer_found = importlib.find_loader("chamfer_3D") is not None
 if not chamfer_found:
     ## Cool trick from https://github.com/chrdiller
     print("Jitting Chamfer 3D")
     cur_path = os.path.dirname(os.path.abspath(__file__))
-    build_path = cur_path.replace('chamfer3D', 'tmp')
+    build_path = cur_path.replace("chamfer3D", "tmp")
     os.makedirs(build_path, exist_ok=True)
 
     from torch.utils.cpp_extension import load
-    chamfer_3D = load(name="chamfer_3D",
-          sources=[
-              "/".join(os.path.abspath(__file__).split('/')[:-1] + ["chamfer_cuda.cpp"]),
-              "/".join(os.path.abspath(__file__).split('/')[:-1] + ["chamfer3D.cu"]),
-              ], build_directory=build_path)
+
+    chamfer_3D = load(
+        name="chamfer_3D",
+        sources=[
+            "/".join(os.path.abspath(__file__).split("/")[:-1] + ["chamfer_cuda.cpp"]),
+            "/".join(os.path.abspath(__file__).split("/")[:-1] + ["chamfer3D.cu"]),
+        ],
+        build_directory=build_path,
+    )
     print("Loaded JIT 3D CUDA chamfer distance")
 
 else:
     import chamfer_3D
+
     print("Loaded compiled 3D CUDA chamfer distance")
 
 
@@ -30,11 +36,13 @@ class chamfer_3DFunction(Function):
     @staticmethod
     def forward(ctx, xyz1, xyz2):
         batchsize, n, dim = xyz1.size()
-        assert dim==3, "Wrong last dimension for the chamfer distance 's input! Check with .size()"
+        assert (
+            dim == 3
+        ), "Wrong last dimension for the chamfer distance 's input! Check with .size()"
         _, m, dim = xyz2.size()
-        assert dim==3, "Wrong last dimension for the chamfer distance 's input! Check with .size()"
-        device = xyz1.device
-
+        assert (
+            dim == 3
+        ), "Wrong last dimension for the chamfer distance 's input! Check with .size()"
         device = xyz1.device
 
         dist1 = torch.zeros(batchsize, n)

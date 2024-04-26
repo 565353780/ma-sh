@@ -66,6 +66,11 @@ def test():
             print(mash.rotate_vectors.grad[0])
             print(mash.positions.grad[0])
 
+    for _ in trange(20):
+        sh_points2 = mash.toSamplePointsUnit()
+
+    print(sh_points == sh_points2)
     print(sh_points.shape)
+    print(sh_points2.shape)
     # mash.renderSamplePoints()
     return True

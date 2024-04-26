@@ -335,6 +335,145 @@ class Mash(object):
         self.sh_params = new_sh_params
         return True
 
+    def toMaskBoundaryThetas(self) -> torch.Tensor:
+        mask_boundary_thetas = mash_cpp.toMaskBoundaryThetas(
+            self.mask_params,
+            self.mask_boundary_base_values,
+            self.mask_boundary_phi_idxs,
+        )
+        return mask_boundary_thetas
+
+    def toInMaskSamplePoints(self, mask_boundary_thetas: torch.Tensor) -> torch.Tensor:
+        in_max_mask_sample_polar_idxs_vec = mash_cpp.toInMaxMaskSamplePolarIdxsVec(
+            self.anchor_num,
+            self.sample_thetas,
+            mask_boundary_thetas,
+            self.mask_boundary_phi_idxs,
+        )
+
+        in_max_mask_sample_polar_idxs = mash_cpp.toInMaxMaskSamplePolarIdxs(
+            in_max_mask_sample_polar_idxs_vec
+        )
+
+        in_max_mask_sample_polar_data_idxs = torch.hstack(
+            in_max_mask_sample_polar_idxs_vec
+        )
+
+        in_max_mask_sample_phis = self.sample_phis[in_max_mask_sample_polar_data_idxs]
+
+        in_max_mask_sample_thetas = self.sample_thetas[
+            in_max_mask_sample_polar_data_idxs
+        ]
+
+        in_max_mask_base_values = self.sample_base_values[
+            :, in_max_mask_sample_polar_data_idxs
+        ]
+
+        in_max_mask_thetas = mash_cpp.toInMaxMaskThetas(
+            self.mask_params,
+            in_max_mask_base_values,
+            in_max_mask_sample_polar_idxs,
+            in_max_mask_sample_polar_data_idxs,
+        )
+
+        in_mask_sample_polar_mask = in_max_mask_sample_thetas <= in_max_mask_thetas
+
+        in_mask_sample_phis = in_max_mask_sample_phis[in_mask_sample_polar_mask]
+
+        in_mask_sample_polar_idxs = in_max_mask_sample_polar_idxs[
+            in_mask_sample_polar_mask
+        ]
+
+        in_mask_sample_polar_data_idxs = in_max_mask_sample_polar_data_idxs[
+            in_mask_sample_polar_mask
+        ]
+
+        in_mask_base_values = in_max_mask_base_values[:, in_mask_sample_polar_mask]
+
+        in_mask_sample_theta_weights = mash_cpp.toInMaskSampleThetaWeights(
+            in_max_mask_sample_thetas, in_max_mask_thetas, in_mask_sample_polar_mask
+        )
+
+        detect_thetas = mash_cpp.toDetectThetas(
+            self.mask_params,
+            in_mask_base_values,
+            in_mask_sample_polar_idxs,
+            in_mask_sample_theta_weights,
+        )
+
+        in_mask_sh_values = mash_cpp.toSHValues(
+            self.sh_degree_max,
+            self.sh_params,
+            in_mask_sample_phis,
+            detect_thetas,
+            in_mask_sample_polar_idxs,
+        )
+
+        in_mask_sh_directions = self.sample_sh_directions[
+            in_mask_sample_polar_data_idxs
+        ]
+
+        in_mask_sh_points = mash_cpp.toSHPoints(
+            self.sh_params,
+            self.rotate_vectors,
+            self.positions,
+            in_mask_sh_directions,
+            in_mask_sh_values,
+            in_mask_sample_polar_idxs,
+            self.use_inv,
+        )
+
+        fps_in_mask_sh_points = mash_cpp.toFPSPoints(
+            in_mask_sh_points,
+            in_mask_sample_polar_idxs,
+            self.sample_point_scale,
+            self.anchor_num,
+        )
+
+        return fps_in_mask_sh_points
+
+    def toMaskBoundarySamplePoints(
+        self, mask_boundary_thetas: torch.Tensor
+    ) -> torch.Tensor:
+        mask_boundary_sh_values = mash_cpp.toSHValues(
+            self.sh_degree_max,
+            self.sh_params,
+            self.mask_boundary_phis,
+            mask_boundary_thetas,
+            self.mask_boundary_phi_idxs,
+        )
+
+        mask_boundary_sh_directions = mash_cpp.toDirections(
+            self.mask_boundary_phis, mask_boundary_thetas
+        )
+
+        mask_boundary_sh_points = mash_cpp.toSHPoints(
+            self.sh_params,
+            self.rotate_vectors,
+            self.positions,
+            mask_boundary_sh_directions,
+            mask_boundary_sh_values,
+            self.mask_boundary_phi_idxs,
+            self.use_inv,
+        )
+
+        return mask_boundary_sh_points
+
+    def toSamplePointsUnit(self) -> torch.Tensor:
+        mask_boundary_thetas = self.toMaskBoundaryThetas()
+
+        in_mask_sample_points = self.toInMaskSamplePoints(mask_boundary_thetas)
+
+        mask_boundary_sample_points = self.toMaskBoundarySamplePoints(
+            mask_boundary_thetas
+        )
+
+        sample_points = torch.vstack(
+            [in_mask_sample_points, mask_boundary_sample_points]
+        )
+
+        return sample_points
+
     def toSamplePoints(self) -> torch.Tensor:
         sample_points = mash_cpp.toMashSamplePoints(
             self.anchor_num,

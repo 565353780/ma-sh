@@ -46,6 +46,7 @@ def demo():
         # mash.renderSamplePoints()
 
         mash.renderSamplePatches()
+        exit()
 
         points = mash.toSamplePoints().detach().clone().cpu().numpy()
 
