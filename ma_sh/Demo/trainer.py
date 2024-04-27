@@ -28,8 +28,8 @@ def demo():
 
     lr = 5e-3
     warm_step_num = 40
-    train_epoch = 10
-    patience = 4
+    train_epoch = 20
+    patience = 2
 
     render = False
     render_freq = 1
