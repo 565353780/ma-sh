@@ -131,7 +131,7 @@ class Trainer(object):
         gt_pcd = getPointCloud(self.gt_points)
         gt_pcd.estimate_normals()
 
-        surface_dist = 0.01
+        surface_dist = 0.001
 
         anchor_pcd = downSample(gt_pcd, self.mash.anchor_num)
 
@@ -166,7 +166,7 @@ class Trainer(object):
             print("\t mesh_file_path:", mesh_file_path)
             return False
 
-        surface_dist = 0.01
+        surface_dist = 0.001
 
         self.mesh.samplePoints(self.mash.anchor_num)
 
@@ -325,7 +325,7 @@ class Trainer(object):
                 boundary_connect_loss + current_boundary_connect_loss
             )
 
-        loss = 20.0 * fit_loss + coverage_loss + 0.001 * boundary_connect_loss
+        loss = 10.0 * fit_loss + coverage_loss + 0.001 * boundary_connect_loss
 
         loss.backward()
 

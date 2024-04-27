@@ -15,12 +15,12 @@ from ma_sh.Module.trainer import Trainer
 
 
 def demo():
-    anchor_num = 100
+    anchor_num = 400
     mask_degree_max = 3
-    sh_degree_max = 4
-    mask_boundary_sample_num = 40
-    sample_polar_num = 4000
-    sample_point_scale = 0.4
+    sh_degree_max = 2
+    mask_boundary_sample_num = 36
+    sample_polar_num = 100
+    sample_point_scale = 0.8
     use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float32
@@ -102,6 +102,7 @@ def demo():
     else:
         gt_points_file_path = "/home/chli/chLi/Dataset/SampledPcd/ShapeNet/04090263/22d2782aa73ea40960abd8a115f9899.npy"
         gt_points_file_path = "/home/chli/chLi/Dataset/SampledPcd/ShapeNet/03001627/46e1939ce6ee14d6a4689f3cf5c22e6.npy"
+        gt_points_file_path = "/home/chli/chLi/Dataset/SampledPcd/ShapeNet/03001627/1b8e84935fdc3ec82be289de70e8db31.npy"
         # gt_points_file_path = "/Users/fufu/Downloads/model_normalized_obj.npy"
         trainer.loadGTPointsFile(gt_points_file_path)
     trainer.autoTrainMash(gt_points_num)
