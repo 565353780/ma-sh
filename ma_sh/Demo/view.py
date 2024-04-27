@@ -83,7 +83,25 @@ def demo():
         o3d_viewer = O3DViewer()
         o3d_viewer.createWindow()
 
-        mash_folder_path = "./output/20240427_14:38:49/"
+        mash_root_folder_path = "./output/"
+
+        mash_folename_list = os.listdir(mash_root_folder_path)
+        mash_folename_list.sort()
+
+        valid_mash_folder_path_list = []
+
+        for mash_folename in mash_folename_list:
+            mash_folder_path = mash_root_folder_path + mash_folename + "/"
+
+            if not os.path.isdir(mash_folder_path) or not os.path.exists(
+                mash_folder_path
+            ):
+                continue
+
+            valid_mash_folder_path_list.append(mash_folder_path)
+
+        mash_folder_path = valid_mash_folder_path_list[-1]
+        print("start view:", mash_folder_path)
         view_freq = 10
 
         mash_filename_list = os.listdir(mash_folder_path)
@@ -96,7 +114,7 @@ def demo():
 
             mash_file_path = mash_folder_path + mash_filename
 
-            mash = Mash.fromParamsFile(mash_file_path, 100, 10000, 0.4, device="cpu")
+            mash = Mash.fromParamsFile(mash_file_path, 10, 1000, 0.4, device="cpu")
 
             points = mash.toSamplePoints().detach().clone().cpu().numpy()
 
