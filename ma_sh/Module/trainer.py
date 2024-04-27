@@ -166,7 +166,7 @@ class Trainer(object):
             print("\t mesh_file_path:", mesh_file_path)
             return False
 
-        surface_dist = 0.1
+        surface_dist = 0.01
 
         self.mesh.samplePoints(self.mash.anchor_num)
 
@@ -325,12 +325,7 @@ class Trainer(object):
                 boundary_connect_loss + current_boundary_connect_loss
             )
 
-        manifold_loss = coverage_loss + 0.1 * boundary_connect_loss
-
-        fit_loss_value = toNumpy(fit_loss)
-        manifold_loss_weight = min(2e-2 / fit_loss_value, 1.0)
-
-        loss = fit_loss + manifold_loss_weight * manifold_loss
+        loss = 10.0 * fit_loss + coverage_loss + 0.001 * boundary_connect_loss
 
         loss.backward()
 
