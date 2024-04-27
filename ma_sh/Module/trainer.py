@@ -4,15 +4,10 @@ import numpy as np
 from tqdm import tqdm
 from typing import Union
 from copy import deepcopy
-from torch.optim import Optimizer, AdamW
-from torch.optim.lr_scheduler import (
-    LRScheduler,
-    CosineAnnealingWarmRestarts,
-    ReduceLROnPlateau,
-)
+from torch.optim import AdamW
 
-from ma_sh.Config.constant import EPSILON
 from ma_sh.Config.weights import W0
+from ma_sh.Config.constant import EPSILON
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
 from ma_sh.Data.mesh import Mesh
 from ma_sh.Loss.chamfer_distance import chamferDistance
@@ -37,14 +32,10 @@ class Trainer(object):
         idx_dtype=torch.int64,
         dtype=torch.float64,
         device: str = "cpu",
-        warm_epoch_step_num: int = 10,
-        warm_epoch_num: int = 40,
-        finetune_step_num: int = 2000,
         lr: float = 5e-3,
-        weight_decay: float = 1e-10,
-        factor: float = 0.9,
+        warm_step_num: int = 20,
+        train_epoch: int = 10,
         patience: int = 4,
-        min_lr: float = 1e-4,
         render: bool = False,
         render_freq: int = 1,
         render_init_only: bool = False,
@@ -63,22 +54,16 @@ class Trainer(object):
             dtype,
             device,
         )
+        self.lr = lr
+        self.warm_step_num = warm_step_num
+        self.train_epoch = train_epoch
+        self.patience = patience
 
-        self.warm_epoch_step_num = warm_epoch_step_num
-        self.warm_epoch_num = warm_epoch_num
-
-        self.finetune_step_num = finetune_step_num
-
+        self.epoch = 0
         self.step = 0
         self.loss_min = float("inf")
 
         self.best_params_dict = {}
-
-        self.lr = lr
-        self.weight_decay = weight_decay
-        self.factor = factor
-        self.patience = patience
-        self.min_lr = min_lr
 
         self.render = render
         self.render_freq = render_freq
@@ -91,6 +76,16 @@ class Trainer(object):
 
         self.mesh = Mesh()
         self.gt_points = None
+
+        self.optimizer = AdamW(
+            [
+                self.mash.mask_params,
+                self.mash.sh_params,
+                self.mash.rotate_vectors,
+                self.mash.positions,
+            ],
+            lr=self.lr,
+        )
 
         self.initRecords()
 
@@ -260,30 +255,16 @@ class Trainer(object):
         self.updateBestParams()
         return True
 
-    def getLr(self, optimizer) -> float:
-        return optimizer.state_dict()["param_groups"][0]["lr"]
-
-    def toTrainStepNum(self, scheduler: LRScheduler) -> int:
-        if not isinstance(scheduler, CosineAnnealingWarmRestarts):
-            return self.finetune_step_num
-
-        if scheduler.T_mult == 1:
-            warm_epoch_num = scheduler.T_0 * self.warm_epoch_num
-        else:
-            warm_epoch_num = int(
-                scheduler.T_mult
-                * (1.0 - pow(scheduler.T_mult, self.warm_epoch_num))
-                / (1.0 - scheduler.T_mult)
-            )
-
-        return self.warm_epoch_step_num * warm_epoch_num
+    def updateLr(self, lr: float) -> bool:
+        for param_group in self.optimizer.param_groups:
+            param_group["lr"] = lr
+        return True
 
     def trainStep(
         self,
-        optimizer: Optimizer,
         gt_points: torch.Tensor,
     ) -> Union[dict, None]:
-        optimizer.zero_grad()
+        self.optimizer.zero_grad()
 
         boundary_idxs = self.mash.mask_boundary_phi_idxs
         boundary_pts, inner_pts, inner_idxs = self.mash.toSampleUnitPoints()
@@ -325,13 +306,24 @@ class Trainer(object):
                 boundary_connect_loss + current_boundary_connect_loss
             )
 
-        loss = 10.0 * fit_loss + coverage_loss + 0.001 * boundary_connect_loss
+        manifold_loss_weight = self.epoch / (self.train_epoch - 1)
+
+        fit_loss_weight = 1.0
+        coverage_loss_weight = 0.25 + 0.75 * manifold_loss_weight
+        boundary_connect_loss_weight = 0.0001 + 0.0099 * manifold_loss_weight
+
+        loss = (
+            fit_loss_weight * fit_loss
+            + coverage_loss_weight * coverage_loss
+            + boundary_connect_loss_weight * boundary_connect_loss
+        )
 
         loss.backward()
 
-        optimizer.step()
+        self.optimizer.step()
 
         loss_dict = {
+            "epoch": self.epoch,
             "boundary_pts": boundary_pts.shape[0],
             "inner_pts": inner_pts.shape[0],
             "fit_loss": toNumpy(fit_loss),
@@ -339,83 +331,30 @@ class Trainer(object):
             "boundary_connect_loss": toNumpy(boundary_connect_loss),
             "loss": toNumpy(loss),
             "chamfer_distance": toNumpy(fit_loss) + toNumpy(coverage_loss),
+            "boundary_connect_loss_weight": boundary_connect_loss_weight,
         }
 
         return loss_dict
 
-    def checkStop(
-        self, optimizer: Optimizer, scheduler: LRScheduler, loss_dict: dict
-    ) -> bool:
-        if not isinstance(scheduler, CosineAnnealingWarmRestarts):
-            scheduler.step(loss_dict["loss"])
-
-            if self.getLr(optimizer) == self.min_lr:
-                self.min_lr_reach_time += 1
-
-            return self.min_lr_reach_time > self.patience
-
-        current_warm_epoch = self.step / self.warm_epoch_step_num
-        scheduler.step(current_warm_epoch)
-
-        return current_warm_epoch >= self.warm_epoch_num
-
-    def trainMash(
+    def warmUpMash(
         self,
-        optimizer: Optimizer,
-        scheduler: LRScheduler,
         gt_points: torch.Tensor,
     ) -> bool:
         self.mash.setGradState(True)
 
-        train_step_num = self.toTrainStepNum(scheduler)
-        final_step = self.step + train_step_num
+        print("[INFO][MashModelOp::warmUpMash]")
+        print("\t start warm up mash ...")
+        pbar = tqdm(total=self.warm_step_num)
+        while self.step < self.warm_step_num:
+            if self.render:
+                if self.step % self.render_freq == 0:
+                    self.renderMash(gt_points)
 
-        print("[INFO][MashModelOp::train]")
-        print("\t start training ...")
-        pbar = tqdm(total=final_step)
-        pbar.update(self.step)
-        while self.step < final_step:
-            if self.render and self.step % self.render_freq == 0:
-                assert self.o3d_viewer is not None
-                with torch.no_grad():
-                    self.o3d_viewer.clearGeometries()
+            current_lr = 1.0 * (self.step + 1) / self.warm_step_num * self.lr
 
-                    mesh_abb_length = 2.0 * self.mesh.toABBLength()
-                    if mesh_abb_length == 0:
-                        mesh_abb_length = 1.1
-
-                    gt_pcd = getPointCloud(toNumpy(gt_points.squeeze(0)))
-                    gt_pcd.translate([-mesh_abb_length, 0, 0])
-                    self.o3d_viewer.addGeometry(gt_pcd)
-
-                    detect_points = toNumpy(self.mash.toSamplePoints())
-                    pcd = getPointCloud(detect_points)
-                    self.o3d_viewer.addGeometry(pcd)
-
-                    # self.mesh.paintJetColorsByPoints(detect_points)
-                    mesh = self.mesh.toO3DMesh()
-                    mesh.translate([mesh_abb_length, 0, 0])
-                    self.o3d_viewer.addGeometry(mesh)
-
-                    """
-                    for j in range(self.mash.mask_params.shape[0]):
-                        view_cone = self.toO3DViewCone(j)
-                        view_cone.translate([-mesh_abb_length, 0, 0])
-                        self.o3d_viewer.addGeometry(view_cone)
-
-                        # inv_sphere = self.toO3DInvSphere(j)
-                        # inv_sphere.translate([-30, 0, 0])
-                        # self.o3d_viewer.addGeometry(inv_sphere)
-                    """
-
-                    self.o3d_viewer.update()
-
-                    if self.render_init_only:
-                        self.o3d_viewer.run()
-                        exit()
+            self.updateLr(current_lr)
 
             loss_dict = self.trainStep(
-                optimizer,
                 gt_points,
             )
 
@@ -423,26 +362,74 @@ class Trainer(object):
             if self.logger.isValid():
                 for key, item in loss_dict.items():
                     self.logger.addScalar("Train/" + key, item, self.step)
-                self.logger.addScalar("Train/lr", self.getLr(optimizer), self.step)
 
-            self.updateBestParams(loss_dict["loss"])
+            loss = loss_dict["loss"]
 
-            pbar.set_description(
-                "LOSS %.6f LR %.4f"
-                % (
-                    loss_dict["loss"],
-                    self.getLr(optimizer) / self.lr,
-                )
-            )
+            # self.updateBestParams(loss)
+
+            pbar.set_description("LOSS %.6f" % (loss,))
 
             self.autoSaveMash("train")
-
-            if self.checkStop(optimizer, scheduler, loss_dict):
-                break
 
             self.step += 1
             pbar.update(1)
 
+        self.epoch += 1
+        return True
+
+    def trainMash(
+        self,
+        gt_points: torch.Tensor,
+    ) -> bool:
+        self.mash.setGradState(True)
+
+        self.updateLr(self.lr)
+
+        min_loss = float("inf")
+        min_loss_reached_time = 0
+
+        print("[INFO][MashModelOp::trainMash]")
+        print("\t start train mash epoch[" + str(self.epoch) + "]...")
+        pbar = tqdm()
+        while True:
+            if self.render:
+                if self.step % self.render_freq == 0:
+                    self.renderMash(gt_points)
+
+            loss_dict = self.trainStep(
+                gt_points,
+            )
+
+            assert isinstance(loss_dict, dict)
+            if self.logger.isValid():
+                for key, item in loss_dict.items():
+                    self.logger.addScalar("Train/" + key, item, self.step)
+
+            loss = loss_dict["loss"]
+
+            # self.updateBestParams(loss)
+
+            pbar.set_description("LOSS %.6f" % (loss,))
+
+            self.autoSaveMash("train")
+
+            self.step += 1
+            pbar.update(1)
+
+            if loss < min_loss:
+                min_loss = loss
+                min_loss_reached_time = 0
+            else:
+                min_loss_reached_time += 1
+
+            self.logger.addScalar(
+                "Train/patience", self.patience - min_loss_reached_time, self.step
+            )
+
+            if min_loss_reached_time >= self.patience:
+                break
+
+        self.epoch += 1
         return True
 
     def autoTrainMash(
@@ -478,33 +465,11 @@ class Trainer(object):
             .reshape(1, -1, 3)
         )
 
-        while True:
-            optimizer = AdamW(
-                [
-                    self.mash.mask_params,
-                    self.mash.sh_params,
-                    self.mash.rotate_vectors,
-                    self.mash.positions,
-                ],
-                lr=self.lr,
-                weight_decay=self.weight_decay,
-            )
-            warm_scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=1, T_mult=1)
-            finetune_scheduler = ReduceLROnPlateau(
-                optimizer,
-                mode="min",
-                factor=self.factor,
-                patience=self.patience,
-                min_lr=self.min_lr,
-            )
+        self.warmUpMash(gt_points)
+        for _ in range(self.train_epoch):
+            self.trainMash(gt_points)
 
-            self.trainMash(optimizer, warm_scheduler, gt_points)
-            for param_group in optimizer.param_groups:
-                param_group["lr"] = self.lr
-            self.trainMash(optimizer, finetune_scheduler, gt_points)
-
-            break
-
+        """
             if self.upperSHDegree():
                 print("[INFO][Trainer::autoTrainMash]")
                 print("\t upperSHDegree success!")
@@ -530,6 +495,7 @@ class Trainer(object):
                 continue
 
             break
+        """
 
         return True
 
@@ -546,8 +512,51 @@ class Trainer(object):
         )
 
         save_mash = deepcopy(self.mash)
-        save_mash.loadParamsDict(self.best_params_dict)
         save_mash.saveParamsFile(save_file_path, True)
 
         self.save_file_idx += 1
+        return True
+
+    def renderMash(self, gt_points: torch.Tensor) -> bool:
+        if self.o3d_viewer is None:
+            print("[ERROR][Trainer::renderMash]")
+            print("\t o3d_viewer is None!")
+            return False
+
+        with torch.no_grad():
+            self.o3d_viewer.clearGeometries()
+
+            mesh_abb_length = 2.0 * self.mesh.toABBLength()
+            if mesh_abb_length == 0:
+                mesh_abb_length = 1.1
+
+            gt_pcd = getPointCloud(toNumpy(gt_points.squeeze(0)))
+            gt_pcd.translate([-mesh_abb_length, 0, 0])
+            self.o3d_viewer.addGeometry(gt_pcd)
+
+            detect_points = toNumpy(self.mash.toSamplePoints())
+            pcd = getPointCloud(detect_points)
+            self.o3d_viewer.addGeometry(pcd)
+
+            # self.mesh.paintJetColorsByPoints(detect_points)
+            mesh = self.mesh.toO3DMesh()
+            mesh.translate([mesh_abb_length, 0, 0])
+            self.o3d_viewer.addGeometry(mesh)
+
+            """
+            for j in range(self.mash.mask_params.shape[0]):
+                view_cone = self.toO3DViewCone(j)
+                view_cone.translate([-mesh_abb_length, 0, 0])
+                self.o3d_viewer.addGeometry(view_cone)
+
+                # inv_sphere = self.toO3DInvSphere(j)
+                # inv_sphere.translate([-30, 0, 0])
+                # self.o3d_viewer.addGeometry(inv_sphere)
+            """
+
+            self.o3d_viewer.update()
+
+            if self.render_init_only:
+                self.o3d_viewer.run()
+                exit()
         return True
