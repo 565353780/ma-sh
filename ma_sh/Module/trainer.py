@@ -284,21 +284,43 @@ class Trainer(object):
     ) -> Union[dict, None]:
         optimizer.zero_grad()
 
-        detect_points = self.mash.toSamplePoints()
+        boundary_idxs = self.mash.mask_boundary_phi_idxs
+        boundary_pts, inner_pts, inner_idxs = self.mash.toSamplePoints()
 
-        fit_dists2, coverage_dists2 = chamferDistance(
-            detect_points.reshape(1, -1, 3).type(gt_points.dtype),
+        mash_pts = torch.vstack([boundary_pts, inner_pts])
+
+        mash_fit_dists2, mash_coverage_dists2 = chamferDistance(
+            mash_pts.reshape(1, -1, 3).type(gt_points.dtype),
             gt_points,
             "cuda" not in self.mash.device,
         )[:2]
 
-        fit_dists = torch.sqrt(fit_dists2 + EPSILON)
-        coverage_dists = torch.sqrt(coverage_dists2 + EPSILON)
+        mash_fit_dists = torch.sqrt(mash_fit_dists2 + EPSILON)
+        mash_coverage_dists = torch.sqrt(mash_coverage_dists2 + EPSILON)
 
-        fit_loss = torch.mean(fit_dists)
-        coverage_loss = torch.mean(coverage_dists)
+        mash_fit_loss = torch.mean(mash_fit_dists)
+        mash_coverage_loss = torch.mean(mash_coverage_dists)
 
-        loss = fit_loss + coverage_loss
+        boundary_connect_loss = 0
+
+        for i in range(self.mash.anchor_num):
+            current_boundary_pts_mask = boundary_idxs == i
+            current_boundary_pts = boundary_pts[current_boundary_pts_mask]
+            other_boundary_pts = boundary_pts[~current_boundary_pts_mask]
+
+            current_boundary_fit_dists2, _ = (
+                chamferDistance(
+                    current_boundary_pts.unsqueeze(0), other_boundary_pts.unsqueeze(0)
+                ),
+                "cuda" not in self.mash.device,
+            )[:2]
+
+            print(current_boundary_pts.shape)
+            print(other_boundary_pts.shape)
+            print(current_boundary_fit_dists2.shape)
+            exit()
+
+        loss = mash_fit_loss + mash_coverage_loss
 
         loss.backward()
 
