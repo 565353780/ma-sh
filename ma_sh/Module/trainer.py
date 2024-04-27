@@ -178,22 +178,6 @@ class Trainer(object):
         )
         return True
 
-    def updateBestParams(self, loss: Union[float, None] = None) -> bool:
-        if loss is not None:
-            if loss >= self.loss_min:
-                return False
-
-            self.loss_min = loss
-
-        self.best_params_dict = {
-            "mask_params": self.mash.mask_params.detach().clone(),
-            "sh_params": self.mash.sh_params.detach().clone(),
-            "rotate_vectors": self.mash.rotate_vectors.detach().clone(),
-            "positions": self.mash.positions.detach().clone(),
-            "use_inv": self.mash.use_inv,
-        }
-        return True
-
     def loadParams(
         self,
         mask_params: Union[torch.Tensor, np.ndarray],
@@ -203,8 +187,6 @@ class Trainer(object):
         use_inv: bool,
     ) -> bool:
         self.mash.loadParams(mask_params, sh_params, rotate_vectors, positions, use_inv)
-
-        self.updateBestParams()
         return True
 
     def loadBestParams(
@@ -239,8 +221,6 @@ class Trainer(object):
             print("[ERROR][Trainer::upperMaskDegree]")
             print("\t updateMaskDegree failed!")
             return False
-
-        self.updateBestParams()
         return True
 
     def upperSHDegree(self) -> bool:
@@ -251,8 +231,6 @@ class Trainer(object):
             print("[ERROR][Trainer::upperMaskDegree]")
             print("\t updateSHDegree failed!")
             return False
-
-        self.updateBestParams()
         return True
 
     def updateLr(self, lr: float) -> bool:
@@ -365,8 +343,6 @@ class Trainer(object):
 
             loss = loss_dict["loss"]
 
-            # self.updateBestParams(loss)
-
             pbar.set_description("LOSS %.6f" % (loss,))
 
             self.autoSaveMash("train")
@@ -406,8 +382,6 @@ class Trainer(object):
                     self.logger.addScalar("Train/" + key, item, self.step)
 
             loss = loss_dict["loss"]
-
-            # self.updateBestParams(loss)
 
             pbar.set_description("LOSS %.6f" % (loss,))
 
