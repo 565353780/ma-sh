@@ -26,7 +26,7 @@ def demo():
     dtype = torch.float32
     device = "cuda:0"
 
-    lr = 5e-3
+    lr = 2e-3
     warm_step_num = 40
     train_epoch = 20
     patience = 2
