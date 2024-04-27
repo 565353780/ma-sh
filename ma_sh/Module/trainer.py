@@ -16,6 +16,7 @@ from ma_sh.Config.weights import W0
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
 from ma_sh.Data.mesh import Mesh
 from ma_sh.Loss.chamfer_distance import chamferDistance
+from ma_sh.Method.data import toNumpy
 from ma_sh.Method.pcd import getPointCloud, downSample
 from ma_sh.Method.time import getCurrentTime
 from ma_sh.Model.mash import Mash
@@ -285,21 +286,21 @@ class Trainer(object):
         optimizer.zero_grad()
 
         boundary_idxs = self.mash.mask_boundary_phi_idxs
-        boundary_pts, inner_pts, inner_idxs = self.mash.toSamplePoints()
+        boundary_pts, inner_pts, inner_idxs = self.mash.toSampleUnitPoints()
 
         mash_pts = torch.vstack([boundary_pts, inner_pts])
 
-        mash_fit_dists2, mash_coverage_dists2 = chamferDistance(
-            mash_pts.reshape(1, -1, 3).type(gt_points.dtype),
+        fit_dists2, coverage_dists2 = chamferDistance(
+            mash_pts.unsqueeze(0).type(gt_points.dtype),
             gt_points,
             "cuda" not in self.mash.device,
         )[:2]
 
-        mash_fit_dists = torch.sqrt(mash_fit_dists2 + EPSILON)
-        mash_coverage_dists = torch.sqrt(mash_coverage_dists2 + EPSILON)
+        fit_dists = torch.sqrt(fit_dists2 + EPSILON)
+        coverage_dists = torch.sqrt(coverage_dists2 + EPSILON)
 
-        mash_fit_loss = torch.mean(mash_fit_dists)
-        mash_coverage_loss = torch.mean(mash_coverage_dists)
+        fit_loss = torch.mean(fit_dists)
+        coverage_loss = torch.mean(coverage_dists)
 
         boundary_connect_loss = 0
 
@@ -308,29 +309,35 @@ class Trainer(object):
             current_boundary_pts = boundary_pts[current_boundary_pts_mask]
             other_boundary_pts = boundary_pts[~current_boundary_pts_mask]
 
-            current_boundary_fit_dists2, _ = (
-                chamferDistance(
-                    current_boundary_pts.unsqueeze(0), other_boundary_pts.unsqueeze(0)
-                ),
+            current_boundary_fit_dists2, _ = chamferDistance(
+                current_boundary_pts.unsqueeze(0).type(gt_points.dtype),
+                other_boundary_pts.unsqueeze(0).type(gt_points.dtype),
                 "cuda" not in self.mash.device,
             )[:2]
 
-            print(current_boundary_pts.shape)
-            print(other_boundary_pts.shape)
-            print(current_boundary_fit_dists2.shape)
-            exit()
+            current_boundary_connect_dist = torch.sqrt(
+                current_boundary_fit_dists2 + EPSILON
+            )
 
-        loss = mash_fit_loss + mash_coverage_loss
+            current_boundary_connect_loss = torch.mean(current_boundary_connect_dist)
+
+            boundary_connect_loss = (
+                boundary_connect_loss + current_boundary_connect_loss
+            )
+
+        loss = fit_loss + coverage_loss + 0.0001 * boundary_connect_loss
 
         loss.backward()
 
         optimizer.step()
 
         loss_dict = {
-            "fit_loss": fit_loss.detach().clone().cpu().numpy(),
-            "coverage_loss": coverage_loss.detach().clone().cpu().numpy(),
-            "point_num": detect_points.shape[0],
-            "loss": loss.detach().clone().cpu().numpy(),
+            "boundary_pts": boundary_pts.shape[0],
+            "inner_pts": inner_pts.shape[0],
+            "fit_loss": toNumpy(fit_loss),
+            "coverage_loss": toNumpy(coverage_loss),
+            "boundary_connect_loss": toNumpy(boundary_connect_loss),
+            "loss": toNumpy(loss),
         }
 
         return loss_dict
@@ -376,13 +383,11 @@ class Trainer(object):
                     if mesh_abb_length == 0:
                         mesh_abb_length = 1.1
 
-                    gt_pcd = getPointCloud(gt_points.reshape(-1, 3).cpu().numpy())
+                    gt_pcd = getPointCloud(toNumpy(gt_points.squeeze(0)))
                     gt_pcd.translate([-mesh_abb_length, 0, 0])
                     self.o3d_viewer.addGeometry(gt_pcd)
 
-                    detect_points = (
-                        self.mash.toSamplePoints().detach().clone().cpu().numpy()
-                    )
+                    detect_points = toNumpy(self.mash.toSamplePoints())
                     pcd = getPointCloud(detect_points)
                     self.o3d_viewer.addGeometry(pcd)
 
