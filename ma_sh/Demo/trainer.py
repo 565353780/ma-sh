@@ -16,8 +16,8 @@ from ma_sh.Module.trainer import Trainer
 
 def demo():
     anchor_num = 400
-    mask_degree_max = 4
-    sh_degree_max = 3
+    mask_degree_max = 3
+    sh_degree_max = 2
     mask_boundary_sample_num = 36
     sample_polar_num = 1000
     sample_point_scale = 0.8
