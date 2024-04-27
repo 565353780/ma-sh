@@ -67,7 +67,9 @@ def test():
             print(mash.positions.grad[0])
 
     for _ in trange(1):
-        sh_points2 = mash.toSamplePointsUnit()
+        mask_boundary_sample_points, in_mask_sample_points, in_mask_sample_point_idxs = mash.toSampleUnitPoints()
+
+        sh_points2 = torch.vstack([in_mask_sample_points, mask_boundary_sample_points])
 
     if sh_points.shape[0] == sh_points2.shape[0]:
         assert (sh_points == sh_points2).all()

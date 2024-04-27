@@ -11,6 +11,7 @@ import mash_cpp
 
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
 from ma_sh.Data.mesh import Mesh
+from ma_sh.Method.data import toNumpy
 from ma_sh.Method.check import checkShape
 from ma_sh.Method.pcd import getPointCloud
 from ma_sh.Method.Mash.mash import toParams, toPreLoadDatas
@@ -335,6 +336,27 @@ class Mash(object):
         self.sh_params = new_sh_params
         return True
 
+    def toSamplePoints(self) -> torch.Tensor:
+        sample_points = mash_cpp.toMashSamplePoints(
+            self.anchor_num,
+            self.sh_degree_max,
+            self.mask_params,
+            self.sh_params,
+            self.rotate_vectors,
+            self.positions,
+            self.sample_phis,
+            self.sample_thetas,
+            self.mask_boundary_phis,
+            self.mask_boundary_phi_idxs,
+            self.mask_boundary_base_values,
+            self.sample_base_values,
+            self.sample_sh_directions,
+            self.sample_point_scale,
+            self.use_inv,
+        )
+
+        return sample_points
+
     def toMaskBoundaryThetas(self) -> torch.Tensor:
         mask_boundary_thetas = mash_cpp.toMaskBoundaryThetas(
             self.mask_params,
@@ -467,7 +489,15 @@ class Mash(object):
 
         return mask_boundary_sh_points
 
-    def toSamplePointsUnit(self) -> torch.Tensor:
+    def toSampleUnitPoints(
+        self,
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """
+        return:
+            mask_boundary_sample_points
+            in_mask_sample_points
+            in_mask_sample_point_idxs
+        """
         mask_boundary_thetas = self.toMaskBoundaryThetas()
 
         in_mask_sample_points, in_mask_sample_point_idxs = self.toInMaskSamplePoints(
@@ -478,45 +508,56 @@ class Mash(object):
             mask_boundary_thetas
         )
 
-        sample_points = torch.vstack(
-            [
-                in_mask_sample_points[in_mask_sample_point_idxs == 0],
-                mask_boundary_sample_points[self.mask_boundary_phi_idxs == 0],
-            ]
+        return (
+            mask_boundary_sample_points,
+            in_mask_sample_points,
+            in_mask_sample_point_idxs,
         )
-
-        return sample_points
-
-    def toSamplePoints(self) -> torch.Tensor:
-        sample_points = mash_cpp.toMashSamplePoints(
-            self.anchor_num,
-            self.sh_degree_max,
-            self.mask_params,
-            self.sh_params,
-            self.rotate_vectors,
-            self.positions,
-            self.sample_phis,
-            self.sample_thetas,
-            self.mask_boundary_phis,
-            self.mask_boundary_phi_idxs,
-            self.mask_boundary_base_values,
-            self.sample_base_values,
-            self.sample_sh_directions,
-            self.sample_point_scale,
-            self.use_inv,
-        )
-
-        return sample_points
 
     def renderSamplePoints(self) -> bool:
-        sample_points = self.toSamplePointsUnit().detach().clone().cpu().numpy()
-        print(sample_points.shape)
+        (
+            mask_boundary_sample_points,
+            in_mask_sample_points,
+            in_mask_sample_point_idxs,
+        ) = self.toSampleUnitPoints()
 
-        renderPoints(sample_points)
+        boundary_pts = toNumpy(mask_boundary_sample_points)
+        inner_pts = toNumpy(in_mask_sample_points)
+        inner_anchor_idxs = toNumpy(in_mask_sample_point_idxs)
+
+        print("boundary_pts:", boundary_pts.shape, boundary_pts.dtype)
+        print("inner_pts:", inner_pts.shape, inner_pts.dtype)
+        print("inner_anchor_idxs:", inner_anchor_idxs.shape, inner_anchor_idxs.dtype)
+
+        # FIXME: test flatten points by patches
+        if False:
+            render_pts_list = []
+
+            for i in range(self.anchor_num):
+                anchor_boundary_pts = boundary_pts[self.mask_boundary_phi_idxs == i]
+                anchor_inner_pts = inner_pts[inner_anchor_idxs == i]
+
+                anchor_pts = np.vstack([anchor_boundary_pts, anchor_inner_pts])
+
+                center = np.mean(anchor_pts, axis=0)
+
+                anchor_pts = (
+                    anchor_pts - center + 0.2 * np.array([i // 20, i % 20, 0.0])
+                )
+
+                render_pts_list.append(anchor_pts)
+
+            render_pts = np.vstack(render_pts_list)
+
+            renderPoints(render_pts)
+            exit()
+
+        sample_pts = np.vstack([inner_pts, boundary_pts])
+        renderPoints(sample_pts)
         return True
 
     def renderSamplePatches(self) -> bool:
-        sample_points = self.toSamplePoints().detach().clone().cpu().numpy()
+        sample_points = toNumpy(self.toSamplePoints())
 
         pcd = getPointCloud(sample_points)
         pcd.estimate_normals()
@@ -568,10 +609,10 @@ class Mash(object):
 
     def toParamsDict(self) -> dict:
         params_dict = {
-            "mask_params": self.mask_params.detach().clone().cpu().numpy(),
-            "sh_params": self.sh_params.detach().clone().cpu().numpy(),
-            "rotate_vectors": self.rotate_vectors.detach().clone().cpu().numpy(),
-            "positions": self.positions.detach().clone().cpu().numpy(),
+            "mask_params": toNumpy(self.mask_params),
+            "sh_params": toNumpy(self.sh_params),
+            "rotate_vectors": toNumpy(self.rotate_vectors),
+            "positions": toNumpy(self.positions),
             "use_inv": self.use_inv,
         }
         return params_dict
@@ -616,7 +657,7 @@ class Mash(object):
 
         createFileFolder(save_pcd_file_path)
 
-        points = self.toSamplePoints().detach().clone().cpu().numpy()
+        points = toNumpy(self.toSamplePoints())
 
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(points)

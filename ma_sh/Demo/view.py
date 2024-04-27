@@ -43,7 +43,7 @@ def demo():
 
         mash = Mash.fromParamsFile(mash_params_file_path, 10, 10000, 0.4, device="cpu")
 
-        # mash.renderSamplePoints()
+        mash.renderSamplePoints()
 
         mash.renderSamplePatches()
         exit()
