@@ -284,16 +284,22 @@ class Trainer(object):
                 boundary_connect_loss + current_boundary_connect_loss
             )
 
+        boundary_connect_loss = boundary_connect_loss / self.mash.anchor_num
+
         manifold_loss_weight = self.epoch / (self.train_epoch - 1)
 
         fit_loss_weight = 1.0
         coverage_loss_weight = 0.25 + 0.75 * manifold_loss_weight
-        boundary_connect_loss_weight = 0.0001 + 0.0099 * manifold_loss_weight
+        boundary_connect_loss_weight = 0.01 + 0.99 * manifold_loss_weight
+
+        weighted_fit_loss = fit_loss_weight * fit_loss
+        weighted_coverage_loss = coverage_loss_weight * coverage_loss
+        weighted_boundary_connect_loss = (
+            boundary_connect_loss_weight * boundary_connect_loss
+        )
 
         loss = (
-            fit_loss_weight * fit_loss
-            + coverage_loss_weight * coverage_loss
-            + boundary_connect_loss_weight * boundary_connect_loss
+            weighted_fit_loss + weighted_coverage_loss + weighted_boundary_connect_loss
         )
 
         loss.backward()
@@ -301,15 +307,16 @@ class Trainer(object):
         self.optimizer.step()
 
         loss_dict = {
-            "epoch": self.epoch,
-            "boundary_pts": boundary_pts.shape[0],
-            "inner_pts": inner_pts.shape[0],
-            "fit_loss": toNumpy(fit_loss),
-            "coverage_loss": toNumpy(coverage_loss),
-            "boundary_connect_loss": toNumpy(boundary_connect_loss),
-            "loss": toNumpy(loss),
-            "chamfer_distance": toNumpy(fit_loss) + toNumpy(coverage_loss),
-            "boundary_connect_loss_weight": boundary_connect_loss_weight,
+            "State/boundary_pts": boundary_pts.shape[0],
+            "State/inner_pts": inner_pts.shape[0],
+            "Train/epoch": self.epoch,
+            "Train/weighted_fit_loss": toNumpy(weighted_fit_loss),
+            "Train/weighted_coverage_loss": toNumpy(weighted_coverage_loss),
+            "Train/weighted_boundary_connect_loss": toNumpy(
+                weighted_boundary_connect_loss
+            ),
+            "Train/loss": toNumpy(loss),
+            "Metric/chamfer_distance": toNumpy(fit_loss) + toNumpy(coverage_loss),
         }
 
         return loss_dict
@@ -339,9 +346,9 @@ class Trainer(object):
             assert isinstance(loss_dict, dict)
             if self.logger.isValid():
                 for key, item in loss_dict.items():
-                    self.logger.addScalar("Train/" + key, item, self.step)
+                    self.logger.addScalar(key, item, self.step)
 
-            loss = loss_dict["loss"]
+            loss = loss_dict["Train/loss"]
 
             pbar.set_description("LOSS %.6f" % (loss,))
 
@@ -349,8 +356,6 @@ class Trainer(object):
 
             self.step += 1
             pbar.update(1)
-
-        self.epoch += 1
         return True
 
     def trainMash(
@@ -365,7 +370,13 @@ class Trainer(object):
         min_loss_reached_time = 0
 
         print("[INFO][MashModelOp::trainMash]")
-        print("\t start train mash epoch[" + str(self.epoch) + "]...")
+        print(
+            "\t start train mash epoch",
+            self.epoch + 1,
+            "/",
+            self.train_epoch,
+            "...",
+        )
         pbar = tqdm()
         while True:
             if self.render:
@@ -379,9 +390,9 @@ class Trainer(object):
             assert isinstance(loss_dict, dict)
             if self.logger.isValid():
                 for key, item in loss_dict.items():
-                    self.logger.addScalar("Train/" + key, item, self.step)
+                    self.logger.addScalar(key, item, self.step)
 
-            loss = loss_dict["loss"]
+            loss = loss_dict["Train/loss"]
 
             pbar.set_description("LOSS %.6f" % (loss,))
 
@@ -440,6 +451,7 @@ class Trainer(object):
         )
 
         self.warmUpMash(gt_points)
+
         for _ in range(self.train_epoch):
             self.trainMash(gt_points)
 

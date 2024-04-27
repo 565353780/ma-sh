@@ -16,20 +16,20 @@ from ma_sh.Module.trainer import Trainer
 
 def demo():
     anchor_num = 400
-    mask_degree_max = 3
-    sh_degree_max = 2
+    mask_degree_max = 4
+    sh_degree_max = 3
     mask_boundary_sample_num = 36
-    sample_polar_num = 100
+    sample_polar_num = 1000
     sample_point_scale = 0.8
     use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float32
     device = "cuda:0"
 
-    lr = 2e-3
-    warm_step_num = 20
+    lr = 5e-3
+    warm_step_num = 40
     train_epoch = 10
-    patience = 10
+    patience = 4
 
     render = False
     render_freq = 1
