@@ -131,7 +131,7 @@ class Trainer(object):
         gt_pcd = getPointCloud(self.gt_points)
         gt_pcd.estimate_normals()
 
-        surface_dist = 0.1
+        surface_dist = 0.01
 
         anchor_pcd = downSample(gt_pcd, self.mash.anchor_num)
 
@@ -143,7 +143,7 @@ class Trainer(object):
         sample_pts = np.asarray(anchor_pcd.points)
         sample_normals = np.asarray(anchor_pcd.normals)
 
-        sh_params = torch.zeros_like(self.mash.sh_params)
+        sh_params = torch.ones_like(self.mash.sh_params) * EPSILON
         sh_params[:, 0] = surface_dist / W0[0]
 
         self.mash.loadParams(

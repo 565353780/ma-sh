@@ -13,13 +13,13 @@ def toParams(
         torch.ones([anchor_num, mask_degree_max * 2 + 1]).type(dtype).to(device)
         * EPSILON
     )
-    mask_params[:, 0] = -3.0
+    mask_params[:, 0] = EPSILON
 
     sh_params = (
         torch.ones([anchor_num, (sh_degree_max + 1) ** 2]).type(dtype).to(device)
         * EPSILON
     )
-    sh_params[:, 0] = 0.01
+    sh_params[:, 0] = 0.1
 
     rotate_vectors = torch.ones([anchor_num, 3]).type(dtype).to(device) * EPSILON
 

@@ -19,6 +19,7 @@ def compare(str_a: str, str_b: str) -> int:
 
 
 def demo():
+    # view mash dataset
     if False:
         mash_params_folder_path = "./output/dataset/"
 
@@ -38,7 +39,8 @@ def demo():
 
             mash.renderSamplePoints()
 
-    if True:
+    # view single mash
+    if False:
         mash_params_file_path = "/Users/fufu/Downloads/Mash/chairs/4.npy"
 
         mash = Mash.fromParamsFile(mash_params_file_path, 10, 10000, 0.4, device="cpu")
@@ -76,23 +78,25 @@ def demo():
                 if i >= 3:
                     break
 
-    if False:
+    # view single training process
+    if True:
         o3d_viewer = O3DViewer()
         o3d_viewer.createWindow()
 
-        mash_folder_path = "./output/20240421_00:51:09/"
+        mash_folder_path = "./output/20240427_14:38:49/"
+        view_freq = 10
 
         mash_filename_list = os.listdir(mash_folder_path)
         mash_filename_list.sort(key=functools.cmp_to_key(compare))
 
         for i, mash_filename in enumerate(mash_filename_list):
-            if i != len(mash_filename_list) - 1:
-                if i % 1000 != 0:
+            if i + 1 != len(mash_filename_list):
+                if (i + 1) % view_freq != 0:
                     continue
 
             mash_file_path = mash_folder_path + mash_filename
 
-            mash = Mash.fromParamsFile(mash_file_path, 10, 10000, 0.4, device="cpu")
+            mash = Mash.fromParamsFile(mash_file_path, 100, 10000, 0.4, device="cpu")
 
             points = mash.toSamplePoints().detach().clone().cpu().numpy()
 
@@ -101,7 +105,7 @@ def demo():
             o3d_viewer.clearGeometries()
             o3d_viewer.addGeometry(pcd)
 
-            print("now render is", i)
+            print("now render is", i + 1, "/", len(mash_filename_list))
 
             o3d_viewer.update()
 
