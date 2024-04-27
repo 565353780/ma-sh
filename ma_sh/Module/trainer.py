@@ -325,7 +325,7 @@ class Trainer(object):
                 boundary_connect_loss + current_boundary_connect_loss
             )
 
-        loss = 10.0 * fit_loss + coverage_loss + 0.001 * boundary_connect_loss
+        loss = 20.0 * fit_loss + coverage_loss + 0.001 * boundary_connect_loss
 
         loss.backward()
 
