@@ -325,7 +325,12 @@ class Trainer(object):
                 boundary_connect_loss + current_boundary_connect_loss
             )
 
-        loss = fit_loss + coverage_loss + 0.0001 * boundary_connect_loss
+        manifold_loss = coverage_loss + 0.1 * boundary_connect_loss
+
+        fit_loss_value = toNumpy(fit_loss)
+        manifold_loss_weight = min(2e-2 / fit_loss_value, 1.0)
+
+        loss = fit_loss + manifold_loss_weight * manifold_loss
 
         loss.backward()
 
@@ -338,6 +343,7 @@ class Trainer(object):
             "coverage_loss": toNumpy(coverage_loss),
             "boundary_connect_loss": toNumpy(boundary_connect_loss),
             "loss": toNumpy(loss),
+            "chamfer_distance": toNumpy(fit_loss) + toNumpy(coverage_loss),
         }
 
         return loss_dict
