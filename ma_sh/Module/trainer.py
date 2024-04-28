@@ -33,10 +33,12 @@ class Trainer(object):
         idx_dtype=torch.int64,
         dtype=torch.float64,
         device: str = "cpu",
-        fit_lr: float = 5e-3,
+        fit_lr: float = 5e-4,
         lr: float = 5e-3,
+        min_lr: float = 1e-4,
         fit_step_num: int = 20,
-        train_epoch: int = 10,
+        warmup_epoch: int = 10,
+        factor: float = 0.9,
         patience: int = 4,
         render: bool = False,
         render_freq: int = 1,
@@ -59,8 +61,10 @@ class Trainer(object):
 
         self.fit_lr = fit_lr
         self.lr = lr
+        self.min_lr = min_lr
         self.fit_step_num = fit_step_num
-        self.train_epoch = train_epoch
+        self.warmup_epoch = warmup_epoch
+        self.factor = factor
         self.patience = patience
 
         self.epoch = 0
@@ -263,11 +267,18 @@ class Trainer(object):
             self.mash.anchor_num, boundary_pts, self.mash.mask_boundary_phi_idxs
         )
 
-        manifold_loss_weight = self.epoch / (self.train_epoch - 1)
-
         fit_loss_weight = 1.0
-        coverage_loss_weight = 0.25 + 0.75 * manifold_loss_weight
-        boundary_connect_loss_weight = 0.01 + 0.99 * manifold_loss_weight
+
+        if self.epoch <= self.warmup_epoch - 1:
+            manifold_loss_weight = self.epoch / (self.warmup_epoch - 1)
+
+            coverage_loss_weight = 0.25 + 0.75 * manifold_loss_weight
+            boundary_connect_loss_weight = 0.01 + 0.99 * manifold_loss_weight
+        else:
+            manifold_loss_weight = 1.0 / (self.epoch - self.warmup_epoch + 2)
+
+            coverage_loss_weight = 1.0
+            boundary_connect_loss_weight = 0.01 + 0.99 * manifold_loss_weight
 
         weighted_fit_loss = fit_loss_weight * fit_loss
         weighted_coverage_loss = coverage_loss_weight * coverage_loss
@@ -298,98 +309,29 @@ class Trainer(object):
 
         return loss_dict
 
-    def fitMash(
+    def trainEpoch(
         self,
+        epoch_lr: float,
         gt_points: torch.Tensor,
+        train_step_max: Union[int, None] = None,
     ) -> bool:
         self.mash.setGradState(True)
 
-        self.updateLr(self.fit_lr)
+        self.updateLr(epoch_lr)
+        if self.logger.isValid():
+            self.logger.addScalar("Train/lr", epoch_lr, self.step)
 
-        print("[INFO][MashModelOp::fitMash]")
-        print("\t start warm up mash ...")
-        pbar = tqdm(total=self.fit_step_num)
-        while self.step < self.fit_step_num:
-            if self.render:
-                if self.step % self.render_freq == 0:
-                    self.renderMash(gt_points)
+        print("[INFO][Trainer::trainEpoch]")
+        print("\t start train epoch :", self.epoch, "with lr :", epoch_lr, "...")
+        if train_step_max is not None:
+            pbar = tqdm(total=train_step_max)
+        else:
+            pbar = tqdm()
 
-            loss_dict = self.trainStep(
-                gt_points,
-            )
-
-            assert isinstance(loss_dict, dict)
-            if self.logger.isValid():
-                for key, item in loss_dict.items():
-                    self.logger.addScalar(key, item, self.step)
-
-            loss = loss_dict["Train/loss"]
-
-            pbar.set_description("LOSS %.6f" % (loss,))
-
-            self.autoSaveMash("train")
-
-            self.step += 1
-            pbar.update(1)
-        return True
-
-    def warmUpMash(
-        self,
-        gt_points: torch.Tensor,
-    ) -> bool:
-        self.mash.setGradState(True)
-
-        print("[INFO][MashModelOp::warmUpMash]")
-        print("\t start warm up mash ...")
-        pbar = tqdm(total=self.warm_step_num)
-        while self.step < self.warm_step_num:
-            if self.render:
-                if self.step % self.render_freq == 0:
-                    self.renderMash(gt_points)
-
-            current_lr = 1.0 * (self.step + 1) / self.warm_step_num * self.lr
-
-            self.updateLr(current_lr)
-
-            loss_dict = self.trainStep(
-                gt_points,
-            )
-
-            assert isinstance(loss_dict, dict)
-            if self.logger.isValid():
-                for key, item in loss_dict.items():
-                    self.logger.addScalar(key, item, self.step)
-
-            loss = loss_dict["Train/loss"]
-
-            pbar.set_description("LOSS %.6f" % (loss,))
-
-            self.autoSaveMash("train")
-
-            self.step += 1
-            pbar.update(1)
-        return True
-
-    def trainMash(
-        self,
-        gt_points: torch.Tensor,
-    ) -> bool:
-        self.mash.setGradState(True)
-
-        self.updateLr(self.lr)
-
+        start_step = self.step
         min_loss = float("inf")
         min_loss_reached_time = 0
 
-        print("[INFO][MashModelOp::trainMash]")
-        print(
-            "\t start train mash epoch",
-            self.epoch + 1,
-            "/",
-            self.train_epoch,
-            "...",
-        )
-        pbar = tqdm()
         while True:
             if self.render:
                 if self.step % self.render_freq == 0:
@@ -413,6 +355,10 @@ class Trainer(object):
             self.step += 1
             pbar.update(1)
 
+            if train_step_max is not None:
+                if start_step + self.step >= train_step_max:
+                    break
+
             if loss < min_loss:
                 min_loss = loss
                 min_loss_reached_time = 0
@@ -426,7 +372,28 @@ class Trainer(object):
             if min_loss_reached_time >= self.patience:
                 break
 
-        self.epoch += 1
+        if self.logger.isValid():
+            self.logger.addScalar("Train/lr", epoch_lr, self.step - 1)
+        return True
+
+    def trainMash(
+        self,
+        gt_points: torch.Tensor,
+    ) -> bool:
+        self.mash.setGradState(True)
+
+        current_lr = self.lr / self.factor
+
+        while current_lr > self.min_lr:
+            current_lr *= self.factor
+            if current_lr < self.min_lr:
+                current_lr = self.min_lr
+
+            self.trainEpoch(current_lr, gt_points)
+            self.epoch += 1
+
+            if current_lr == self.min_lr:
+                break
         return True
 
     def autoTrainMash(
@@ -462,10 +429,13 @@ class Trainer(object):
             .reshape(1, -1, 3)
         )
 
-        self.fitMash(gt_points)
+        self.trainEpoch(self.fit_lr, gt_points, self.fit_step_num)
 
-        for _ in range(self.train_epoch):
-            self.trainMash(gt_points)
+        for _ in range(self.warmup_epoch):
+            self.trainEpoch(self.lr, gt_points)
+            self.epoch += 1
+
+        self.trainMash(gt_points)
 
         """
             if self.upperSHDegree():

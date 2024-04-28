@@ -28,9 +28,11 @@ def demo():
 
     fit_lr = 5e-4
     lr = 5e-3
+    min_lr = 2e-3
     fit_step_num = 20
-    train_epoch = 10
-    patience = 3
+    warmup_epoch = 4
+    factor = 0.8
+    patience = 4
 
     render = False
     render_freq = 1
@@ -81,8 +83,10 @@ def demo():
         device,
         fit_lr,
         lr,
+        min_lr,
         fit_step_num,
-        train_epoch,
+        warmup_epoch,
+        factor,
         patience,
         render,
         render_freq,
