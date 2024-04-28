@@ -14,18 +14,17 @@ class Convertor(object):
         anchor_num: int = 400,
         mask_degree_max: int = 3,
         sh_degree_max: int = 2,
-        mask_boundary_sample_num: int = 36,
+        mask_boundary_sample_num: int = 90,
         sample_polar_num: int = 1000,
         sample_point_scale: float = 0.8,
         use_inv: bool = True,
         idx_dtype=torch.int64,
         dtype=torch.float32,
         device: str = "cuda",
-        fit_lr: float = 5e-4,
-        lr: float = 5e-3,
-        min_lr: float = 2e-3,
-        fit_step_num: int = 20,
-        warmup_epoch: int = 6,
+        lr: float = 2e-3,
+        min_lr: float = 1e-3,
+        warmup_step_num: int = 80,
+        warmup_epoch: int = 4,
         factor: float = 0.8,
         patience: int = 2,
         force_start: bool = False,
@@ -45,10 +44,9 @@ class Convertor(object):
         self.dtype = dtype
         self.device = device
 
-        self.fit_lr = fit_lr
         self.lr = lr
         self.min_lr = min_lr
-        self.fit_step_num = fit_step_num
+        self.warmup_step_num = warmup_step_num
         self.warmup_epoch = warmup_epoch
         self.factor = factor
         self.patience = patience
@@ -76,10 +74,9 @@ class Convertor(object):
             self.idx_dtype,
             self.dtype,
             self.device,
-            self.fit_lr,
             self.lr,
             self.min_lr,
-            self.fit_step_num,
+            self.warmup_step_num,
             self.warmup_epoch,
             self.factor,
             self.patience,

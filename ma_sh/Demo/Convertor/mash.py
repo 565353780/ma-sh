@@ -12,7 +12,7 @@ def demo():
     anchor_num = 400
     mask_degree_max = 3
     sh_degree_max = 2
-    mask_boundary_sample_num = 36
+    mask_boundary_sample_num = 90
     sample_polar_num = 1000
     sample_point_scale = 0.8
     use_inv = True
@@ -20,11 +20,10 @@ def demo():
     dtype = torch.float32
     device = "cuda:0"
 
-    fit_lr = 5e-4
-    lr = 5e-3
-    min_lr = 2e-3
-    fit_step_num = 20
-    warmup_epoch = 6
+    lr = 2e-3
+    min_lr = 1e-3
+    warmup_step_num = 80
+    warmup_epoch = 4
     factor = 0.8
     patience = 2
 
@@ -43,10 +42,9 @@ def demo():
         idx_dtype,
         dtype,
         device,
-        fit_lr,
         lr,
         min_lr,
-        fit_step_num,
+        warmup_step_num,
         warmup_epoch,
         factor,
         patience,
