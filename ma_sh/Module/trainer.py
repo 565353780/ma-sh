@@ -575,7 +575,7 @@ class Trainer(object):
             ) * boundary_connect_loss_weight_max
 
             self.trainEpoch(
-                self.lr,
+                current_lr,
                 gt_points,
                 fit_loss_weight,
                 coverage_loss_weight,
