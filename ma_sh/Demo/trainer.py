@@ -30,9 +30,9 @@ def demo():
     lr = 5e-3
     min_lr = 2e-3
     fit_step_num = 20
-    warmup_epoch = 4
+    warmup_epoch = 6
     factor = 0.8
-    patience = 4
+    patience = 2
 
     render = False
     render_freq = 1
