@@ -6,10 +6,10 @@ from ma_sh.Test.mash_model import test as test_mash_model
 from ma_sh.Test.data_check import test as test_check_data
 
 if __name__ == "__main__":
+    test_check_data()
+    exit()
     test_import_o3d()
     test_rotate()
     test_grad()
-    # test_mash_unit()
+    test_mash_unit()
     test_mash_model()
-    exit()
-    test_check_data()

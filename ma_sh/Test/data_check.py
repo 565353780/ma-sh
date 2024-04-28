@@ -1,4 +1,5 @@
 import os
+import torch
 import numpy as np
 
 from ma_sh.Data.mesh import Mesh
@@ -11,10 +12,10 @@ from ma_sh.Model.mash import Mash
 def view_data():
     HOME = os.environ["HOME"]
 
-    dataset_folder_path = HOME + "/Dataset/"
+    dataset_folder_path = HOME + "/chLi/Dataset/"
 
     mesh_folder_path = HOME + "/chLi/Dataset/" + "NormalizedMesh/ShapeNet/"
-    mash_folder_path = dataset_folder_path + "MashV2/ShapeNet/"
+    mash_folder_path = dataset_folder_path + "MashV3/ShapeNet/"
     sdf_folder_path = dataset_folder_path + "SampledSDF_0_025/ShapeNet/"
 
     classname_list = os.listdir(mash_folder_path)
@@ -39,15 +40,16 @@ def view_data():
                 mesh = Mesh(mesh_file_path)
                 render_list.append(mesh.toO3DMesh())
 
-            if False:
+            if True:
                 mash = Mash.fromParamsFile(mash_file_path, device="cpu")
-                mash_points = mash.toSamplePoints().numpy()
+                boundary_pts, inner_pts, inner_idxs = mash.toSamplePoints()
+                mash_points = torch.vstack([boundary_pts, inner_pts]).numpy()
 
                 mash_pcd = getPointCloud(mash_points)
                 mash_pcd.translate([0, 1, 0])
                 render_list.append(mash_pcd)
 
-            if False:
+            if True:
                 sdf = np.load(sdf_file_path)
                 sdf_points = sdf[sdf[:, 3] <= 0][:, :3]
 
@@ -108,7 +110,7 @@ def view_error_data():
 
 
 def test():
-    # view_data()
+    view_data()
     # view_error_data()
 
     HOME = os.environ["HOME"]

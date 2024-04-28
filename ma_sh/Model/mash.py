@@ -69,12 +69,12 @@ class Mash(object):
     def fromParamsDict(
         cls,
         params_dict: dict,
-        mask_boundary_sample_num: int = 10,
-        sample_polar_num: int = 10000,
-        sample_point_scale: float = 0.4,
+        mask_boundary_sample_num: int = 36,
+        sample_polar_num: int = 1000,
+        sample_point_scale: float = 0.8,
         idx_dtype=torch.int64,
-        dtype=torch.float64,
-        device: str = "cuda:0",
+        dtype=torch.float32,
+        device: str = "cpu",
     ):
         mask_params = params_dict["mask_params"]
         sh_params = params_dict["sh_params"]
@@ -105,12 +105,12 @@ class Mash(object):
     def fromParamsFile(
         cls,
         params_file_path: str,
-        mask_boundary_sample_num: int = 10,
-        sample_polar_num: int = 10000,
-        sample_point_scale: float = 0.4,
+        mask_boundary_sample_num: int = 36,
+        sample_polar_num: int = 1000,
+        sample_point_scale: float = 0.8,
         idx_dtype=torch.int64,
-        dtype=torch.float64,
-        device: str = "cuda:0",
+        dtype=torch.float32,
+        device: str = "cpu",
     ):
         params_dict = np.load(params_file_path, allow_pickle=True).item()
 

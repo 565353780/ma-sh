@@ -101,6 +101,7 @@ def demo():
         gt_points_file_path = "/home/chli/chLi/Dataset/SampledPcd/ShapeNet/04090263/22d2782aa73ea40960abd8a115f9899.npy"
         gt_points_file_path = "/home/chli/chLi/Dataset/SampledPcd/ShapeNet/03001627/46e1939ce6ee14d6a4689f3cf5c22e6.npy"
         gt_points_file_path = "/home/chli/chLi/Dataset/SampledPcd/ShapeNet/03001627/1b8e84935fdc3ec82be289de70e8db31.npy"
+        gt_points_file_path = "/home/chli/chLi/Dataset/SampledPcd/ShapeNet/03001627/e71d05f223d527a5f91663a74ccd2338.npy"
         # gt_points_file_path = "/Users/fufu/Downloads/model_normalized_obj.npy"
         trainer.loadGTPointsFile(gt_points_file_path)
     trainer.autoTrainMash(gt_points_num)
