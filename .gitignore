@@ -6,6 +6,7 @@ build
 *.so
 compile_commands.json
 tmp
+.DS_Store
 
 # output
 logs
