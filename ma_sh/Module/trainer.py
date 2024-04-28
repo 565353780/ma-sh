@@ -270,10 +270,9 @@ class Trainer(object):
             current_boundary_pts = boundary_pts[current_boundary_pts_mask]
             other_boundary_pts = boundary_pts[~current_boundary_pts_mask]
 
-            current_boundary_fit_dists2, _ = chamferDistance(
+            current_boundary_fit_dists2, _ = mash_cpp.toChamferDistance(
                 current_boundary_pts.unsqueeze(0).type(gt_points.dtype),
                 other_boundary_pts.unsqueeze(0).type(gt_points.dtype),
-                "cuda" not in self.mash.device,
             )[:2]
 
             current_boundary_connect_dist = torch.sqrt(
