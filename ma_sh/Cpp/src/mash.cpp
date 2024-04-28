@@ -82,7 +82,7 @@ const std::vector<torch::Tensor> toInMaskSamplePoints(
       in_mask_sample_polar_idxs.index({fps_in_mask_sample_point_idxs});
 
   const std::vector<torch::Tensor> in_mask_sample_points_with_idxs(
-      {fps_in_mask_sh_points, in_mask_sample_polar_idxs});
+      {fps_in_mask_sh_points, in_mask_sample_point_idxs});
 
   return in_mask_sample_points_with_idxs;
 }

@@ -26,11 +26,11 @@ def demo():
     dtype = torch.float32
     device = "cuda:0"
 
-    fit_lr = 5e-4
+    fit_lr = 1e-2
     lr = 5e-3
     min_lr = 2e-3
-    fit_step_num = 20
-    warmup_epoch = 6
+    fit_step_num = 40
+    warmup_epoch = 10
     factor = 0.8
     patience = 2
 

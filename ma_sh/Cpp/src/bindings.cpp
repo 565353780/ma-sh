@@ -1,3 +1,4 @@
+#include "bound.h"
 #include "chamfer.h"
 #include "direction.h"
 #include "filter.h"
@@ -19,6 +20,9 @@
 PYBIND11_MODULE(mash_cpp, m) {
   m.doc() = "pybind11 mash cpp plugin";
 
+  m.def("toAnchorBounds", &toAnchorBounds,
+        "bound.toAnchorBounds");
+
   m.def("toChamferDistance", &toChamferDistance, "chamfer.toChamferDistance");
 
   m.def("toDirections", &toDirections, "direction.toDirections");
@@ -38,8 +42,12 @@ PYBIND11_MODULE(mash_cpp, m) {
 
   m.def("toInvPoints", &toInvPoints, "inv.toInvPoints");
 
-  m.def("toChamferDistanceLoss", &toChamferDistanceLoss,
-        "loss.toChamferDistanceLoss");
+  m.def("toAnchorFitLoss", &toAnchorFitLoss,
+        "loss.toAnchorFitLoss");
+  m.def("toAnchorCoverageLoss", &toAnchorCoverageLoss,
+        "loss.toAnchorCoverageLoss");
+  m.def("toAnchorChamferDistanceLoss", &toAnchorChamferDistanceLoss,
+        "loss.toAnchorChamferDistanceLoss");
   m.def("toBoundaryConnectLoss", &toBoundaryConnectLoss,
         "loss.toBoundaryConnectLoss");
 
