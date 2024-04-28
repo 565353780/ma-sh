@@ -185,11 +185,21 @@ class Mesh(object):
                 dtype=float,
             )
         else:
+            device = "cpu"
+            if torch.cuda.is_available():
+                device = "cuda"
+
             torch_vertices = (
-                torch.from_numpy(self.vertices).type(torch.float16).reshape(1, -1, 3)
+                torch.from_numpy(self.vertices)
+                .type(torch.float16)
+                .reshape(1, -1, 3)
+                .to(device)
             )
             torch_points = (
-                torch.from_numpy(points).type(torch.float16).reshape(1, -1, 3)
+                torch.from_numpy(points)
+                .type(torch.float16)
+                .reshape(1, -1, 3)
+                .to(device)
             )
             torch_dists, _ = mash_cpp.toChamferDistance(torch_vertices, torch_points)
             dists = toNumpy(torch_dists).reshape(-1)

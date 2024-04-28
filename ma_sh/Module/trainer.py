@@ -254,9 +254,7 @@ class Trainer(object):
         mash_pts = torch.vstack([boundary_pts, inner_pts])
 
         fit_dists2, coverage_dists2 = mash_cpp.toChamferDistance(
-            mash_pts.unsqueeze(0).type(gt_points.dtype),
-            gt_points,
-            "cuda" not in self.mash.device,
+            mash_pts.unsqueeze(0).type(gt_points.dtype), gt_points
         )[:2]
 
         fit_dists = torch.sqrt(fit_dists2 + EPSILON)
