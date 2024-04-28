@@ -1,3 +1,4 @@
+#include "chamfer.h"
 #include "direction.h"
 #include "filter.h"
 #include "fps.h"
@@ -17,15 +18,13 @@
 PYBIND11_MODULE(mash_cpp, m) {
   m.doc() = "pybind11 mash cpp plugin";
 
+  m.def("toChamferDistance", &toChamferDistance, "chamfer.toChamferDistance");
+
   m.def("toDirections", &toDirections, "direction.toDirections");
   m.def("toPolars", &toPolars, "direction.toPolars");
 
   m.def("toMaxValues", &toMaxValues, "filter.toMaxValues");
 
-#ifdef USE_CUDA
-  m.def("furthest_point_sampling", &furthest_point_sampling,
-        "fps.furthest_point_sampling");
-#endif
   m.def("toSingleFPSPointIdxs", &toSingleFPSPointIdxs,
         "fps.toSingleFPSPointIdxs");
   m.def("toFPSPointIdxs", &toFPSPointIdxs, "fps.toFPSPointIdxs");

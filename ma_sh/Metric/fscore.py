@@ -1,5 +1,6 @@
 import torch
 
+
 def fscore(dist1, dist2, threshold=0.001):
     """
     Calculates the F-score between two point clouds with the corresponding threshold value.
@@ -14,4 +15,3 @@ def fscore(dist1, dist2, threshold=0.001):
     fscore = 2 * precision_1 * precision_2 / (precision_1 + precision_2)
     fscore[torch.isnan(fscore)] = 0
     return fscore, precision_1, precision_2
-

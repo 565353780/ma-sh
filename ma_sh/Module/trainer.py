@@ -6,11 +6,12 @@ from typing import Union
 from copy import deepcopy
 from torch.optim import AdamW
 
+import mash_cpp
+
 from ma_sh.Config.weights import W0
 from ma_sh.Config.constant import EPSILON
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
 from ma_sh.Data.mesh import Mesh
-from ma_sh.Loss.chamfer_distance import chamferDistance
 from ma_sh.Method.data import toNumpy
 from ma_sh.Method.pcd import getPointCloud, downSample
 from ma_sh.Method.time import getCurrentTime
@@ -32,8 +33,9 @@ class Trainer(object):
         idx_dtype=torch.int64,
         dtype=torch.float64,
         device: str = "cpu",
+        fit_lr: float = 5e-3,
         lr: float = 5e-3,
-        warm_step_num: int = 20,
+        fit_step_num: int = 20,
         train_epoch: int = 10,
         patience: int = 4,
         render: bool = False,
@@ -54,8 +56,10 @@ class Trainer(object):
             dtype,
             device,
         )
+
+        self.fit_lr = fit_lr
         self.lr = lr
-        self.warm_step_num = warm_step_num
+        self.fit_step_num = fit_step_num
         self.train_epoch = train_epoch
         self.patience = patience
 
@@ -249,7 +253,7 @@ class Trainer(object):
 
         mash_pts = torch.vstack([boundary_pts, inner_pts])
 
-        fit_dists2, coverage_dists2 = chamferDistance(
+        fit_dists2, coverage_dists2 = mash_cpp.toChamferDistance(
             mash_pts.unsqueeze(0).type(gt_points.dtype),
             gt_points,
             "cuda" not in self.mash.device,
@@ -320,6 +324,41 @@ class Trainer(object):
         }
 
         return loss_dict
+
+    def fitMash(
+        self,
+        gt_points: torch.Tensor,
+    ) -> bool:
+        self.mash.setGradState(True)
+
+        self.updateLr(self.fit_lr)
+
+        print("[INFO][MashModelOp::fitMash]")
+        print("\t start warm up mash ...")
+        pbar = tqdm(total=self.fit_step_num)
+        while self.step < self.fit_step_num:
+            if self.render:
+                if self.step % self.render_freq == 0:
+                    self.renderMash(gt_points)
+
+            loss_dict = self.trainStep(
+                gt_points,
+            )
+
+            assert isinstance(loss_dict, dict)
+            if self.logger.isValid():
+                for key, item in loss_dict.items():
+                    self.logger.addScalar(key, item, self.step)
+
+            loss = loss_dict["Train/loss"]
+
+            pbar.set_description("LOSS %.6f" % (loss,))
+
+            self.autoSaveMash("train")
+
+            self.step += 1
+            pbar.update(1)
+        return True
 
     def warmUpMash(
         self,
@@ -450,7 +489,7 @@ class Trainer(object):
             .reshape(1, -1, 3)
         )
 
-        self.warmUpMash(gt_points)
+        self.fitMash(gt_points)
 
         for _ in range(self.train_epoch):
             self.trainMash(gt_points)

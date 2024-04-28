@@ -6,14 +6,16 @@ import open3d as o3d
 from typing import Union
 from copy import deepcopy
 
+import mash_cpp
+
 from ma_sh.Data.point import Point
 from ma_sh.Data.pcd import Pcd
+from ma_sh.Method.data import toNumpy
 from ma_sh.Method.io import loadMeshFile
 from ma_sh.Method.path import createFileFolder, removeFile
 from ma_sh.Method.mesh import samplePointCloud, samplePoints
 from ma_sh.Method.sort import getNearIdxs
 from ma_sh.Method.color import getJetColorsFromDists
-from ma_sh.Loss.chamfer_distance import chamferDistance
 from ma_sh.Method.render import renderGeometries
 from ma_sh.Module.timer import Timer
 
@@ -183,12 +185,14 @@ class Mesh(object):
                 dtype=float,
             )
         else:
-            torch_vertices = toData(self.vertices, "torch", torch.float16).reshape(
-                1, -1, 3
+            torch_vertices = (
+                torch.from_numpy(self.vertices).type(torch.float16).reshape(1, -1, 3)
             )
-            torch_points = toData(points, "torch", torch.float16).reshape(1, -1, 3)
-            torch_dists, _, _, _ = chamferDistance(torch_vertices, torch_points)
-            dists = toData(torch_dists, "numpy", np.float16).reshape(-1)
+            torch_points = (
+                torch.from_numpy(points).type(torch.float16).reshape(1, -1, 3)
+            )
+            torch_dists, _ = mash_cpp.toChamferDistance(torch_vertices, torch_points)
+            dists = toNumpy(torch_dists).reshape(-1)
 
         return self.paintJetColorsByDists(dists, error_max_percent)
 
