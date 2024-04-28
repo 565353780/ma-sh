@@ -348,8 +348,8 @@ class Trainer(object):
         print(
             "\t start train epoch :",
             self.epoch,
-            "with lr : %.6f" % epoch_lr,
-            "...",
+            "with lr : %.4f" % (epoch_lr * 1e3),
+            "* 1e-3...",
         )
         if train_step_max is not None:
             pbar = tqdm(total=train_step_max)
@@ -433,7 +433,7 @@ class Trainer(object):
         print(
             "\t start train epoch :",
             self.epoch,
-            "with lr : %.6f" % epoch_lr,
+            "with lr : %.4f" % (epoch_lr * 1e3),
             "* 1e-3...",
         )
         if train_step_max is not None:
