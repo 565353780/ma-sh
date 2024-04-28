@@ -23,14 +23,14 @@ class Mash(object):
     def __init__(
         self,
         anchor_num: int = 400,
-        mask_degree_max: int = 4,
-        sh_degree_max: int = 3,
-        mask_boundary_sample_num: int = 10,
-        sample_polar_num: int = 10000,
-        sample_point_scale: float = 0.4,
+        mask_degree_max: int = 3,
+        sh_degree_max: int = 2,
+        mask_boundary_sample_num: int = 36,
+        sample_polar_num: int = 1000,
+        sample_point_scale: float = 0.8,
         use_inv: bool = True,
         idx_dtype=torch.int64,
-        dtype=torch.float64,
+        dtype=torch.float32,
         device: str = "cpu",
     ) -> None:
         # Super Params

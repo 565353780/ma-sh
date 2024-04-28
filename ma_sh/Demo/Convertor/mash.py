@@ -10,24 +10,23 @@ def demo():
 
     gt_points_num = 400000
     anchor_num = 400
-    mask_degree_max = 4
-    sh_degree_max = 3
-    mask_boundary_sample_num = 10
-    sample_polar_num = 10000
-    sample_point_scale = 0.4
+    mask_degree_max = 3
+    sh_degree_max = 2
+    mask_boundary_sample_num = 36
+    sample_polar_num = 1000
+    sample_point_scale = 0.8
     use_inv = True
     idx_dtype = torch.int64
-    dtype = torch.float64
+    dtype = torch.float32
     device = "cuda:0"
 
-    warm_epoch_step_num = 10
-    warm_epoch_num = 40
-    finetune_step_num = 2000
+    fit_lr = 5e-4
     lr = 5e-3
-    weight_decay = 1e-10
-    factor = 0.9
-    patience = 4
-    min_lr = 1e-4
+    min_lr = 2e-3
+    fit_step_num = 20
+    warmup_epoch = 6
+    factor = 0.8
+    patience = 2
 
     force_start = False
 
@@ -44,14 +43,13 @@ def demo():
         idx_dtype,
         dtype,
         device,
-        warm_epoch_step_num,
-        warm_epoch_num,
-        finetune_step_num,
+        fit_lr,
         lr,
-        weight_decay,
+        min_lr,
+        fit_step_num,
+        warmup_epoch,
         factor,
         patience,
-        min_lr,
         force_start,
     )
 

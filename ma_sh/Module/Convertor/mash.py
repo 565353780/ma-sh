@@ -12,27 +12,28 @@ class Convertor(object):
         dataset_root_folder_path: str,
         gt_points_num: int = 400000,
         anchor_num: int = 400,
-        mask_degree_max: int = 4,
-        sh_degree_max: int = 3,
-        mask_boundary_sample_num: int = 10,
-        sample_polar_num: int = 10000,
-        sample_point_scale: float = 0.4,
+        mask_degree_max: int = 3,
+        sh_degree_max: int = 2,
+        mask_boundary_sample_num: int = 36,
+        sample_polar_num: int = 1000,
+        sample_point_scale: float = 0.8,
         use_inv: bool = True,
         idx_dtype=torch.int64,
-        dtype=torch.float64,
-        device: str = "cpu",
-        warm_epoch_step_num: int = 10,
-        warm_epoch_num: int = 40,
-        finetune_step_num: int = 2000,
+        dtype=torch.float32,
+        device: str = "cuda",
+        fit_lr: float = 5e-4,
         lr: float = 5e-3,
-        weight_decay: float = 1e-10,
-        factor: float = 0.9,
-        patience: int = 4,
-        min_lr: float = 1e-4,
+        min_lr: float = 2e-3,
+        fit_step_num: int = 20,
+        warmup_epoch: int = 6,
+        factor: float = 0.8,
+        patience: int = 2,
         force_start: bool = False,
     ) -> None:
         self.dataset_root_folder_path = dataset_root_folder_path
+
         self.gt_points_num = gt_points_num
+
         self.anchor_num = anchor_num
         self.mask_degree_max = mask_degree_max
         self.sh_degree_max = sh_degree_max
@@ -43,19 +44,20 @@ class Convertor(object):
         self.idx_dtype = idx_dtype
         self.dtype = dtype
         self.device = device
-        self.warm_epoch_step_num = warm_epoch_step_num
-        self.warm_epoch_num = warm_epoch_num
-        self.finetune_step_num = finetune_step_num
+
+        self.fit_lr = fit_lr
         self.lr = lr
-        self.weight_decay = weight_decay
+        self.min_lr = min_lr
+        self.fit_step_num = fit_step_num
+        self.warmup_epoch = warmup_epoch
         self.factor = factor
         self.patience = patience
-        self.min_lr = min_lr
+
         self.force_start = force_start
 
         self.sampled_pcd_folder_path = self.dataset_root_folder_path + "SampledPcd/"
-        self.mash_folder_path = self.dataset_root_folder_path + "MashV2/"
-        self.tag_folder_path = self.dataset_root_folder_path + "Tag/Mash/"
+        self.mash_folder_path = self.dataset_root_folder_path + "MashV3/"
+        self.tag_folder_path = self.dataset_root_folder_path + "Tag/MashV3/"
         return
 
     def createTrainer(
@@ -74,14 +76,13 @@ class Convertor(object):
             self.idx_dtype,
             self.dtype,
             self.device,
-            self.warm_epoch_step_num,
-            self.warm_epoch_num,
-            self.finetune_step_num,
+            self.fit_lr,
             self.lr,
-            self.weight_decay,
+            self.min_lr,
+            self.fit_step_num,
+            self.warmup_epoch,
             self.factor,
             self.patience,
-            self.min_lr,
             False,
             1,
             False,
