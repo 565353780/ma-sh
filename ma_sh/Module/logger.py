@@ -11,6 +11,8 @@ class Logger(object):
 
         if log_folder_path is not None:
             self.setLogFolder(log_folder_path)
+
+        self.error_outputed = False
         return
 
     def reset(self) -> bool:
@@ -42,8 +44,12 @@ class Logger(object):
 
     def addScalar(self, name: str, value: float, step: Union[int, None] = None) -> bool:
         if not self.isValid():
+            if self.error_outputed:
+                return False
+
             print("[ERROR][Logger::addScalar]")
             print("\t isValid failed!")
+            self.error_outputed = True
             return False
 
         if step is not None:
