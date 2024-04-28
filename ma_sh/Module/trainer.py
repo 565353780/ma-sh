@@ -249,7 +249,7 @@ class Trainer(object):
         self.optimizer.zero_grad()
 
         boundary_idxs = self.mash.mask_boundary_phi_idxs
-        boundary_pts, inner_pts, inner_idxs = self.mash.toSampleUnitPoints()
+        boundary_pts, inner_pts, inner_idxs = self.mash.toSamplePoints()
 
         mash_pts = torch.vstack([boundary_pts, inner_pts])
 
@@ -556,7 +556,9 @@ class Trainer(object):
             gt_pcd.translate([-mesh_abb_length, 0, 0])
             self.o3d_viewer.addGeometry(gt_pcd)
 
-            detect_points = toNumpy(self.mash.toSamplePoints())
+            boundary_pts, inner_pts, inner_idxs = self.mash.toSamplePoints()
+            detect_points = torch.vstack([boundary_pts, inner_pts])
+            detect_points = toNumpy(detect_points)
             pcd = getPointCloud(detect_points)
             self.o3d_viewer.addGeometry(pcd)
 

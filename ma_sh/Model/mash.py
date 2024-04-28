@@ -336,8 +336,12 @@ class Mash(object):
         self.sh_params = new_sh_params
         return True
 
-    def toSamplePoints(self) -> torch.Tensor:
-        sample_points = mash_cpp.toMashSamplePoints(
+    def toSamplePoints(self) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        (
+            mask_boundary_sample_points,
+            in_mask_sample_points,
+            in_mask_sample_point_idxs,
+        ) = mash_cpp.toMashSamplePoints(
             self.anchor_num,
             self.sh_degree_max,
             self.mask_params,
@@ -355,159 +359,6 @@ class Mash(object):
             self.use_inv,
         )
 
-        return sample_points
-
-    def toMaskBoundaryThetas(self) -> torch.Tensor:
-        mask_boundary_thetas = mash_cpp.toMaskBoundaryThetas(
-            self.mask_params,
-            self.mask_boundary_base_values,
-            self.mask_boundary_phi_idxs,
-        )
-        return mask_boundary_thetas
-
-    def toInMaskSamplePoints(
-        self, mask_boundary_thetas: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        in_max_mask_sample_polar_idxs_vec = mash_cpp.toInMaxMaskSamplePolarIdxsVec(
-            self.anchor_num,
-            self.sample_thetas,
-            mask_boundary_thetas,
-            self.mask_boundary_phi_idxs,
-        )
-
-        in_max_mask_sample_polar_idxs = mash_cpp.toInMaxMaskSamplePolarIdxs(
-            in_max_mask_sample_polar_idxs_vec
-        )
-
-        in_max_mask_sample_polar_data_idxs = torch.hstack(
-            in_max_mask_sample_polar_idxs_vec
-        )
-
-        in_max_mask_sample_phis = self.sample_phis[in_max_mask_sample_polar_data_idxs]
-
-        in_max_mask_sample_thetas = self.sample_thetas[
-            in_max_mask_sample_polar_data_idxs
-        ]
-
-        in_max_mask_base_values = self.sample_base_values[
-            :, in_max_mask_sample_polar_data_idxs
-        ]
-
-        in_max_mask_thetas = mash_cpp.toInMaxMaskThetas(
-            self.mask_params,
-            in_max_mask_base_values,
-            in_max_mask_sample_polar_idxs,
-            in_max_mask_sample_polar_data_idxs,
-        )
-
-        in_mask_sample_polar_mask = in_max_mask_sample_thetas <= in_max_mask_thetas
-
-        in_mask_sample_phis = in_max_mask_sample_phis[in_mask_sample_polar_mask]
-
-        in_mask_sample_polar_idxs = in_max_mask_sample_polar_idxs[
-            in_mask_sample_polar_mask
-        ]
-
-        in_mask_sample_polar_data_idxs = in_max_mask_sample_polar_data_idxs[
-            in_mask_sample_polar_mask
-        ]
-
-        in_mask_base_values = in_max_mask_base_values[:, in_mask_sample_polar_mask]
-
-        in_mask_sample_theta_weights = mash_cpp.toInMaskSampleThetaWeights(
-            in_max_mask_sample_thetas, in_max_mask_thetas, in_mask_sample_polar_mask
-        )
-
-        detect_thetas = mash_cpp.toDetectThetas(
-            self.mask_params,
-            in_mask_base_values,
-            in_mask_sample_polar_idxs,
-            in_mask_sample_theta_weights,
-        )
-
-        in_mask_sh_values = mash_cpp.toSHValues(
-            self.sh_degree_max,
-            self.sh_params,
-            in_mask_sample_phis,
-            detect_thetas,
-            in_mask_sample_polar_idxs,
-        )
-
-        in_mask_sh_directions = self.sample_sh_directions[
-            in_mask_sample_polar_data_idxs
-        ]
-
-        in_mask_sh_points = mash_cpp.toSHPoints(
-            self.sh_params,
-            self.rotate_vectors,
-            self.positions,
-            in_mask_sh_directions,
-            in_mask_sh_values,
-            in_mask_sample_polar_idxs,
-            self.use_inv,
-        )
-
-        fps_in_mask_sample_point_idxs = mash_cpp.toFPSPointIdxs(
-            in_mask_sh_points,
-            in_mask_sample_polar_idxs,
-            self.sample_point_scale,
-            self.anchor_num,
-        )
-
-        fps_in_mask_sh_points = in_mask_sh_points[fps_in_mask_sample_point_idxs]
-
-        in_mask_sample_point_idxs = in_mask_sample_polar_idxs[
-            fps_in_mask_sample_point_idxs
-        ]
-
-        return fps_in_mask_sh_points, in_mask_sample_point_idxs
-
-    def toMaskBoundarySamplePoints(
-        self, mask_boundary_thetas: torch.Tensor
-    ) -> torch.Tensor:
-        mask_boundary_sh_values = mash_cpp.toSHValues(
-            self.sh_degree_max,
-            self.sh_params,
-            self.mask_boundary_phis,
-            mask_boundary_thetas,
-            self.mask_boundary_phi_idxs,
-        )
-
-        mask_boundary_sh_directions = mash_cpp.toDirections(
-            self.mask_boundary_phis, mask_boundary_thetas
-        )
-
-        mask_boundary_sh_points = mash_cpp.toSHPoints(
-            self.sh_params,
-            self.rotate_vectors,
-            self.positions,
-            mask_boundary_sh_directions,
-            mask_boundary_sh_values,
-            self.mask_boundary_phi_idxs,
-            self.use_inv,
-        )
-
-        return mask_boundary_sh_points
-
-    def toSampleUnitPoints(
-        self,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """
-        return:
-            mask_boundary_sample_points
-            in_mask_sample_points
-            in_mask_sample_point_idxs
-        """
-        mask_boundary_thetas = self.toMaskBoundaryThetas()
-
-        in_mask_sample_points, in_mask_sample_point_idxs = self.toInMaskSamplePoints(
-            mask_boundary_thetas
-        )
-
-        mask_boundary_sample_points = self.toMaskBoundarySamplePoints(
-            mask_boundary_thetas
-        )
-
         return (
             mask_boundary_sample_points,
             in_mask_sample_points,
@@ -519,7 +370,7 @@ class Mash(object):
             mask_boundary_sample_points,
             in_mask_sample_points,
             in_mask_sample_point_idxs,
-        ) = self.toSampleUnitPoints()
+        ) = self.toSamplePoints()
 
         boundary_pts = toNumpy(mask_boundary_sample_points)
         inner_pts = toNumpy(in_mask_sample_points)
@@ -557,7 +408,9 @@ class Mash(object):
         return True
 
     def renderSamplePatches(self) -> bool:
-        sample_points = toNumpy(self.toSamplePoints())
+        boundary_pts, inner_pts, inner_idxs = self.toSamplePoints()
+        sample_pts = torch.vstack([boundary_pts, inner_pts])
+        sample_points = toNumpy(sample_pts)
 
         pcd = getPointCloud(sample_points)
         pcd.estimate_normals()
@@ -657,10 +510,12 @@ class Mash(object):
 
         createFileFolder(save_pcd_file_path)
 
-        points = toNumpy(self.toSamplePoints())
+        boundary_pts, inner_pts, inner_idxs = self.toSamplePoints()
+        sample_pts = torch.vstack([boundary_pts, inner_pts])
+        sample_points = toNumpy(sample_pts)
 
         pcd = o3d.geometry.PointCloud()
-        pcd.points = o3d.utility.Vector3dVector(points)
+        pcd.points = o3d.utility.Vector3dVector(sample_points)
 
         if print_progress:
             print("[INFO][Mash::saveAsPcdFile]")
