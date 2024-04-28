@@ -16,6 +16,10 @@ toAnchorCoverageLoss(const int &anchor_num, const int &mask_boundary_sample_poin
                const torch::Tensor &in_mask_sample_point_idxs);
 
 const std::vector<torch::Tensor>
+toChamferDistanceLoss(const torch::Tensor &detect_points,
+                      const torch::Tensor &gt_points);
+
+const std::vector<torch::Tensor>
 toAnchorChamferDistanceLoss(const int &anchor_num,
                       const torch::Tensor &mask_boundary_sample_points,
                       const torch::Tensor &in_mask_sample_points,

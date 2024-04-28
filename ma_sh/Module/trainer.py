@@ -33,10 +33,9 @@ class Trainer(object):
         idx_dtype=torch.int64,
         dtype=torch.float32,
         device: str = "cuda",
-        fit_lr: float = 5e-4,
         lr: float = 5e-3,
         min_lr: float = 2e-3,
-        fit_step_num: int = 20,
+        warmup_step_num: int = 20,
         warmup_epoch: int = 6,
         factor: float = 0.8,
         patience: int = 2,
@@ -59,10 +58,9 @@ class Trainer(object):
             device,
         )
 
-        self.fit_lr = fit_lr
         self.lr = lr
         self.min_lr = min_lr
-        self.fit_step_num = fit_step_num
+        self.warmup_step_num = warmup_step_num
         self.warmup_epoch = warmup_epoch
         self.factor = factor
         self.patience = patience
@@ -249,100 +247,62 @@ class Trainer(object):
     def trainStep(
         self,
         gt_points: torch.Tensor,
+        fit_loss_weight: float,
+        coverage_loss_weight: float,
+        boundary_connect_loss_weight: float,
     ) -> Union[dict, None]:
         self.optimizer.zero_grad()
 
         boundary_pts, inner_pts, inner_idxs = self.mash.toSamplePoints()
 
         if False:
-            sample_points = torch.vstack([boundary_pts, inner_pts]).unsqueeze(0).type(gt_points.dtype)
+            anchor_fit_loss, anchor_coverage_loss = (
+                mash_cpp.toAnchorChamferDistanceLoss(
+                    self.mash.anchor_num,
+                    boundary_pts,
+                    inner_pts,
+                    self.mash.mask_boundary_phi_idxs,
+                    inner_idxs,
+                    gt_points,
+                )
+            )
 
-            fd2, cd2, fi, ci = mash_cpp.toChamferDistance(sample_points, gt_points)
+            with torch.no_grad():
+                anchor_bounds = (
+                    mash_cpp.toAnchorBounds(
+                        self.mash.anchor_num,
+                        boundary_pts,
+                        inner_pts,
+                        self.mash.mask_boundary_phi_idxs,
+                        inner_idxs,
+                    )
+                    .detach()
+                    .clone()
+                )
 
-            fd2 = fd2.squeeze(0)
-            cd2 = cd2.squeeze(0)
-            fi = fi.squeeze(0)
-            ci = ci.squeeze(0)
+            anchor_lengths = (
+                torch.norm(anchor_bounds[:, 1] - anchor_bounds[:, 0], p=2, dim=1)
+                + EPSILON
+            )
+            anchor_shape_weights = 1.0 / torch.pow(anchor_lengths, 0.1)
+            anchor_shape_weights /= torch.max(anchor_shape_weights)
 
-            mask_boundary_sample_num = boundary_pts.shape[0]
+            fit_loss = torch.mean(anchor_fit_loss)
+            coverage_loss = torch.mean(anchor_coverage_loss * anchor_shape_weights)
 
-            cd = torch.sqrt(cd2 + EPSILON)
+        fit_loss = torch.tensor(0.0).type(gt_points.dtype).to(gt_points.device)
+        coverage_loss = torch.zeros_like(fit_loss)
+        boundary_connect_loss = torch.zeros_like(fit_loss)
 
-            pull_boundary_mask = ci < mask_boundary_sample_num
+        if fit_loss_weight > 0 or coverage_loss_weight > 0:
+            fit_loss, coverage_loss = mash_cpp.toChamferDistanceLoss(
+                torch.vstack([boundary_pts, inner_pts]), gt_points
+            )
 
-            pull_boundary_idxs = torch.where(pull_boundary_mask)[0]
-
-            pull_inner_idxs = torch.where(~pull_boundary_mask)[0]
-
-            pull_boundary_point_idxs = ci[pull_boundary_idxs]
-
-            pull_inner_point_idxs = ci[pull_inner_idxs] - mask_boundary_sample_num
-
-            pull_boundary_anchor_idxs = self.mash.mask_boundary_phi_idxs[pull_boundary_point_idxs]
-
-            pull_inner_anchor_idxs = inner_idxs[pull_inner_point_idxs]
-
-            coverage_loss = torch.tensor(0.0).type(gt_points.dtype).to(gt_points.device)
-
-            assert not torch.isnan(coverage_loss).any(), 'initial coverage_loss failed!'
-
-            for i in range(self.mash.anchor_num):
-                current_pull_boundary_idxs = torch.where(pull_boundary_anchor_idxs == i)[0]
-                current_pull_inner_idxs = torch.where(pull_inner_anchor_idxs == i)[0] + mask_boundary_sample_num
-
-                current_pull_idxs = torch.hstack([current_pull_boundary_idxs, current_pull_inner_idxs])
-
-                current_coverage_dists = cd[current_pull_idxs]
-
-                assert not torch.isnan(current_coverage_dists).any()
-
-                current_mean_cd = torch.mean(current_coverage_dists)
-
-                assert not torch.isnan(current_mean_cd).any(), 'anchor' + str(i) + ' mean cd makes coverage_loss be nan!' + str(current_pull_idxs.shape)
-
-                coverage_loss = coverage_loss + current_mean_cd
-
-                assert not torch.isnan(coverage_loss).any(), 'anchor' + str(i) + ' makes coverage_loss be nan!' + str(current_pull_idxs.shape)
-
-            coverage_loss = coverage_loss / float(self.mash.anchor_num)
-
-            assert not torch.isnan(coverage_loss).any(), 'divide anchor_num makes nan!'
-
-        anchor_fit_loss, anchor_coverage_loss = mash_cpp.toAnchorChamferDistanceLoss(
-            self.mash.anchor_num,
-            boundary_pts,
-            inner_pts,
-            self.mash.mask_boundary_phi_idxs,
-            inner_idxs,
-            gt_points,
-        )
-
-        with torch.no_grad():
-            anchor_bounds = mash_cpp.toAnchorBounds(self.mash.anchor_num, boundary_pts, inner_pts, self.mash.mask_boundary_phi_idxs, inner_idxs).detach().clone()
-
-        anchor_lengths = torch.norm(anchor_bounds[:, 1] - anchor_bounds[:, 0], p=2, dim=1) + EPSILON
-        anchor_shape_weights = 1.0 / torch.pow(anchor_lengths, 0.1)
-        anchor_shape_weights /= torch.max(anchor_shape_weights)
-
-        fit_loss = torch.mean(anchor_fit_loss)
-        coverage_loss = torch.mean(anchor_coverage_loss * anchor_shape_weights)
-
-        boundary_connect_loss = mash_cpp.toBoundaryConnectLoss(
-            self.mash.anchor_num, boundary_pts, self.mash.mask_boundary_phi_idxs
-        )
-
-        fit_loss_weight = 1.0
-
-        if self.epoch <= self.warmup_epoch - 1:
-            manifold_loss_weight = self.epoch / (self.warmup_epoch - 1)
-
-            coverage_loss_weight = 1.0 + 0.0 * manifold_loss_weight
-            boundary_connect_loss_weight = 0.01 + 0.09 * manifold_loss_weight
-        else:
-            manifold_loss_weight = 1.0 / (self.epoch - self.warmup_epoch + 2)
-
-            coverage_loss_weight = 1.0
-            boundary_connect_loss_weight = 0.0 + 1.0 * manifold_loss_weight
+        if boundary_connect_loss_weight > 0:
+            boundary_connect_loss = mash_cpp.toBoundaryConnectLoss(
+                self.mash.anchor_num, boundary_pts, self.mash.mask_boundary_phi_idxs
+            )
 
         weighted_fit_loss = fit_loss_weight * fit_loss
         weighted_coverage_loss = coverage_loss_weight * coverage_loss
@@ -358,15 +318,6 @@ class Trainer(object):
 
         self.optimizer.step()
 
-        with torch.no_grad():
-            sample_points = torch.vstack([boundary_pts, inner_pts]).detach().clone().type(gt_points.dtype).unsqueeze(0)
-            fit_dists2, coverage_dists2 = mash_cpp.toChamferDistance(sample_points, gt_points)[:2]
-
-            fit_dists = torch.sqrt(fit_dists2 + EPSILON)
-            coverage_dists = torch.sqrt(coverage_dists2 + EPSILON)
-
-            chamfer_distance = torch.mean(fit_dists) + torch.mean(coverage_dists)
-
         loss_dict = {
             "State/boundary_pts": boundary_pts.shape[0],
             "State/inner_pts": inner_pts.shape[0],
@@ -377,25 +328,30 @@ class Trainer(object):
                 weighted_boundary_connect_loss
             ),
             "Train/loss": toNumpy(loss),
-            "Metric/chamfer_distance": toNumpy(chamfer_distance),
+            "Metric/chamfer_distance": toNumpy(fit_loss) + toNumpy(coverage_loss),
         }
 
         return loss_dict
 
-    def trainEpoch(
+    def warmUpEpoch(
         self,
         epoch_lr: float,
         gt_points: torch.Tensor,
-        train_step_max: Union[int, None] = None,
+        fit_loss_weight: float,
+        coverage_loss_weight: float,
+        boundary_connect_loss_weight: float,
+        train_step_max: int,
     ) -> bool:
         self.mash.setGradState(True)
 
-        self.updateLr(epoch_lr)
-        if self.logger.isValid():
-            self.logger.addScalar("Train/lr", epoch_lr, self.step)
-
-        print("[INFO][Trainer::trainEpoch]")
-        print("\t start train epoch :", self.epoch, "with lr :", epoch_lr, "...")
+        print("[INFO][Trainer::warmUpEpoch]")
+        print(
+            "\t start train epoch :",
+            self.epoch,
+            "with lr :",
+            epoch_lr * 1e3,
+            "* 1e-3...",
+        )
         if train_step_max is not None:
             pbar = tqdm(total=train_step_max)
         else:
@@ -405,13 +361,21 @@ class Trainer(object):
         min_loss = float("inf")
         min_loss_reached_time = 0
 
-        while True:
+        for i in range(train_step_max):
             if self.render:
                 if self.step % self.render_freq == 0:
                     self.renderMash(gt_points)
 
+            current_lr = epoch_lr * (i + 1.0) / train_step_max
+            self.updateLr(current_lr)
+            if self.logger.isValid():
+                self.logger.addScalar("Train/lr", current_lr, self.step)
+
             loss_dict = self.trainStep(
                 gt_points,
+                fit_loss_weight,
+                coverage_loss_weight,
+                boundary_connect_loss_weight,
             )
 
             assert isinstance(loss_dict, dict)
@@ -447,32 +411,97 @@ class Trainer(object):
                     break
 
         self.logger.addScalar("Train/lr", epoch_lr, self.step - 1)
+
+        self.epoch += 1
         return True
 
-    def trainMash(
+    def trainEpoch(
         self,
+        epoch_lr: float,
         gt_points: torch.Tensor,
+        fit_loss_weight: float,
+        coverage_loss_weight: float,
+        boundary_connect_loss_weight: float,
+        train_step_max: Union[int, None] = None,
     ) -> bool:
         self.mash.setGradState(True)
 
-        current_lr = self.lr / self.factor
+        self.updateLr(epoch_lr)
+        if self.logger.isValid():
+            self.logger.addScalar("Train/lr", epoch_lr, self.step)
 
-        while current_lr > self.min_lr:
-            current_lr *= self.factor
-            if current_lr < self.min_lr:
-                current_lr = self.min_lr
+        print("[INFO][Trainer::trainEpoch]")
+        print(
+            "\t start train epoch :",
+            self.epoch,
+            "with lr :",
+            epoch_lr * 1e3,
+            "* 1e-3...",
+        )
+        if train_step_max is not None:
+            pbar = tqdm(total=train_step_max)
+        else:
+            pbar = tqdm()
 
-            self.trainEpoch(current_lr, gt_points)
-            self.epoch += 1
+        start_step = self.step
+        min_loss = float("inf")
+        min_loss_reached_time = 0
 
-            if current_lr == self.min_lr:
-                break
+        while True:
+            if self.render:
+                if self.step % self.render_freq == 0:
+                    self.renderMash(gt_points)
+
+            loss_dict = self.trainStep(
+                gt_points,
+                fit_loss_weight,
+                coverage_loss_weight,
+                boundary_connect_loss_weight,
+            )
+
+            assert isinstance(loss_dict, dict)
+            for key, item in loss_dict.items():
+                self.logger.addScalar(key, item, self.step)
+
+            loss = loss_dict["Train/loss"]
+
+            pbar.set_description("LOSS %.6f" % (loss,))
+
+            self.autoSaveMash("train")
+
+            self.step += 1
+            pbar.update(1)
+
+            if train_step_max is not None:
+                self.logger.addScalar("Train/patience", self.patience, self.step)
+
+                if start_step + self.step >= train_step_max:
+                    break
+            else:
+                if loss < min_loss:
+                    min_loss = loss
+                    min_loss_reached_time = 0
+                else:
+                    min_loss_reached_time += 1
+
+                self.logger.addScalar(
+                    "Train/patience", self.patience - min_loss_reached_time, self.step
+                )
+
+                if min_loss_reached_time >= self.patience:
+                    break
+
+        self.logger.addScalar("Train/lr", epoch_lr, self.step - 1)
+
+        self.epoch += 1
         return True
 
     def autoTrainMash(
         self,
         gt_points_num: int = 400000,
     ) -> bool:
+        boundary_connect_loss_weight_max = 0.1
+
         print("[INFO][Trainer::autoTrainMash]")
         print("\t start auto train Mash...")
         print(
@@ -502,13 +531,61 @@ class Trainer(object):
             .reshape(1, -1, 3)
         )
 
-        self.trainEpoch(self.fit_lr, gt_points, self.fit_step_num)
+        print("[INFO][Trainer::autoTrainMash]")
+        print("\t start warmUpEpoch...")
+        self.warmUpEpoch(self.lr, gt_points, 1.0, 0.5, 0.0, self.warmup_step_num)
 
-        for _ in range(self.warmup_epoch):
-            self.trainEpoch(self.lr, gt_points)
-            self.epoch += 1
+        print("[INFO][Trainer::autoTrainMash]")
+        print("\t start trainEpoch with adaptive loss...")
+        for i in range(self.warmup_epoch):
+            fit_loss_weight = 1.0
 
-        self.trainMash(gt_points)
+            manifold_loss_weight = i / (self.warmup_epoch - 1)
+
+            coverage_loss_weight = 0.5 + 0.5 * manifold_loss_weight
+            boundary_connect_loss_weight = (
+                0.1 + 0.9 * manifold_loss_weight
+            ) * boundary_connect_loss_weight_max
+
+            self.trainEpoch(
+                self.lr,
+                gt_points,
+                fit_loss_weight,
+                coverage_loss_weight,
+                boundary_connect_loss_weight,
+            )
+
+        print("[INFO][Trainer::autoTrainMash]")
+        print("\t start trainEpoch with adaptive lr...")
+        current_lr = self.lr
+        current_finetune_epoch = 1
+
+        while current_lr > self.min_lr:
+            current_lr *= self.factor
+            if current_lr < self.min_lr:
+                current_lr = self.min_lr
+
+            current_finetune_epoch += 1
+
+            fit_loss_weight = 1.0
+            coverage_loss_weight = 1.0
+
+            manifold_loss_weight = 1.0 / current_finetune_epoch
+
+            boundary_connect_loss_weight = (
+                0.0 + 1.0 * manifold_loss_weight
+            ) * boundary_connect_loss_weight_max
+
+            self.trainEpoch(
+                self.lr,
+                gt_points,
+                fit_loss_weight,
+                coverage_loss_weight,
+                boundary_connect_loss_weight,
+            )
+
+            if current_lr == self.min_lr:
+                break
 
         """
             if self.upperSHDegree():

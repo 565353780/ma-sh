@@ -46,6 +46,8 @@ PYBIND11_MODULE(mash_cpp, m) {
         "loss.toAnchorFitLoss");
   m.def("toAnchorCoverageLoss", &toAnchorCoverageLoss,
         "loss.toAnchorCoverageLoss");
+  m.def("toChamferDistanceLoss", &toChamferDistanceLoss,
+        "loss.toChamferDistanceLoss");
   m.def("toAnchorChamferDistanceLoss", &toAnchorChamferDistanceLoss,
         "loss.toAnchorChamferDistanceLoss");
   m.def("toBoundaryConnectLoss", &toBoundaryConnectLoss,

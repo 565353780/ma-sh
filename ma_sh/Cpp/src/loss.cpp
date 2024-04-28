@@ -1,7 +1,6 @@
 #include "loss.h"
 #include "chamfer.h"
 #include "constant.h"
-#include "bound.h"
 
 const torch::Tensor
 toAnchorFitLoss(const int &anchor_num, const int &mask_boundary_sample_point_num,
@@ -94,6 +93,30 @@ toAnchorCoverageLoss(const int &anchor_num, const int &mask_boundary_sample_poin
   }
 
   return coverage_loss;
+}
+
+const std::vector<torch::Tensor>
+toChamferDistanceLoss(const torch::Tensor &detect_points,
+                      const torch::Tensor &gt_points) {
+  const torch::Tensor v_detect_points =
+      detect_points.unsqueeze(0).toType(gt_points.scalar_type());
+
+  const std::vector<torch::Tensor> chamfer_distances =
+      toChamferDistance(v_detect_points, gt_points);
+
+  const torch::Tensor fit_dists2 = chamfer_distances[0].squeeze(0);
+  const torch::Tensor coverage_dists2 = chamfer_distances[1].squeeze(0);
+
+  const torch::Tensor fit_dists = torch::sqrt(fit_dists2 + EPSILON);
+  const torch::Tensor coverage_dists = torch::sqrt(coverage_dists2 + EPSILON);
+
+  const torch::Tensor fit_loss = torch::mean(fit_dists);
+  const torch::Tensor coverage_loss = torch::mean(coverage_dists);
+
+  const std::vector<torch::Tensor> chamfer_distance_losses(
+      {fit_loss, coverage_loss});
+
+  return chamfer_distance_losses;
 }
 
 const std::vector<torch::Tensor>
