@@ -5,6 +5,8 @@
 
 using namespace torch::indexing;
 
+const float EPSILON = 1e-6;
+
 const float PI_2 = M_PI * 2.0;
 
 const float SPLIT_VALUE = 1.0 + std::sqrt(5.0);

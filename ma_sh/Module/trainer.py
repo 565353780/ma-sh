@@ -248,44 +248,20 @@ class Trainer(object):
     ) -> Union[dict, None]:
         self.optimizer.zero_grad()
 
-        boundary_idxs = self.mash.mask_boundary_phi_idxs
         boundary_pts, inner_pts, inner_idxs = self.mash.toSamplePoints()
 
         mash_pts = torch.vstack([boundary_pts, inner_pts])
 
-        fit_dists2, coverage_dists2 = mash_cpp.toChamferDistance(
+        chamfer_distance_losses = mash_cpp.toChamferDistanceLoss(
             mash_pts.unsqueeze(0).type(gt_points.dtype), gt_points
-        )[:2]
+        )
 
-        fit_dists = torch.sqrt(fit_dists2 + EPSILON)
-        coverage_dists = torch.sqrt(coverage_dists2 + EPSILON)
+        fit_loss = chamfer_distance_losses[0]
+        coverage_loss = chamfer_distance_losses[1]
 
-        fit_loss = torch.mean(fit_dists)
-        coverage_loss = torch.mean(coverage_dists)
-
-        boundary_connect_loss = 0
-
-        for i in range(self.mash.anchor_num):
-            current_boundary_pts_mask = boundary_idxs == i
-            current_boundary_pts = boundary_pts[current_boundary_pts_mask]
-            other_boundary_pts = boundary_pts[~current_boundary_pts_mask]
-
-            current_boundary_fit_dists2, _ = mash_cpp.toChamferDistance(
-                current_boundary_pts.unsqueeze(0).type(gt_points.dtype),
-                other_boundary_pts.unsqueeze(0).type(gt_points.dtype),
-            )[:2]
-
-            current_boundary_connect_dist = torch.sqrt(
-                current_boundary_fit_dists2 + EPSILON
-            )
-
-            current_boundary_connect_loss = torch.mean(current_boundary_connect_dist)
-
-            boundary_connect_loss = (
-                boundary_connect_loss + current_boundary_connect_loss
-            )
-
-        boundary_connect_loss = boundary_connect_loss / self.mash.anchor_num
+        boundary_connect_loss = mash_cpp.toBoundaryConnectLoss(
+            self.mash.anchor_num, boundary_pts, self.mash.mask_boundary_phi_idxs
+        )
 
         manifold_loss_weight = self.epoch / (self.train_epoch - 1)
 
