@@ -96,6 +96,7 @@ class Convertor(object):
         dataset_folder_path = self.manifold_mesh_folder_path + "ShapeNet/"
 
         classname_list = os.listdir(dataset_folder_path)
+        classname_list.sort()
         for classname in classname_list:
             if classname != "03001627":
                 continue
@@ -103,6 +104,7 @@ class Convertor(object):
             class_folder_path = dataset_folder_path + classname + "/"
 
             modelid_list = os.listdir(class_folder_path)
+            modelid_list.sort()
 
             for model_file_name in modelid_list:
                 modelid = model_file_name.split(".obj")[0]

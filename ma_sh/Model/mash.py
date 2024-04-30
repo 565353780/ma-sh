@@ -69,7 +69,7 @@ class Mash(object):
     def fromParamsDict(
         cls,
         params_dict: dict,
-        mask_boundary_sample_num: int = 36,
+        mask_boundary_sample_num: int = 90,
         sample_polar_num: int = 1000,
         sample_point_scale: float = 0.8,
         idx_dtype=torch.int64,
@@ -105,7 +105,7 @@ class Mash(object):
     def fromParamsFile(
         cls,
         params_file_path: str,
-        mask_boundary_sample_num: int = 36,
+        mask_boundary_sample_num: int = 90,
         sample_polar_num: int = 1000,
         sample_point_scale: float = 0.8,
         idx_dtype=torch.int64,

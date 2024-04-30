@@ -92,6 +92,7 @@ class Convertor(object):
         solved_shape_num = 0
 
         classname_list = os.listdir(self.shape_root_folder_path)
+        classname_list.sort()
         for classname in classname_list:
             class_folder_path = self.shape_root_folder_path + classname + "/"
 
@@ -99,6 +100,7 @@ class Convertor(object):
                 continue
 
             modelid_list = os.listdir(class_folder_path)
+            modelid_list.sort()
 
             for modelid in modelid_list:
                 mesh_file_path = (
