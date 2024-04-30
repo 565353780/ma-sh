@@ -5,6 +5,7 @@ import numpy as np
 import open3d as o3d
 from copy import deepcopy
 
+from ma_sh.Data.mesh import Mesh
 from ma_sh.Method.data import toNumpy
 from ma_sh.Method.pcd import getPointCloud
 from ma_sh.Model.mash import Mash
@@ -46,9 +47,22 @@ def demo():
     # view single mash
     if True:
         mash_params_file_path = "/Users/fufu/Downloads/Mash/chairs/4.npy"
-        mash_params_file_path = "./output/20240428_23:40:38/292_train.npy"
+        mash_params_file_path = "./output/25d40c79ac57891cfebad4f49b26ec52.npy"
+        mesh_file_path = "./output/25d40c79ac57891cfebad4f49b26ec52.obj"
 
-        mash = Mash.fromParamsFile(mash_params_file_path, 90, 2000, 0.8, device="cpu")
+        if False:
+            mesh = o3d.io.read_triangle_mesh(mesh_file_path)
+
+            mesh.compute_vertex_normals()
+            mesh.compute_triangle_normals()
+
+            mesh_pcd = mesh.sample_points_poisson_disk(100000)
+            o3d.io.write_point_cloud(
+                "./output/test2_mesh_sample.ply", mesh_pcd, write_ascii=True
+            )
+            exit()
+
+        mash = Mash.fromParamsFile(mash_params_file_path, 10, 1000, 0.8, device="cpu")
 
         mash.renderSamplePoints()
 
@@ -56,8 +70,10 @@ def demo():
         points = toNumpy(torch.vstack([boundary_pts, inner_pts]))
 
         pcd = getPointCloud(points)
-
-        o3d.io.write_point_cloud("./output/test.ply", pcd, write_ascii=True)
+        pcd.estimate_normals()
+        pcd.orient_normals_consistent_tangent_plane(10)
+        o3d.visualization.draw_geometries([pcd], point_show_normal=True)
+        o3d.io.write_point_cloud("./output/test2.ply", pcd, write_ascii=True)
         exit()
 
     if False:
@@ -89,10 +105,6 @@ def demo():
         fps_scale = 0.8
         view_freq = 4
         show_recon_only = False
-
-        pts = np.load("./output/e71d05f223d527a5f91663a74ccd2338.npy")
-
-        gt_pcd = getPointCloud(pts)
 
         o3d_viewer = O3DViewer()
         o3d_viewer.createWindow()
@@ -152,11 +164,9 @@ def demo():
             points = toNumpy(torch.vstack([boundary_pts, inner_pts]))
 
             pcd = getPointCloud(points)
-            pcd.translate([0, 1, 0])
 
             o3d_viewer.clearGeometries()
             o3d_viewer.addGeometry(pcd)
-            o3d_viewer.addGeometry(gt_pcd)
 
             print("now render is", i + 1, "/", len(mash_filename_list))
 
