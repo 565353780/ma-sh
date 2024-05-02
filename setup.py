@@ -12,7 +12,7 @@ mash_include_dirs = [mash_root_path + "include"]
 
 mash_extra_compile_args = [
     "-O3",
-    "-std=c++17",
+    "-std=c++23",
     "-DCMAKE_BUILD_TYPE Release",
     "-D_GLIBCXX_USE_CXX11_ABI=0",
     "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
@@ -30,6 +30,7 @@ if torch.cuda.is_available():
             "-Xfatbin",
             "-compress-all",
             "-DUSE_CUDA",
+            "-std=c++20",
         ],
     }
 

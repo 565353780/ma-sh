@@ -8,7 +8,7 @@ cd sdf-generate
 cd ../open3d-manage
 ./dev_setup.sh
 
-if [ "$(uname)" == "Darwin" ]; then
+if [ "$(uname)" = "Darwin" ]; then
 	brew install bear
 elif [ "$(uname)" = "Linux" ]; then
 	sudo apt install bear -y
