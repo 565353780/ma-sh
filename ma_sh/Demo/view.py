@@ -47,33 +47,50 @@ def demo():
     # view single mash
     if True:
         mash_params_file_path = "/Users/fufu/Downloads/Mash/chairs/4.npy"
-        mash_params_file_path = "./output/25d40c79ac57891cfebad4f49b26ec52.npy"
-        mesh_file_path = "./output/25d40c79ac57891cfebad4f49b26ec52.obj"
 
-        if False:
-            mesh = o3d.io.read_triangle_mesh(mesh_file_path)
+        mash_folder_path = "../Results/output-mash/"
+        mash_filename_list = os.listdir(mash_folder_path)
 
-            mesh.compute_vertex_normals()
-            mesh.compute_triangle_normals()
+        for mash_filename in mash_filename_list:
+            if ".npy" not in mash_filename:
+                continue
 
-            mesh_pcd = mesh.sample_points_poisson_disk(100000)
+            print("start show mash:", mash_filename)
+            mash_file_path = mash_folder_path + mash_filename
+
+            if False:
+                mesh_file_path = "./output/25d40c79ac57891cfebad4f49b26ec52.obj"
+                mesh = o3d.io.read_triangle_mesh(mesh_file_path)
+
+                mesh.compute_vertex_normals()
+                mesh.compute_triangle_normals()
+
+                mesh_pcd = mesh.sample_points_poisson_disk(100000)
+                o3d.io.write_point_cloud(
+                    "./output/test2_mesh_sample.ply", mesh_pcd, write_ascii=True
+                )
+                exit()
+
+            try:
+                mash = Mash.fromParamsFile(mash_file_path, 90, 1000, 0.8, device="cpu")
+            except:
+                pass
+
+            # mash.renderSamplePoints()
+
+            pcd = getPointCloud(toNumpy(torch.vstack(mash.toSamplePoints()[:2])))
+
+            if False:
+                pcd.estimate_normals()
+                pcd.orient_normals_consistent_tangent_plane(10)
+                o3d.visualization.draw_geometries([pcd], point_show_normal=True)
+
+            os.makedirs("./output/", exist_ok=True)
             o3d.io.write_point_cloud(
-                "./output/test2_mesh_sample.ply", mesh_pcd, write_ascii=True
+                "./output/" + mash_filename.replace(".npy", ".ply"),
+                pcd,
+                write_ascii=True,
             )
-            exit()
-
-        mash = Mash.fromParamsFile(mash_params_file_path, 10, 1000, 0.8, device="cpu")
-
-        mash.renderSamplePoints()
-
-        boundary_pts, inner_pts, inner_idxs = mash.toSamplePoints()
-        points = toNumpy(torch.vstack([boundary_pts, inner_pts]))
-
-        pcd = getPointCloud(points)
-        pcd.estimate_normals()
-        pcd.orient_normals_consistent_tangent_plane(10)
-        o3d.visualization.draw_geometries([pcd], point_show_normal=True)
-        o3d.io.write_point_cloud("./output/test2.ply", pcd, write_ascii=True)
         exit()
 
     if False:
