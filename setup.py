@@ -1,9 +1,11 @@
 import os
 import glob
 import torch
+from platform import system
 from setuptools import find_packages, setup
 from torch.utils.cpp_extension import CUDAExtension, CppExtension, BuildExtension
 
+SYSTEM = system()
 
 mash_root_path = os.getcwd() + "/../ma-sh/ma_sh/Cpp/"
 mash_src_path = mash_root_path + "src/"
@@ -12,11 +14,15 @@ mash_include_dirs = [mash_root_path + "include"]
 
 mash_extra_compile_args = [
     "-O3",
-    "-std=c++23",
     "-DCMAKE_BUILD_TYPE Release",
     "-D_GLIBCXX_USE_CXX11_ABI=0",
     "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
 ]
+
+if SYSTEM == 'Darwin':
+    mash_extra_compile_args.append("-std=c++20")
+elif SYSTEM == 'Linux':
+    mash_extra_compile_args.append("-std=c++23")
 
 if torch.cuda.is_available():
     os.environ["TORCH_CUDA_ARCH_LIST"] = "6.0;6.1;6.2;7.0;7.5;8.0;8.6;8.9"
