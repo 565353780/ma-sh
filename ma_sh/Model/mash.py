@@ -343,6 +343,7 @@ class Mash(object):
             in_mask_sample_point_idxs,
         ) = mash_cpp.toMashSamplePoints(
             self.anchor_num,
+            self.mask_degree_max,
             self.sh_degree_max,
             self.mask_params,
             self.sh_params,

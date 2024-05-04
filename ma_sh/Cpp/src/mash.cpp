@@ -3,6 +3,7 @@
 #include "direction.h"
 #include "fps.h"
 #include "mash_unit.h"
+#include "mask.h"
 
 const std::vector<torch::Tensor>
 toInMaskSamplePolars(const int &anchor_num, const torch::Tensor &mask_params,
@@ -62,28 +63,39 @@ toInMaskSamplePolars(const int &anchor_num, const torch::Tensor &mask_params,
 }
 
 const torch::Tensor
-toSamplePoints(const int &sh_degree_max, const torch::Tensor &mask_params,
-               const torch::Tensor &sh_params,
+toSamplePoints(const int &mask_degree_max, const int &sh_degree_max,
+               const torch::Tensor &mask_params, const torch::Tensor &sh_params,
                const torch::Tensor &rotate_vectors,
                const torch::Tensor &positions, const torch::Tensor &sample_phis,
                const torch::Tensor &sample_theta_weights,
                const torch::Tensor &sample_polar_idxs, const bool &use_inv,
                const torch::Tensor &sample_base_values,
                const torch::Tensor &sample_sh_directions) {
-  const torch::Tensor detect_thetas = toDetectThetas(
-      mask_params, sample_base_values, sample_polar_idxs, sample_theta_weights);
+  torch::Tensor valid_sample_base_values = sample_base_values;
+  if (sample_base_values.size(0) != sample_phis.size(0)) {
+    valid_sample_base_values = toMaskBaseValues(sample_phis, mask_degree_max);
+  }
+
+  const torch::Tensor detect_thetas =
+      toDetectThetas(mask_params, valid_sample_base_values, sample_polar_idxs,
+                     sample_theta_weights);
 
   const torch::Tensor sh_values = toSHValues(
       sh_degree_max, sh_params, sample_phis, detect_thetas, sample_polar_idxs);
 
-  const torch::Tensor sh_points =
-      toSHPoints(sh_params, rotate_vectors, positions, sample_sh_directions,
-                 sh_values, sample_polar_idxs, use_inv);
+  torch::Tensor valid_sample_sh_directions = sample_sh_directions;
+  if (sample_sh_directions.size(0) != sample_phis.size(0)) {
+    valid_sample_sh_directions = toDirections(sample_phis, detect_thetas);
+  }
+
+  const torch::Tensor sh_points = toSHPoints(
+      sh_params, rotate_vectors, positions, valid_sample_sh_directions,
+      sh_values, sample_polar_idxs, use_inv);
   return sh_points;
 }
 
 const std::vector<torch::Tensor> toInMaskSamplePoints(
-    const int &anchor_num, const int &sh_degree_max,
+    const int &anchor_num, const int &mask_degree_max, const int &sh_degree_max,
     const torch::Tensor &mask_params, const torch::Tensor &sh_params,
     const torch::Tensor &rotate_vectors, const torch::Tensor &positions,
     const torch::Tensor &sample_phis, const torch::Tensor &sample_thetas,
@@ -111,8 +123,8 @@ const std::vector<torch::Tensor> toInMaskSamplePoints(
       sample_sh_directions.index({in_mask_sample_polar_data_idxs});
 
   const torch::Tensor in_mask_sh_points = toSamplePoints(
-      sh_degree_max, mask_params, sh_params, rotate_vectors, positions,
-      in_mask_sample_phis, in_mask_sample_theta_weights,
+      mask_degree_max, sh_degree_max, mask_params, sh_params, rotate_vectors,
+      positions, in_mask_sample_phis, in_mask_sample_theta_weights,
       in_mask_sample_polar_idxs, use_inv, in_mask_sample_base_values,
       in_mask_sh_directions);
 
@@ -153,7 +165,7 @@ const torch::Tensor toMaskBoundarySamplePoints(
 }
 
 const std::vector<torch::Tensor> toMashSamplePoints(
-    const int &anchor_num, const int &sh_degree_max,
+    const int &anchor_num, const int &mask_degree_max, const int &sh_degree_max,
     const torch::Tensor &mask_params, const torch::Tensor &sh_params,
     const torch::Tensor &rotate_vectors, const torch::Tensor &positions,
     const torch::Tensor &sample_phis, const torch::Tensor &sample_thetas,
@@ -167,9 +179,9 @@ const std::vector<torch::Tensor> toMashSamplePoints(
       mask_params, mask_boundary_base_values, mask_boundary_phi_idxs);
 
   const std::vector<torch::Tensor> in_mask_sample_points_with_idxs =
-      toInMaskSamplePoints(anchor_num, sh_degree_max, mask_params, sh_params,
-                           rotate_vectors, positions, sample_phis,
-                           sample_thetas, mask_boundary_thetas,
+      toInMaskSamplePoints(anchor_num, mask_degree_max, sh_degree_max,
+                           mask_params, sh_params, rotate_vectors, positions,
+                           sample_phis, sample_thetas, mask_boundary_thetas,
                            mask_boundary_phi_idxs, sample_base_values,
                            sample_sh_directions, sample_point_scale, use_inv);
 
