@@ -20,8 +20,7 @@
 PYBIND11_MODULE(mash_cpp, m) {
   m.doc() = "pybind11 mash cpp plugin";
 
-  m.def("toAnchorBounds", &toAnchorBounds,
-        "bound.toAnchorBounds");
+  m.def("toAnchorBounds", &toAnchorBounds, "bound.toAnchorBounds");
 
   m.def("toChamferDistance", &toChamferDistance, "chamfer.toChamferDistance");
 
@@ -42,8 +41,7 @@ PYBIND11_MODULE(mash_cpp, m) {
 
   m.def("toInvPoints", &toInvPoints, "inv.toInvPoints");
 
-  m.def("toAnchorFitLoss", &toAnchorFitLoss,
-        "loss.toAnchorFitLoss");
+  m.def("toAnchorFitLoss", &toAnchorFitLoss, "loss.toAnchorFitLoss");
   m.def("toAnchorCoverageLoss", &toAnchorCoverageLoss,
         "loss.toAnchorCoverageLoss");
   m.def("toChamferDistanceLoss", &toChamferDistanceLoss,
