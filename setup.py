@@ -22,7 +22,7 @@ mash_extra_compile_args = [
 if SYSTEM == 'Darwin':
     mash_extra_compile_args.append("-std=c++20")
 elif SYSTEM == 'Linux':
-    mash_extra_compile_args.append("-std=c++23")
+    mash_extra_compile_args.append("-std=c++20")
 
 if torch.cuda.is_available():
     os.environ["TORCH_CUDA_ARCH_LIST"] = "6.0;6.1;6.2;7.0;7.5;8.0;8.6;8.9"
