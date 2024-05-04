@@ -11,7 +11,8 @@ toInMaskSamplePolars(const int &anchor_num, const torch::Tensor &mask_params,
                      const torch::Tensor &sample_thetas,
                      const torch::Tensor &mask_boundary_thetas,
                      const torch::Tensor &mask_boundary_phi_idxs,
-                     const torch::Tensor &sample_base_values) {
+                     const torch::Tensor &sample_base_values,
+                     const torch::Tensor &sample_sh_directions) {
   const std::vector<torch::Tensor> in_max_mask_sample_polar_idxs_vec =
       toInMaxMaskSamplePolarIdxsVec(anchor_num, sample_thetas,
                                     mask_boundary_thetas,
@@ -55,10 +56,13 @@ toInMaskSamplePolars(const int &anchor_num, const torch::Tensor &mask_params,
   const torch::Tensor in_mask_sample_theta_weights = toInMaskSampleThetaWeights(
       in_max_mask_sample_thetas, in_max_mask_thetas, in_mask_sample_polar_mask);
 
+  const torch::Tensor in_mask_sh_directions =
+      sample_sh_directions.index({in_mask_sample_polar_data_idxs});
+
   const std::vector<torch::Tensor> in_mask_sample_polars_with_idxs(
       {in_mask_sample_phis, in_mask_sample_theta_weights,
-       in_mask_sample_polar_idxs, in_mask_sample_polar_data_idxs,
-       in_mask_sample_base_values});
+       in_mask_sample_polar_idxs, in_mask_sample_base_values,
+       in_mask_sh_directions});
   return in_mask_sample_polars_with_idxs;
 }
 
@@ -107,26 +111,23 @@ const std::vector<torch::Tensor> toInMaskSamplePoints(
   const std::vector<torch::Tensor> in_mask_sample_polars_with_idxs =
       toInMaskSamplePolars(anchor_num, mask_params, sample_phis, sample_thetas,
                            mask_boundary_thetas, mask_boundary_phi_idxs,
-                           sample_base_values);
+                           sample_base_values, sample_sh_directions);
 
   const torch::Tensor &in_mask_sample_phis = in_mask_sample_polars_with_idxs[0];
   const torch::Tensor &in_mask_sample_theta_weights =
       in_mask_sample_polars_with_idxs[1];
   const torch::Tensor &in_mask_sample_polar_idxs =
       in_mask_sample_polars_with_idxs[2];
-  const torch::Tensor &in_mask_sample_polar_data_idxs =
-      in_mask_sample_polars_with_idxs[3];
   const torch::Tensor &in_mask_sample_base_values =
+      in_mask_sample_polars_with_idxs[3];
+  const torch::Tensor &in_mask_sample_sh_directions =
       in_mask_sample_polars_with_idxs[4];
-
-  const torch::Tensor in_mask_sh_directions =
-      sample_sh_directions.index({in_mask_sample_polar_data_idxs});
 
   const torch::Tensor in_mask_sh_points = toSamplePoints(
       mask_degree_max, sh_degree_max, mask_params, sh_params, rotate_vectors,
       positions, in_mask_sample_phis, in_mask_sample_theta_weights,
       in_mask_sample_polar_idxs, use_inv, in_mask_sample_base_values,
-      in_mask_sh_directions);
+      in_mask_sample_sh_directions);
 
   const torch::Tensor fps_in_mask_sample_point_idxs =
       toFPSPointIdxs(in_mask_sh_points, in_mask_sample_polar_idxs,

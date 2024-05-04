@@ -8,7 +8,8 @@ const std::vector<torch::Tensor> toInMaskSamplePolars(
     const torch::Tensor &sample_phis, const torch::Tensor &sample_thetas,
     const torch::Tensor &mask_boundary_thetas,
     const torch::Tensor &mask_boundary_phi_idxs,
-    const torch::Tensor &sample_base_values);
+    const torch::Tensor &sample_base_values,
+    const torch::Tensor &sample_sh_directions);
 
 const torch::Tensor
 toSamplePoints(const int &mask_degree_max, const int &sh_degree_max, const torch::Tensor &mask_params,
