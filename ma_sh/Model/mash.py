@@ -365,6 +365,16 @@ class Mash(object):
             in_mask_sample_point_idxs,
         )
 
+    def toSamplePointsWithNormals(self) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        current_grad_state = self.mask_params.grad_fn is not None
+        self.setGradState(True)
+
+        mask_boundary_sample_points, in_mask_sample_points, in_mask_sample_point_idxs = self.toSamplePoints()
+
+        mask_boundary_sample_points.backward(torch.ones_like(mask_boundary_sample_points))
+        in_mask_sample_points.backward(torch.ones_like(in_mask_sample_points))
+        return
+
     def renderSamplePoints(self) -> bool:
         (
             mask_boundary_sample_points,

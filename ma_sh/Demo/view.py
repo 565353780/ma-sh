@@ -80,10 +80,11 @@ def demo():
 
             pcd = getPointCloud(toNumpy(torch.vstack(mash.toSamplePoints()[:2])))
 
-            if False:
+            if True:
                 pcd.estimate_normals()
                 pcd.orient_normals_consistent_tangent_plane(10)
                 o3d.visualization.draw_geometries([pcd], point_show_normal=True)
+                exit()
 
             os.makedirs("./output/", exist_ok=True)
             o3d.io.write_point_cloud(
