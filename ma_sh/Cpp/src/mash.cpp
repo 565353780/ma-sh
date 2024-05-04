@@ -162,7 +162,7 @@ const std::vector<torch::Tensor> toMashSamplePoints(
       toFPSPointIdxs(in_mask_sh_points, in_mask_sample_polar_idxs,
                      sample_point_scale, anchor_num);
 
-  const torch::Tensor fps_in_mask_sh_points =
+  const torch::Tensor in_mask_sample_points =
       in_mask_sh_points.index({fps_in_mask_sample_point_idxs});
 
   const torch::Tensor in_mask_sample_point_idxs =
@@ -174,7 +174,7 @@ const std::vector<torch::Tensor> toMashSamplePoints(
       mask_boundary_base_values, torch::Tensor());
 
   const std::vector<torch::Tensor> sample_points_with_idxs(
-      {mask_boundary_sample_points, fps_in_mask_sh_points,
+      {mask_boundary_sample_points, in_mask_sample_points,
        in_mask_sample_point_idxs});
 
   return sample_points_with_idxs;

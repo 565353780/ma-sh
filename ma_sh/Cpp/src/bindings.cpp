@@ -51,6 +51,11 @@ PYBIND11_MODULE(mash_cpp, m) {
   m.def("toBoundaryConnectLoss", &toBoundaryConnectLoss,
         "loss.toBoundaryConnectLoss");
 
+  m.def("toInMaskSamplePolars", &toInMaskSamplePolars,
+        "mash.toInMaskSamplePolars");
+  m.def("toSamplePoints", &toSamplePoints, "mash.toSamplePoints");
+  m.def("toWeightedSamplePoints", &toWeightedSamplePoints,
+        "mash.toWeightedSamplePoints");
   m.def("toMashSamplePoints", &toMashSamplePoints, "mash.toMashSamplePoints");
 
   m.def("toMaskBoundaryThetas", &toMaskBoundaryThetas,

@@ -368,12 +368,59 @@ class Mash(object):
 
     def toSamplePointsWithNormals(self) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         current_grad_state = self.mask_params.grad_fn is not None
-        self.setGradState(True)
+        self.setGradState(False)
 
-        mask_boundary_sample_points, in_mask_sample_points, in_mask_sample_point_idxs = self.toSamplePoints()
+        self.mask_boundary_phis.requires_grad_(True)
 
-        mask_boundary_sample_points.backward(torch.ones_like(mask_boundary_sample_points))
+        mask_boundary_thetas = mash_cpp.toMaskBoundaryThetas(self.mask_params, self.mask_boundary_base_values, self.mask_boundary_phi_idxs)
+
+        mask_boundary_thetas.requires_grad_(True)
+
+        (
+            in_mask_sample_phis,
+            in_mask_sample_theta_weights,
+            in_mask_sample_polar_idxs,
+            in_mask_sample_base_values,
+            in_mask_sample_sh_directions
+        ) = mash_cpp.toInMaskSamplePolars(
+            self.anchor_num,
+            self.mask_params,
+            self.sample_phis,
+            self.sample_thetas,
+            mask_boundary_thetas.detach().clone(),
+            self.mask_boundary_phi_idxs,
+            self.sample_base_values,
+            self.sample_sh_directions
+        )
+
+        in_mask_sample_phis.requires_grad_(True)
+        in_mask_sample_theta_weights.requires_grad_(True)
+
+        in_mask_sh_points = mash_cpp.toWeightedSamplePoints(
+            self.mask_degree_max, self.sh_degree_max, self.mask_params, self.sh_params, self.rotate_vectors,
+            self.positions, in_mask_sample_phis, in_mask_sample_theta_weights,
+            in_mask_sample_polar_idxs, self.use_inv, in_mask_sample_base_values,
+            in_mask_sample_sh_directions
+        )
+
+        fps_in_mask_sample_point_idxs = mash_cpp.toFPSPointIdxs(
+            in_mask_sh_points, in_mask_sample_polar_idxs, self.sample_point_scale, self.anchor_num
+        )
+
+        in_mask_sample_points = in_mask_sh_points[fps_in_mask_sample_point_idxs]
+
+        in_mask_sample_point_idxs = in_mask_sample_polar_idxs[fps_in_mask_sample_point_idxs]
+
+        mask_boundary_sample_points = mash_cpp.toSamplePoints(
+            self.mask_degree_max, self.sh_degree_max, self.sh_params, self.rotate_vectors, self.positions,
+            self.mask_boundary_phis, mask_boundary_thetas, self.mask_boundary_phi_idxs, self.use_inv,
+            self.mask_boundary_base_values, torch.Tensor())
+
         in_mask_sample_points.backward(torch.ones_like(in_mask_sample_points))
+        mask_boundary_sample_points.backward(torch.ones_like(mask_boundary_sample_points))
+
+        valid_in_mask_phis = in_mask_sample_phis[fps_in_mask_sample_point_idxs]
+        valid_in_mask_theta_weights = in_mask_sample_theta_weights[fps_in_mask_sample_point_idxs]
         return
 
     def renderSamplePoints(self) -> bool:
@@ -391,7 +438,6 @@ class Mash(object):
         print("inner_pts:", inner_pts.shape, inner_pts.dtype)
         print("inner_anchor_idxs:", inner_anchor_idxs.shape, inner_anchor_idxs.dtype)
 
-        # FIXME: test flatten points by patches
         if False:
             render_pts_list = []
 
