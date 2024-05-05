@@ -1,13 +1,17 @@
-from math import ceil
 import numpy as np
 import open3d as o3d
+from math import ceil
+from typing import Union
 
 from ma_sh.Data.abb import ABB
 
 
-def getPointCloud(pts: np.ndarray):
+def getPointCloud(pts: np.ndarray, normals: Union[np.ndarray, None]=None):
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(pts)
+    if normals is not None:
+        if normals.shape[0] == pts.shape[0]:
+            pcd.normals = o3d.utility.Vector3dVector(normals)
     return pcd
 
 

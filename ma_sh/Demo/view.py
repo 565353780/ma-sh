@@ -72,7 +72,7 @@ def demo():
                 exit()
 
             try:
-                mash = Mash.fromParamsFile(mash_file_path, 90, 1000, 0.8, device="cpu")
+                mash = Mash.fromParamsFile(mash_file_path, 10, 400, 0.8, device="cpu")
             except:
                 pass
 

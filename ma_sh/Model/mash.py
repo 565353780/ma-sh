@@ -490,7 +490,9 @@ class Mash(object):
         valid_mask_boundary_normals = torch.zeros_like(mask_boundary_sample_points)
         valid_mask_boundary_normals[valid_mask_boundary_idxs] = mask_boundary_normals[valid_mask_boundary_idxs] / mask_boundary_norms[valid_mask_boundary_idxs].reshape(-1, 1)
 
-        normal_tags = toNormalTag(self.anchor_num, mask_boundary_sample_points, self.mask_boundary_phi_idxs, valid_mask_boundary_normals)
+        normal_tags = toNormalTag(self.anchor_num, in_mask_sample_points, in_mask_sample_point_idxs, valid_in_mask_normals, 10)
+
+        render_list = []
 
         for i in range(self.anchor_num):
             anchor_boundary_normal_idxs = self.mask_boundary_phi_idxs == i
