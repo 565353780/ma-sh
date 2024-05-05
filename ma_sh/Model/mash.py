@@ -60,7 +60,6 @@ class Mash(object):
             self.device
         )
         self.sample_base_values = torch.tensor([0.0], dtype=dtype).to(self.device)
-        self.sample_sh_directions = torch.tensor([0.0], dtype=dtype).to(self.device)
 
         self.reset()
         return
@@ -167,7 +166,6 @@ class Mash(object):
             self.mask_boundary_phi_idxs,
             self.mask_boundary_base_values,
             self.sample_base_values,
-            self.sample_sh_directions,
         ) = toPreLoadDatas(
             self.anchor_num,
             self.mask_degree_max,
@@ -366,7 +364,6 @@ class Mash(object):
             self.mask_boundary_phi_idxs,
             self.mask_boundary_base_values,
             self.sample_base_values,
-            self.sample_sh_directions,
             self.sample_point_scale,
             self.use_inv,
         )
@@ -399,7 +396,6 @@ class Mash(object):
             mask_boundary_thetas,
             self.mask_boundary_phi_idxs,
             self.sample_base_values,
-            self.sample_sh_directions
         )
 
         in_mask_sample_phis.requires_grad_(True)
