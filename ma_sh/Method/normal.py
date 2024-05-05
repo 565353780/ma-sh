@@ -10,54 +10,54 @@ from ma_sh.Method.data import toNumpy
 from ma_sh.Method.pcd import getPointCloud
 
 @torch.no_grad()
-def toNormalTag(anchor_num: int, mask_boundary_points: torch.Tensor,
-                mask_boundary_point_idxs: torch.Tensor,
-                mask_boundary_normals: torch.Tensor,
+def toNormalTag(anchor_num: int, points: torch.Tensor,
+                point_idxs: torch.Tensor,
+                normals: torch.Tensor,
                 fps_sample_num: int = -1) -> torch.Tensor:
-    normal_tag = torch.ones([anchor_num], dtype=mask_boundary_points.dtype).to(mask_boundary_points.device)
+    normal_tag = torch.ones([anchor_num], dtype=points.dtype).to(points.device)
 
     tagged_anchor_idxs = [0]
     untagged_anchor_idxs = list(range(1, anchor_num))
 
-    mask_boundary_points_list = []
-    mask_boundary_normals_list = []
+    points_list = []
+    normals_list = []
 
     for i in trange(anchor_num):
-        anchor_point_mask = mask_boundary_point_idxs == i
+        anchor_point_mask = point_idxs == i
 
-        anchor_boundary_points = mask_boundary_points[anchor_point_mask]
-        anchor_boundary_normals = mask_boundary_normals[anchor_point_mask]
+        anchor_points = points[anchor_point_mask]
+        anchor_normals = normals[anchor_point_mask]
 
-        normal_norms = torch.norm(anchor_boundary_normals, dim=1)
+        normal_norms = torch.norm(anchor_normals, dim=1)
 
         valid_normal_mask = normal_norms > 0
 
-        valid_anchor_boundary_points = anchor_boundary_points[valid_normal_mask]
-        valid_anchor_boundary_normals = anchor_boundary_normals[valid_normal_mask]
+        valid_anchor_points = anchor_points[valid_normal_mask]
+        valid_anchor_normals = anchor_normals[valid_normal_mask]
 
         if fps_sample_num > 0:
-            fps_scale = fps_sample_num / valid_anchor_boundary_points.shape[0]
-            fps_idxs = mash_cpp.toFPSPointIdxs(valid_anchor_boundary_points, torch.zeros([valid_anchor_boundary_points.shape[0]]).type(torch.int), fps_scale, 1)
+            fps_scale = fps_sample_num / valid_anchor_points.shape[0]
+            fps_idxs = mash_cpp.toFPSPointIdxs(valid_anchor_points, torch.zeros([valid_anchor_points.shape[0]]).type(torch.int), fps_scale, 1)
 
-            fps_points = valid_anchor_boundary_points[fps_idxs]
-            fps_normals = valid_anchor_boundary_normals[fps_idxs]
+            fps_points = valid_anchor_points[fps_idxs]
+            fps_normals = valid_anchor_normals[fps_idxs]
 
-            mask_boundary_points_list.append(fps_points)
-            mask_boundary_normals_list.append(fps_normals)
+            points_list.append(fps_points)
+            normals_list.append(fps_normals)
         else:
-            mask_boundary_points_list.append(valid_anchor_boundary_points)
-            mask_boundary_normals_list.append(valid_anchor_boundary_normals)
+            points_list.append(valid_anchor_points)
+            normals_list.append(valid_anchor_normals)
 
     print('[INFO][normal::toNormalTag]')
     print('\t start auto estimate normal tags for each anchor...')
     pbar = tqdm(total=anchor_num)
     pbar.update(1)
     while len(tagged_anchor_idxs) < anchor_num:
-        tagged_points = [mask_boundary_points_list[i] for i in tagged_anchor_idxs]
-        untagged_points = [mask_boundary_points_list[i] for i in untagged_anchor_idxs]
+        tagged_points = [points_list[i] for i in tagged_anchor_idxs]
+        untagged_points = [points_list[i] for i in untagged_anchor_idxs]
 
-        tagged_normals = [mask_boundary_normals_list[i] for i in tagged_anchor_idxs]
-        untagged_normals = [mask_boundary_normals_list[i] for i in untagged_anchor_idxs]
+        tagged_normals = [normals_list[i] for i in tagged_anchor_idxs]
+        untagged_normals = [normals_list[i] for i in untagged_anchor_idxs]
 
         tagged_idxs = mash_cpp.toIdxs(mash_cpp.toCounts(tagged_points)).type(torch.int)
         untagged_idxs = mash_cpp.toIdxs(mash_cpp.toCounts(untagged_points)).type(torch.int)
@@ -116,7 +116,7 @@ def toNormalTag(anchor_num: int, mask_boundary_points: torch.Tensor,
         untagged_anchor_idxs.remove(min_dist_untagged_idx)
 
         if False:
-            total_pcd = getPointCloud(mask_boundary_points.cpu().numpy())
+            total_pcd = getPointCloud(points.cpu().numpy())
             total_pcd.translate([0, 0, 1])
 
             pcd = getPointCloud(torch.vstack([min_dist_tagged_point, min_dist_untagged_point]).cpu().numpy())
