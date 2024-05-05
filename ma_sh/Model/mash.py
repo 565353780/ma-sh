@@ -416,36 +416,115 @@ class Mash(object):
             self.mask_boundary_phis, mask_boundary_thetas, self.mask_boundary_phi_idxs, self.use_inv,
             self.mask_boundary_base_values, torch.Tensor())
 
-        in_mask_sample_points.backward(torch.ones_like(in_mask_sample_points))
-        mask_boundary_sample_points.backward(torch.ones_like(mask_boundary_sample_points))
+        in_mask_x = in_mask_sample_points[:, 0]
+        in_mask_y = in_mask_sample_points[:, 1]
+        in_mask_z = in_mask_sample_points[:, 2]
 
-        valid_in_mask_phis = in_mask_sample_phis[fps_in_mask_sample_point_idxs]
-        valid_in_mask_theta_weights = in_mask_sample_theta_weights[fps_in_mask_sample_point_idxs]
-        return
+        in_mask_sample_phis.grad = None
+        in_mask_sample_theta_weights.grad = None
+        in_mask_x.backward(torch.ones_like(in_mask_x), retain_graph=True)
+        in_mask_phi_grads_x = in_mask_sample_phis.grad[fps_in_mask_sample_point_idxs].detach().clone()
+        in_mask_theta_weight_grads_x = in_mask_sample_theta_weights.grad[fps_in_mask_sample_point_idxs].detach().clone()
+
+        in_mask_sample_phis.grad = None
+        in_mask_sample_theta_weights.grad = None
+        in_mask_y.backward(torch.ones_like(in_mask_y), retain_graph=True)
+        in_mask_phi_grads_y = in_mask_sample_phis.grad[fps_in_mask_sample_point_idxs].detach().clone()
+        in_mask_theta_weight_grads_y = in_mask_sample_theta_weights.grad[fps_in_mask_sample_point_idxs].detach().clone()
+
+        in_mask_sample_phis.grad = None
+        in_mask_sample_theta_weights.grad = None
+        in_mask_z.backward(torch.ones_like(in_mask_z))
+        in_mask_phi_grads_z = in_mask_sample_phis.grad[fps_in_mask_sample_point_idxs].detach().clone()
+        in_mask_theta_weight_grads_z = in_mask_sample_theta_weights.grad[fps_in_mask_sample_point_idxs].detach().clone()
+
+        mask_boundary_x = mask_boundary_sample_points[:, 0]
+        mask_boundary_y = mask_boundary_sample_points[:, 1]
+        mask_boundary_z = mask_boundary_sample_points[:, 2]
+
+        self.mask_boundary_phis.grad = None
+        mask_boundary_thetas.grad = None
+        mask_boundary_x.backward(torch.ones_like(mask_boundary_x), retain_graph=True)
+        mask_boundary_phi_grads_x = self.mask_boundary_phis.grad.detach().clone()
+        mask_boundary_theta_grads_x = mask_boundary_thetas.grad.detach().clone()
+
+        self.mask_boundary_phis.grad = None
+        mask_boundary_thetas.grad = None
+        mask_boundary_y.backward(torch.ones_like(mask_boundary_y), retain_graph=True)
+        mask_boundary_phi_grads_y = self.mask_boundary_phis.grad.detach().clone()
+        mask_boundary_theta_grads_y = mask_boundary_thetas.grad.detach().clone()
+
+        self.mask_boundary_phis.grad = None
+        mask_boundary_thetas.grad = None
+        mask_boundary_z.backward(torch.ones_like(mask_boundary_z))
+        mask_boundary_phi_grads_z = self.mask_boundary_phis.grad.detach().clone()
+        mask_boundary_theta_grads_z = mask_boundary_thetas.grad.detach().clone()
+
+        in_mask_nx = in_mask_phi_grads_y * in_mask_theta_weight_grads_z - in_mask_phi_grads_z * in_mask_theta_weight_grads_y
+        in_mask_ny = in_mask_phi_grads_z * in_mask_theta_weight_grads_x - in_mask_phi_grads_x * in_mask_theta_weight_grads_z
+        in_mask_nz = in_mask_phi_grads_x * in_mask_theta_weight_grads_y - in_mask_phi_grads_y * in_mask_theta_weight_grads_x
+
+        mask_boundary_nx = mask_boundary_phi_grads_y * mask_boundary_theta_grads_z - mask_boundary_phi_grads_z * mask_boundary_theta_grads_y
+        mask_boundary_ny = mask_boundary_phi_grads_z * mask_boundary_theta_grads_x - mask_boundary_phi_grads_x * mask_boundary_theta_grads_z
+        mask_boundary_nz = mask_boundary_phi_grads_x * mask_boundary_theta_grads_y - mask_boundary_phi_grads_y * mask_boundary_theta_grads_x
+
+        in_mask_normals = torch.vstack([in_mask_nx, in_mask_ny, in_mask_nz]).transpose(1, 0)
+        mask_boundary_normals = torch.vstack([mask_boundary_nx, mask_boundary_ny, mask_boundary_nz]).transpose(1, 0)
+
+        norm1 = torch.norm(in_mask_normals, dim=1)
+        norm2 = torch.norm(mask_boundary_normals, dim=1)
+
+        valid_in_mask_idxs = torch.where(norm1 > 0)[0]
+        valid_mask_boundary_idxs = torch.where(norm2 > 0)[0]
+
+        valid_in_mask_normals = torch.zeros_like(in_mask_sample_points)
+        valid_in_mask_normals[valid_in_mask_idxs] = in_mask_normals[valid_in_mask_idxs] / norm1[valid_in_mask_idxs].reshape(-1, 1)
+        valid_mask_boundary_normals = torch.zeros_like(mask_boundary_sample_points)
+        valid_mask_boundary_normals[valid_mask_boundary_idxs] = mask_boundary_normals[valid_mask_boundary_idxs] / norm2[valid_mask_boundary_idxs].reshape(-1, 1)
+
+        return (
+            mask_boundary_sample_points,
+            in_mask_sample_points,
+            in_mask_sample_point_idxs,
+            valid_mask_boundary_normals,
+            valid_in_mask_normals,
+        )
 
     def renderSamplePoints(self) -> bool:
         (
             mask_boundary_sample_points,
             in_mask_sample_points,
             in_mask_sample_point_idxs,
-        ) = self.toSamplePoints()
+            valid_mask_boundary_normals,
+            valid_in_mask_normals
+        ) = self.toSamplePointsWithNormals()
 
         boundary_pts = toNumpy(mask_boundary_sample_points)
         inner_pts = toNumpy(in_mask_sample_points)
         inner_anchor_idxs = toNumpy(in_mask_sample_point_idxs)
+        boundary_normals = toNumpy(valid_mask_boundary_normals)
+        inner_normals = toNumpy(valid_in_mask_normals)
 
         print("boundary_pts:", boundary_pts.shape, boundary_pts.dtype)
         print("inner_pts:", inner_pts.shape, inner_pts.dtype)
         print("inner_anchor_idxs:", inner_anchor_idxs.shape, inner_anchor_idxs.dtype)
+        print('valid boundary_normals num:', np.where(np.linalg.norm(valid_mask_boundary_normals, axis=1) == 0)[0].shape)
+        print('valid inner_normals num:', np.where(np.linalg.norm(valid_in_mask_normals, axis=1) == 0)[0].shape)
 
-        if False:
-            render_pts_list = []
+        if True:
+            render_pcd_list = []
 
             for i in range(self.anchor_num):
-                anchor_boundary_pts = boundary_pts[self.mask_boundary_phi_idxs == i]
-                anchor_inner_pts = inner_pts[inner_anchor_idxs == i]
+                boundary_mask = self.mask_boundary_phi_idxs == i
+                inner_mask = inner_anchor_idxs == i
+
+                anchor_boundary_pts = boundary_pts[boundary_mask]
+                anchor_inner_pts = inner_pts[inner_mask]
+                anchor_boundary_normals = boundary_normals[boundary_mask]
+                anchor_inner_normals = inner_normals[inner_mask]
 
                 anchor_pts = np.vstack([anchor_boundary_pts, anchor_inner_pts])
+                anchor_normals = np.vstack([anchor_boundary_normals, anchor_inner_normals])
 
                 center = np.mean(anchor_pts, axis=0)
 
@@ -453,15 +532,21 @@ class Mash(object):
                     anchor_pts - center + 0.2 * np.array([i // 20, i % 20, 0.0])
                 )
 
-                render_pts_list.append(anchor_pts)
+                pcd = getPointCloud(anchor_pts)
+                pcd.normals = o3d.utility.Vector3dVector(anchor_normals)
 
-            render_pts = np.vstack(render_pts_list)
+                render_pcd_list.append(pcd)
 
-            renderPoints(render_pts)
+            o3d.visualization.draw_geometries(render_pcd_list, point_show_normal=True)
             exit()
 
         sample_pts = np.vstack([inner_pts, boundary_pts])
-        renderPoints(sample_pts)
+        sample_normals = np.vstack([inner_normals, boundary_normals])
+        sample_pts = inner_pts
+        sample_normals = inner_normals 
+        pcd = getPointCloud(sample_pts)
+        pcd.normals = o3d.utility.Vector3dVector(sample_normals)
+        o3d.visualization.draw_geometries([pcd], point_show_normal=True)
         return True
 
     def renderSamplePatches(self) -> bool:
