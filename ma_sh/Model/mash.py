@@ -136,6 +136,17 @@ class Mash(object):
         self.positions.requires_grad_(need_grad)
         return True
 
+    def clearGrads(self) -> bool:
+        if self.mask_params.requires_grad:
+            self.mask_params.grad = None
+        if self.sh_params.requires_grad:
+            self.sh_params.grad = None
+        if self.rotate_vectors.requires_grad:
+            self.rotate_vectors.grad = None
+        if self.positions.requires_grad:
+            self.positions.grad = None
+        return True
+
     def initParams(self) -> bool:
         self.mask_params, self.sh_params, self.rotate_vectors, self.positions = (
             toParams(
@@ -367,8 +378,7 @@ class Mash(object):
         )
 
     def toSamplePointsWithNormals(self) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-        current_grad_state = self.mask_params.grad_fn is not None
-        self.setGradState(False)
+        self.clearGrads()
 
         self.mask_boundary_phis.requires_grad_(True)
 
@@ -392,14 +402,12 @@ class Mash(object):
             self.sample_sh_directions
         )
 
-        in_mask_sample_thetas = mash_cpp.toDetectThetas(self.mask_params, in_mask_sample_base_values, in_mask_sample_polar_idxs, in_mask_sample_theta_weights)
-
         in_mask_sample_phis.requires_grad_(True)
-        in_mask_sample_thetas.requires_grad_(True)
+        in_mask_sample_theta_weights.requires_grad_(True)
 
-        in_mask_sh_points = mash_cpp.toSamplePoints(
-            self.mask_degree_max, self.sh_degree_max, self.sh_params, self.rotate_vectors,
-            self.positions, in_mask_sample_phis, in_mask_sample_thetas,
+        in_mask_sh_points = mash_cpp.toWeightedSamplePoints(
+            self.mask_degree_max, self.sh_degree_max, self.mask_params, self.sh_params, self.rotate_vectors,
+            self.positions, in_mask_sample_phis, in_mask_sample_theta_weights,
             in_mask_sample_polar_idxs, self.use_inv, in_mask_sample_base_values)
 
         fps_in_mask_sample_point_idxs = mash_cpp.toFPSPointIdxs(
@@ -420,22 +428,22 @@ class Mash(object):
         in_mask_z = in_mask_sample_points[:, 2]
 
         in_mask_sample_phis.grad = None
-        in_mask_sample_thetas.grad = None
+        in_mask_sample_theta_weights.grad = None
         in_mask_x.backward(torch.ones_like(in_mask_x), retain_graph=True)
         in_mask_phi_grads_x = in_mask_sample_phis.grad[fps_in_mask_sample_point_idxs].detach().clone()
-        in_mask_theta_grads_x = in_mask_sample_thetas.grad[fps_in_mask_sample_point_idxs].detach().clone()
+        in_mask_theta_weight_grads_x = in_mask_sample_theta_weights.grad[fps_in_mask_sample_point_idxs].detach().clone()
 
         in_mask_sample_phis.grad = None
-        in_mask_sample_thetas.grad = None
+        in_mask_sample_theta_weights.grad = None
         in_mask_y.backward(torch.ones_like(in_mask_y), retain_graph=True)
         in_mask_phi_grads_y = in_mask_sample_phis.grad[fps_in_mask_sample_point_idxs].detach().clone()
-        in_mask_theta_grads_y = in_mask_sample_thetas.grad[fps_in_mask_sample_point_idxs].detach().clone()
+        in_mask_theta_weight_grads_y = in_mask_sample_theta_weights.grad[fps_in_mask_sample_point_idxs].detach().clone()
 
         in_mask_sample_phis.grad = None
-        in_mask_sample_thetas.grad = None
+        in_mask_sample_theta_weights.grad = None
         in_mask_z.backward(torch.ones_like(in_mask_z))
         in_mask_phi_grads_z = in_mask_sample_phis.grad[fps_in_mask_sample_point_idxs].detach().clone()
-        in_mask_theta_grads_z = in_mask_sample_thetas.grad[fps_in_mask_sample_point_idxs].detach().clone()
+        in_mask_theta_weight_grads_z = in_mask_sample_theta_weights.grad[fps_in_mask_sample_point_idxs].detach().clone()
 
         mask_boundary_x = mask_boundary_sample_points[:, 0]
         mask_boundary_y = mask_boundary_sample_points[:, 1]
@@ -459,9 +467,9 @@ class Mash(object):
         mask_boundary_phi_grads_z = self.mask_boundary_phis.grad.detach().clone()
         mask_boundary_theta_grads_z = mask_boundary_thetas.grad.detach().clone()
 
-        in_mask_nx = in_mask_phi_grads_y * in_mask_theta_grads_z - in_mask_phi_grads_z * in_mask_theta_grads_y
-        in_mask_ny = in_mask_phi_grads_z * in_mask_theta_grads_x - in_mask_phi_grads_x * in_mask_theta_grads_z
-        in_mask_nz = in_mask_phi_grads_x * in_mask_theta_grads_y - in_mask_phi_grads_y * in_mask_theta_grads_x
+        in_mask_nx = in_mask_phi_grads_y * in_mask_theta_weight_grads_z - in_mask_phi_grads_z * in_mask_theta_weight_grads_y
+        in_mask_ny = in_mask_phi_grads_z * in_mask_theta_weight_grads_x - in_mask_phi_grads_x * in_mask_theta_weight_grads_z
+        in_mask_nz = in_mask_phi_grads_x * in_mask_theta_weight_grads_y - in_mask_phi_grads_y * in_mask_theta_weight_grads_x
 
         mask_boundary_nx = mask_boundary_phi_grads_y * mask_boundary_theta_grads_z - mask_boundary_phi_grads_z * mask_boundary_theta_grads_y
         mask_boundary_ny = mask_boundary_phi_grads_z * mask_boundary_theta_grads_x - mask_boundary_phi_grads_x * mask_boundary_theta_grads_z
@@ -470,17 +478,20 @@ class Mash(object):
         in_mask_normals = torch.vstack([in_mask_nx, in_mask_ny, in_mask_nz]).transpose(1, 0)
         mask_boundary_normals = torch.vstack([mask_boundary_nx, mask_boundary_ny, mask_boundary_nz]).transpose(1, 0)
 
-        norm1 = torch.norm(in_mask_normals, dim=1)
-        norm2 = torch.norm(mask_boundary_normals, dim=1)
+        in_mask_norms = torch.norm(in_mask_normals, dim=1)
+        mask_boundary_norms = torch.norm(mask_boundary_normals, dim=1)
 
-        valid_in_mask_idxs = torch.where(norm1 > 0)[0]
-        valid_mask_boundary_idxs = torch.where(norm2 > 0)[0]
+        valid_in_mask_idxs = torch.where(in_mask_norms > 0)[0]
+        valid_mask_boundary_idxs = torch.where(mask_boundary_norms > 0)[0]
 
         valid_in_mask_normals = torch.zeros_like(in_mask_sample_points)
-        valid_in_mask_normals[valid_in_mask_idxs] = in_mask_normals[valid_in_mask_idxs] / norm1[valid_in_mask_idxs].reshape(-1, 1)
+        valid_in_mask_normals[valid_in_mask_idxs] = in_mask_normals[valid_in_mask_idxs] / in_mask_norms[valid_in_mask_idxs].reshape(-1, 1)
         valid_mask_boundary_normals = torch.zeros_like(mask_boundary_sample_points)
-        valid_mask_boundary_normals[valid_mask_boundary_idxs] = mask_boundary_normals[valid_mask_boundary_idxs] / norm2[valid_mask_boundary_idxs].reshape(-1, 1)
+        valid_mask_boundary_normals[valid_mask_boundary_idxs] = mask_boundary_normals[valid_mask_boundary_idxs] / mask_boundary_norms[valid_mask_boundary_idxs].reshape(-1, 1)
 
+        self.mask_boundary_phis.requires_grad_(False)
+
+        self.clearGrads()
         return (
             mask_boundary_sample_points,
             in_mask_sample_points,
@@ -528,14 +539,13 @@ class Mash(object):
                 center = np.mean(anchor_pts, axis=0)
 
                 anchor_pts = (
-                    anchor_pts - center + 0.2 * np.array([i // 20, i % 20, 0.0])
+                    anchor_pts - center + 0.1 * np.array([i // 20, i % 20, 0.0])
                 )
 
                 pcd = getPointCloud(anchor_pts)
                 pcd.normals = o3d.utility.Vector3dVector(anchor_normals)
 
                 render_pcd_list.append(pcd)
-                break
 
             o3d.visualization.draw_geometries(render_pcd_list, point_show_normal=True)
             exit()
