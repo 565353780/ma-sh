@@ -380,28 +380,27 @@ class Mash(object):
             in_mask_sample_phis,
             in_mask_sample_theta_weights,
             in_mask_sample_polar_idxs,
-            in_mask_sample_base_values,
-            in_mask_sample_sh_directions
+            in_mask_sample_base_values
         ) = mash_cpp.toInMaskSamplePolars(
             self.anchor_num,
             self.mask_params,
             self.sample_phis,
             self.sample_thetas,
-            mask_boundary_thetas.detach().clone(),
+            mask_boundary_thetas,
             self.mask_boundary_phi_idxs,
             self.sample_base_values,
             self.sample_sh_directions
         )
 
-        in_mask_sample_phis.requires_grad_(True)
-        in_mask_sample_theta_weights.requires_grad_(True)
+        in_mask_sample_thetas = mash_cpp.toDetectThetas(self.mask_params, in_mask_sample_base_values, in_mask_sample_polar_idxs, in_mask_sample_theta_weights)
 
-        in_mask_sh_points = mash_cpp.toWeightedSamplePoints(
-            self.mask_degree_max, self.sh_degree_max, self.mask_params, self.sh_params, self.rotate_vectors,
-            self.positions, in_mask_sample_phis, in_mask_sample_theta_weights,
-            in_mask_sample_polar_idxs, self.use_inv, in_mask_sample_base_values,
-            in_mask_sample_sh_directions
-        )
+        in_mask_sample_phis.requires_grad_(True)
+        in_mask_sample_thetas.requires_grad_(True)
+
+        in_mask_sh_points = mash_cpp.toSamplePoints(
+            self.mask_degree_max, self.sh_degree_max, self.sh_params, self.rotate_vectors,
+            self.positions, in_mask_sample_phis, in_mask_sample_thetas,
+            in_mask_sample_polar_idxs, self.use_inv, in_mask_sample_base_values)
 
         fps_in_mask_sample_point_idxs = mash_cpp.toFPSPointIdxs(
             in_mask_sh_points, in_mask_sample_polar_idxs, self.sample_point_scale, self.anchor_num
@@ -414,29 +413,29 @@ class Mash(object):
         mask_boundary_sample_points = mash_cpp.toSamplePoints(
             self.mask_degree_max, self.sh_degree_max, self.sh_params, self.rotate_vectors, self.positions,
             self.mask_boundary_phis, mask_boundary_thetas, self.mask_boundary_phi_idxs, self.use_inv,
-            self.mask_boundary_base_values, torch.Tensor())
+            self.mask_boundary_base_values)
 
         in_mask_x = in_mask_sample_points[:, 0]
         in_mask_y = in_mask_sample_points[:, 1]
         in_mask_z = in_mask_sample_points[:, 2]
 
         in_mask_sample_phis.grad = None
-        in_mask_sample_theta_weights.grad = None
+        in_mask_sample_thetas.grad = None
         in_mask_x.backward(torch.ones_like(in_mask_x), retain_graph=True)
         in_mask_phi_grads_x = in_mask_sample_phis.grad[fps_in_mask_sample_point_idxs].detach().clone()
-        in_mask_theta_weight_grads_x = in_mask_sample_theta_weights.grad[fps_in_mask_sample_point_idxs].detach().clone()
+        in_mask_theta_grads_x = in_mask_sample_thetas.grad[fps_in_mask_sample_point_idxs].detach().clone()
 
         in_mask_sample_phis.grad = None
-        in_mask_sample_theta_weights.grad = None
+        in_mask_sample_thetas.grad = None
         in_mask_y.backward(torch.ones_like(in_mask_y), retain_graph=True)
         in_mask_phi_grads_y = in_mask_sample_phis.grad[fps_in_mask_sample_point_idxs].detach().clone()
-        in_mask_theta_weight_grads_y = in_mask_sample_theta_weights.grad[fps_in_mask_sample_point_idxs].detach().clone()
+        in_mask_theta_grads_y = in_mask_sample_thetas.grad[fps_in_mask_sample_point_idxs].detach().clone()
 
         in_mask_sample_phis.grad = None
-        in_mask_sample_theta_weights.grad = None
+        in_mask_sample_thetas.grad = None
         in_mask_z.backward(torch.ones_like(in_mask_z))
         in_mask_phi_grads_z = in_mask_sample_phis.grad[fps_in_mask_sample_point_idxs].detach().clone()
-        in_mask_theta_weight_grads_z = in_mask_sample_theta_weights.grad[fps_in_mask_sample_point_idxs].detach().clone()
+        in_mask_theta_grads_z = in_mask_sample_thetas.grad[fps_in_mask_sample_point_idxs].detach().clone()
 
         mask_boundary_x = mask_boundary_sample_points[:, 0]
         mask_boundary_y = mask_boundary_sample_points[:, 1]
@@ -460,9 +459,9 @@ class Mash(object):
         mask_boundary_phi_grads_z = self.mask_boundary_phis.grad.detach().clone()
         mask_boundary_theta_grads_z = mask_boundary_thetas.grad.detach().clone()
 
-        in_mask_nx = in_mask_phi_grads_y * in_mask_theta_weight_grads_z - in_mask_phi_grads_z * in_mask_theta_weight_grads_y
-        in_mask_ny = in_mask_phi_grads_z * in_mask_theta_weight_grads_x - in_mask_phi_grads_x * in_mask_theta_weight_grads_z
-        in_mask_nz = in_mask_phi_grads_x * in_mask_theta_weight_grads_y - in_mask_phi_grads_y * in_mask_theta_weight_grads_x
+        in_mask_nx = in_mask_phi_grads_y * in_mask_theta_grads_z - in_mask_phi_grads_z * in_mask_theta_grads_y
+        in_mask_ny = in_mask_phi_grads_z * in_mask_theta_grads_x - in_mask_phi_grads_x * in_mask_theta_grads_z
+        in_mask_nz = in_mask_phi_grads_x * in_mask_theta_grads_y - in_mask_phi_grads_y * in_mask_theta_grads_x
 
         mask_boundary_nx = mask_boundary_phi_grads_y * mask_boundary_theta_grads_z - mask_boundary_phi_grads_z * mask_boundary_theta_grads_y
         mask_boundary_ny = mask_boundary_phi_grads_z * mask_boundary_theta_grads_x - mask_boundary_phi_grads_x * mask_boundary_theta_grads_z
@@ -511,7 +510,7 @@ class Mash(object):
         print('valid boundary_normals num:', np.where(np.linalg.norm(valid_mask_boundary_normals, axis=1) == 0)[0].shape)
         print('valid inner_normals num:', np.where(np.linalg.norm(valid_in_mask_normals, axis=1) == 0)[0].shape)
 
-        if True:
+        if False:
             render_pcd_list = []
 
             for i in range(self.anchor_num):
@@ -536,6 +535,7 @@ class Mash(object):
                 pcd.normals = o3d.utility.Vector3dVector(anchor_normals)
 
                 render_pcd_list.append(pcd)
+                break
 
             o3d.visualization.draw_geometries(render_pcd_list, point_show_normal=True)
             exit()
