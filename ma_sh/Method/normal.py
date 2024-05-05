@@ -13,7 +13,7 @@ from ma_sh.Method.pcd import getPointCloud
 def toNormalTag(anchor_num: int, points: torch.Tensor,
                 point_idxs: torch.Tensor,
                 normals: torch.Tensor,
-                fps_sample_num: int = -1) -> torch.Tensor:
+                fps_sample_scale: float = -1) -> torch.Tensor:
     normal_tag = torch.ones([anchor_num], dtype=points.dtype).to(points.device)
 
     tagged_anchor_idxs = [0]
@@ -22,6 +22,8 @@ def toNormalTag(anchor_num: int, points: torch.Tensor,
     points_list = []
     normals_list = []
 
+    print('[INFO][normal::toNormalTag]')
+    print('\t start collect anchor points and normals...')
     for i in trange(anchor_num):
         anchor_point_mask = point_idxs == i
 
@@ -35,9 +37,8 @@ def toNormalTag(anchor_num: int, points: torch.Tensor,
         valid_anchor_points = anchor_points[valid_normal_mask]
         valid_anchor_normals = anchor_normals[valid_normal_mask]
 
-        if fps_sample_num > 0:
-            fps_scale = fps_sample_num / valid_anchor_points.shape[0]
-            fps_idxs = mash_cpp.toFPSPointIdxs(valid_anchor_points, torch.zeros([valid_anchor_points.shape[0]]).type(torch.int), fps_scale, 1)
+        if fps_sample_scale > 0:
+            fps_idxs = mash_cpp.toFPSPointIdxs(valid_anchor_points, torch.zeros([valid_anchor_points.shape[0]]).type(torch.int), fps_sample_scale, 1)
 
             fps_points = valid_anchor_points[fps_idxs]
             fps_normals = valid_anchor_normals[fps_idxs]
@@ -107,7 +108,7 @@ def toNormalTag(anchor_num: int, points: torch.Tensor,
         point_dist = torch.norm(min_dist_tagged_point - min_dist_untagged_point) ** 2
         normal_angle = torch.acos(min_dist_tagged_normal.dot(min_dist_untagged_normal))
 
-        if normal_angle < np.pi / 2.0:
+        if normal_angle < np.pi / 4.0:
             normal_tag[min_dist_untagged_idx] = normal_tag[min_dist_tagged_idx]
         else:
             normal_tag[min_dist_untagged_idx] = -1.0 * normal_tag[min_dist_tagged_idx]

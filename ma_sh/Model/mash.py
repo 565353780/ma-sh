@@ -375,7 +375,7 @@ class Mash(object):
             in_mask_sample_point_idxs,
         )
 
-    def toSamplePointsWithNormals(self) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    def toSamplePointsWithNormals(self, refine_normals: bool=False, fps_sample_scale: float = -1) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         self.clearGrads()
 
         self.mask_boundary_phis.requires_grad_(True)
@@ -490,16 +490,26 @@ class Mash(object):
         valid_mask_boundary_normals = torch.zeros_like(mask_boundary_sample_points)
         valid_mask_boundary_normals[valid_mask_boundary_idxs] = mask_boundary_normals[valid_mask_boundary_idxs] / mask_boundary_norms[valid_mask_boundary_idxs].reshape(-1, 1)
 
-        normal_tags = toNormalTag(self.anchor_num, in_mask_sample_points, in_mask_sample_point_idxs, valid_in_mask_normals, 10)
+        if refine_normals:
+            normal_tags = toNormalTag(self.anchor_num, in_mask_sample_points, in_mask_sample_point_idxs, valid_in_mask_normals, fps_sample_scale)
 
-        render_list = []
+            finished = (normal_tags == 1.0).all()
 
-        for i in range(self.anchor_num):
-            anchor_boundary_normal_idxs = self.mask_boundary_phi_idxs == i
-            anchor_inner_normal_idxs = in_mask_sample_point_idxs == i
+            while not finished:
+                for i in range(self.anchor_num):
+                    anchor_boundary_normal_idxs = self.mask_boundary_phi_idxs == i
+                    anchor_inner_normal_idxs = in_mask_sample_point_idxs == i
 
-            valid_mask_boundary_normals[anchor_boundary_normal_idxs] *= normal_tags[i]
-            valid_in_mask_normals[anchor_inner_normal_idxs] *= normal_tags[i]
+                    valid_mask_boundary_normals[anchor_boundary_normal_idxs] *= normal_tags[i]
+                    valid_in_mask_normals[anchor_inner_normal_idxs] *= normal_tags[i]
+
+                normal_tags = toNormalTag(self.anchor_num, in_mask_sample_points, in_mask_sample_point_idxs, valid_in_mask_normals, fps_sample_scale)
+
+                finished = (normal_tags == 1.0).all()
+
+                if False:
+                    pcd = getPointCloud(toNumpy(in_mask_sample_points), toNumpy(valid_in_mask_normals))
+                    o3d.visualization.draw_geometries([pcd], point_show_normal=True)
 
         return (
             mask_boundary_sample_points,
