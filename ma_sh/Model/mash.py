@@ -492,6 +492,13 @@ class Mash(object):
 
         normal_tags = toNormalTag(self.anchor_num, mask_boundary_sample_points, self.mask_boundary_phi_idxs, valid_mask_boundary_normals)
 
+        for i in range(self.anchor_num):
+            anchor_boundary_normal_idxs = self.mask_boundary_phi_idxs == i
+            anchor_inner_normal_idxs = in_mask_sample_point_idxs == i
+
+            valid_mask_boundary_normals[anchor_boundary_normal_idxs] *= normal_tags[i]
+            valid_in_mask_normals[anchor_inner_normal_idxs] *= normal_tags[i]
+
         return (
             mask_boundary_sample_points,
             in_mask_sample_points,
