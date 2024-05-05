@@ -13,6 +13,7 @@ from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
 from ma_sh.Data.mesh import Mesh
 from ma_sh.Method.data import toNumpy
 from ma_sh.Method.check import checkShape
+from ma_sh.Method.normal import toNormalTag
 from ma_sh.Method.pcd import getPointCloud
 from ma_sh.Method.Mash.mash import toParams, toPreLoadDatas
 from ma_sh.Method.render import renderGeometries, renderPoints
@@ -463,6 +464,10 @@ class Mash(object):
         mask_boundary_phi_grads_z = self.mask_boundary_phis.grad.detach().clone()
         mask_boundary_theta_grads_z = mask_boundary_thetas.grad.detach().clone()
 
+        self.mask_boundary_phis.requires_grad_(False)
+
+        self.clearGrads()
+
         in_mask_nx = in_mask_phi_grads_y * in_mask_theta_weight_grads_z - in_mask_phi_grads_z * in_mask_theta_weight_grads_y
         in_mask_ny = in_mask_phi_grads_z * in_mask_theta_weight_grads_x - in_mask_phi_grads_x * in_mask_theta_weight_grads_z
         in_mask_nz = in_mask_phi_grads_x * in_mask_theta_weight_grads_y - in_mask_phi_grads_y * in_mask_theta_weight_grads_x
@@ -485,9 +490,8 @@ class Mash(object):
         valid_mask_boundary_normals = torch.zeros_like(mask_boundary_sample_points)
         valid_mask_boundary_normals[valid_mask_boundary_idxs] = mask_boundary_normals[valid_mask_boundary_idxs] / mask_boundary_norms[valid_mask_boundary_idxs].reshape(-1, 1)
 
-        self.mask_boundary_phis.requires_grad_(False)
+        normal_tags = toNormalTag(self.anchor_num, mask_boundary_sample_points, self.mask_boundary_phi_idxs, valid_mask_boundary_normals)
 
-        self.clearGrads()
         return (
             mask_boundary_sample_points,
             in_mask_sample_points,
