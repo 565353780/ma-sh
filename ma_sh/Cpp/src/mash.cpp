@@ -11,8 +11,7 @@ toInMaskSamplePolars(const int &anchor_num, const torch::Tensor &mask_params,
                      const torch::Tensor &sample_thetas,
                      const torch::Tensor &mask_boundary_thetas,
                      const torch::Tensor &mask_boundary_phi_idxs,
-                     const torch::Tensor &sample_base_values,
-                     const torch::Tensor &sample_sh_directions) {
+                     const torch::Tensor &sample_base_values) {
   const std::vector<torch::Tensor> in_max_mask_sample_polar_idxs_vec =
       toInMaxMaskSamplePolarIdxsVec(anchor_num, sample_thetas,
                                     mask_boundary_thetas,
@@ -118,8 +117,7 @@ const std::vector<torch::Tensor> toMashSamplePoints(
     const torch::Tensor &mask_boundary_phis,
     const torch::Tensor &mask_boundary_phi_idxs,
     const torch::Tensor &mask_boundary_base_values,
-    const torch::Tensor &sample_base_values,
-    const torch::Tensor &sample_sh_directions, const float &sample_point_scale,
+    const torch::Tensor &sample_base_values, const float &sample_point_scale,
     const bool &use_inv) {
   const torch::Tensor mask_boundary_thetas = toMaskBoundaryThetas(
       mask_params, mask_boundary_base_values, mask_boundary_phi_idxs);
@@ -127,7 +125,7 @@ const std::vector<torch::Tensor> toMashSamplePoints(
   const std::vector<torch::Tensor> in_mask_sample_polars_with_idxs =
       toInMaskSamplePolars(anchor_num, mask_params, sample_phis, sample_thetas,
                            mask_boundary_thetas, mask_boundary_phi_idxs,
-                           sample_base_values, sample_sh_directions);
+                           sample_base_values);
 
   const torch::Tensor &in_mask_sample_phis = in_mask_sample_polars_with_idxs[0];
   const torch::Tensor &in_mask_sample_theta_weights =
