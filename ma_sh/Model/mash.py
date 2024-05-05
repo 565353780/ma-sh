@@ -137,13 +137,13 @@ class Mash(object):
         return True
 
     def clearGrads(self) -> bool:
-        if self.mask_params.requires_grad:
+        if self.mask_params.grad is not None:
             self.mask_params.grad = None
-        if self.sh_params.requires_grad:
+        if self.sh_params.grad is not None:
             self.sh_params.grad = None
-        if self.rotate_vectors.requires_grad:
+        if self.rotate_vectors.grad is not None:
             self.rotate_vectors.grad = None
-        if self.positions.requires_grad:
+        if self.positions.grad is not None:
             self.positions.grad = None
         return True
 
