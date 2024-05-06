@@ -14,6 +14,7 @@ from param_gauss_recon.Module.reconstructor import Reconstructor
 
 from ma_sh.Method.data import toNumpy
 from ma_sh.Method.pcd import getPointCloud
+from ma_sh.Method.render import renderGeometries
 
 @torch.no_grad()
 def toNormalTagsWithCluster(anchor_num: int, points: torch.Tensor,
@@ -253,6 +254,14 @@ def toNormalTagWithPGR(anchor_num: int, points: torch.Tensor,
     _, _, idxs1, _ = mash_cpp.toChamferDistance(mash_points.unsqueeze(0), valid_pgr_points.unsqueeze(0))
 
     mash_normals = torch.vstack(normals_list)
+
+    if False:
+        mash_pcd = getPointCloud(toNumpy(mash_points), toNumpy(mash_normals))
+        pgr_pcd = getPointCloud(toNumpy(pgr_points), toNumpy(pgr_normals))
+        pgr_pcd.translate([0, 1.0, 0])
+
+        renderGeometries([mash_pcd, pgr_pcd], "Mash and PGR normals", True)
+
     anchor_idxs = mash_cpp.toIdxs(mash_cpp.toCounts(points_list)).type(torch.int)
     for i in range(anchor_num):
         anchor_mask = anchor_idxs == i
@@ -262,7 +271,15 @@ def toNormalTagWithPGR(anchor_num: int, points: torch.Tensor,
 
         pgr_idxs = idxs1[0, anchor_mask]
 
+        anchor_pgr_points = valid_pgr_points[pgr_idxs]
         anchor_pgr_normals = valid_pgr_normals[pgr_idxs]
+
+        if False:
+            anchor_mash_pcd = getPointCloud(toNumpy(anchor_points), toNumpy(anchor_normals))
+            anchor_pgr_pcd = getPointCloud(toNumpy(anchor_pgr_points), toNumpy(anchor_pgr_normals))
+            anchor_pgr_pcd.translate([0, 0.2, 0])
+
+            renderGeometries([anchor_mash_pcd, anchor_pgr_pcd], "Mash and PGR Anchor normals", True)
 
         same_direction_dists = torch.norm(anchor_normals - anchor_pgr_normals, dim=1)
         opposite_direction_dists = torch.norm(anchor_normals + anchor_pgr_normals, dim=1)
@@ -270,8 +287,8 @@ def toNormalTagWithPGR(anchor_num: int, points: torch.Tensor,
         same_direction_dist = torch.mean(same_direction_dists)
         opposite_direction_dist = torch.mean(opposite_direction_dists)
 
-        print(same_direction_dist, opposite_direction_dist, same_direction_dist < opposite_direction_dist)
-        normal_tags[i] = same_direction_dist < opposite_direction_dist
+        if same_direction_dist > opposite_direction_dist:
+            normal_tags[i] = -1.0
 
     return normal_tags
 
