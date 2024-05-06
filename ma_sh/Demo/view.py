@@ -93,15 +93,22 @@ def demo():
                 )
             exit()
         else:
-            mash_file_name = '03001627/46bd3baefe788d166c05d60b45815'
-            mash_file_path = '/home/chli/Dataset/MashV3/ShapeNet/' + mash_file_name + '.npy'
-            print("start show mash:", mash_file_name)
+            mash_folder_path = '/home/chli/Dataset/MashV3/ShapeNet/03001627/'
 
-            mash = Mash.fromParamsFile(mash_file_path, 10, 400, 0.8, device="cpu")
+            mash_filename_list = os.listdir(mash_folder_path)
+            mash_filename_list.sort()
 
-            pcd = mash.toSamplePcd(True, True, 0.1)
+            os.makedirs('./output/normal_mash/', exist_ok=True)
 
-            o3d.io.write_point_cloud('./output/test.ply', pcd)
+            for mash_filename in mash_filename_list:
+                mash_file_path = mash_folder_path + mash_filename
+                print("start show mash:", mash_file_path)
+
+                mash = Mash.fromParamsFile(mash_file_path, 36, 400, 0.8, device="cpu")
+
+                pcd = mash.toSamplePcd(True, True, 0.1)
+
+                o3d.io.write_point_cloud('./output/normal_mash/' + mash_filename.replace('.npy', '') + '.ply', pcd, write_ascii=True)
             exit()
 
     if False:
