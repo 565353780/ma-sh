@@ -13,7 +13,7 @@ from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
 from ma_sh.Data.mesh import Mesh
 from ma_sh.Method.data import toNumpy
 from ma_sh.Method.check import checkShape
-from ma_sh.Method.normal import toNormalTag
+from ma_sh.Method.normal import toNormalTags
 from ma_sh.Method.pcd import getPointCloud
 from ma_sh.Method.Mash.mash import toParams, toPreLoadDatas
 from ma_sh.Method.render import renderGeometries, renderPoints
@@ -462,7 +462,7 @@ class Mash(object):
         valid_mask_boundary_normals[valid_mask_boundary_idxs] = mask_boundary_normals[valid_mask_boundary_idxs] / mask_boundary_norms[valid_mask_boundary_idxs].reshape(-1, 1)
 
         if refine_normals:
-            normal_tags = toNormalTag(self.anchor_num, in_mask_sample_points, in_mask_sample_point_idxs, valid_in_mask_normals, fps_sample_scale)
+            normal_tags = toNormalTags(self.anchor_num, in_mask_sample_points, in_mask_sample_point_idxs, valid_in_mask_normals, fps_sample_scale)
 
             finished = (normal_tags == 1.0).all()
 
@@ -474,7 +474,7 @@ class Mash(object):
                     valid_mask_boundary_normals[anchor_boundary_normal_idxs] *= normal_tags[i]
                     valid_in_mask_normals[anchor_inner_normal_idxs] *= normal_tags[i]
 
-                normal_tags = toNormalTag(self.anchor_num, in_mask_sample_points, in_mask_sample_point_idxs, valid_in_mask_normals, fps_sample_scale)
+                normal_tags = toNormalTags(self.anchor_num, in_mask_sample_points, in_mask_sample_point_idxs, valid_in_mask_normals, fps_sample_scale)
 
                 finished = (normal_tags == 1.0).all()
 

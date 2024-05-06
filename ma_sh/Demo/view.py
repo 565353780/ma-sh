@@ -76,7 +76,7 @@ def demo():
             except:
                 pass
 
-            mash.renderSamplePoints()
+            mash.renderSamplePoints(True, True, 0.1)
             exit()
 
             pcd = getPointCloud(toNumpy(torch.vstack(mash.toSamplePoints()[:2])))

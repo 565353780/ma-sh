@@ -1,3 +1,7 @@
+import sys
+sys.path.append('../param-gauss-recon')
+
+import os
 import torch
 import numpy as np
 import open3d as o3d
@@ -6,11 +10,13 @@ from math import sqrt
 
 import mash_cpp
 
+from param_gauss_recon.Module.reconstructor import Reconstructor
+
 from ma_sh.Method.data import toNumpy
 from ma_sh.Method.pcd import getPointCloud
 
 @torch.no_grad()
-def toNormalTag(anchor_num: int, points: torch.Tensor,
+def toNormalTagsWithCluster(anchor_num: int, points: torch.Tensor,
                 point_idxs: torch.Tensor,
                 normals: torch.Tensor,
                 fps_sample_scale: float = -1) -> torch.Tensor:
@@ -22,7 +28,7 @@ def toNormalTag(anchor_num: int, points: torch.Tensor,
     points_list = []
     normals_list = []
 
-    print('[INFO][normal::toNormalTag]')
+    print('[INFO][normal::toNormalTagsWithCluster]')
     print('\t start collect anchor points and normals...')
     for i in trange(anchor_num):
         anchor_point_mask = point_idxs == i
@@ -49,7 +55,7 @@ def toNormalTag(anchor_num: int, points: torch.Tensor,
             points_list.append(valid_anchor_points)
             normals_list.append(valid_anchor_normals)
 
-    print('[INFO][normal::toNormalTag]')
+    print('[INFO][normal::toNormalTagsWithCluster]')
     print('\t start auto estimate normal tags for each anchor...')
     pbar = tqdm(total=anchor_num)
     pbar.update(1)
@@ -127,3 +133,117 @@ def toNormalTag(anchor_num: int, points: torch.Tensor,
         pbar.update(1)
 
     return normal_tag
+
+@torch.no_grad()
+def toNormalTagsWithIterativeCluster(anchor_num: int, points: torch.Tensor,
+                point_idxs: torch.Tensor,
+                normals: torch.Tensor,
+                fps_sample_scale: float = -1) -> torch.Tensor:
+    iter_normals = normals.detach().clone()
+
+    normal_tags = toNormalTagsWithCluster(anchor_num, points, point_idxs, iter_normals, fps_sample_scale)
+
+    finished = (normal_tags == 1.0).all()
+
+    while not finished:
+        for i in range(anchor_num):
+            anchor_normal_idxs = point_idxs == i
+            iter_normals[anchor_normal_idxs] *= normal_tags[i]
+
+        normal_tags = toNormalTagsWithCluster(anchor_num, points, point_idxs, iter_normals, fps_sample_scale)
+
+        finished = (normal_tags == 1.0).all()
+    return normal_tags
+
+@torch.no_grad()
+def toNormalTagWithPGR(anchor_num: int, points: torch.Tensor,
+                point_idxs: torch.Tensor,
+                normals: torch.Tensor,
+                fps_sample_scale: float = -1) -> torch.Tensor:
+    tmp_save_folder_path = './tmp/normal/'
+    os.makedirs(tmp_save_folder_path, exist_ok=True)
+
+    normal_tag = torch.ones([anchor_num], dtype=points.dtype).to(points.device)
+
+    tagged_anchor_idxs = [0]
+    untagged_anchor_idxs = list(range(1, anchor_num))
+
+    points_list = []
+    normals_list = []
+
+    print('[INFO][normal::toNormalTagWithPGR]')
+    print('\t start collect anchor points and normals...')
+    for i in trange(anchor_num):
+        anchor_point_mask = point_idxs == i
+
+        anchor_points = points[anchor_point_mask]
+        anchor_normals = normals[anchor_point_mask]
+
+        normal_norms = torch.norm(anchor_normals, dim=1)
+
+        valid_normal_mask = normal_norms > 0
+
+        valid_anchor_points = anchor_points[valid_normal_mask]
+        valid_anchor_normals = anchor_normals[valid_normal_mask]
+
+        if fps_sample_scale > 0:
+            fps_idxs = mash_cpp.toFPSPointIdxs(valid_anchor_points, torch.zeros([valid_anchor_points.shape[0]]).type(torch.int), fps_sample_scale, 1)
+
+            fps_points = valid_anchor_points[fps_idxs]
+            fps_normals = valid_anchor_normals[fps_idxs]
+
+            points_list.append(fps_points)
+            normals_list.append(fps_normals)
+        else:
+            points_list.append(valid_anchor_points)
+            normals_list.append(valid_anchor_normals)
+
+    tmp_save_pcd_file_path = tmp_save_folder_path + 'pcd.xyz'
+    pcd = getPointCloud(toNumpy(torch.vstack(points_list)))
+    o3d.io.write_point_cloud(tmp_save_pcd_file_path, pcd, write_ascii=True)
+
+    reconstructor = Reconstructor()
+    reconstructor.reconstructSurface(
+        input=tmp_save_pcd_file_path,
+        sample_point_num=None,
+        width_k=80,
+        width_max=0.015,
+        width_min=0.0015,
+        alpha=1.05,
+        max_iters=None,
+        max_depth=10,
+        min_depth=1,
+        cpu=not torch.cuda.is_available(),
+        save_r=None
+    )
+
+    pgr_pcd_file_path = '../ma-sh/results/pcd/samples/pcd.xyz'
+    if not os.path.exists(pgr_pcd_file_path):
+        print('[ERROR][normal::toNormalTagWithPGR]')
+        print('\t reconstructSurface failed! will return unrefined normal tags!')
+        return normal_tag
+
+    pgr_pcd = o3d.io.read_point_cloud(pgr_pcd_file_path)
+    pgr_normals = np.asarray(pgr_pcd.normals)
+    print(pgr_normals.shape)
+    exit()
+    return
+
+def toNormalTags(anchor_num: int, points: torch.Tensor,
+                point_idxs: torch.Tensor,
+                normals: torch.Tensor,
+                fps_sample_scale: float = -1,
+                 mode: str = 'pgr') -> torch.Tensor:
+    valid_modes = ['cluster', 'iter_cluster', 'pgr']
+
+    if mode == 'cluster':
+        return toNormalTagsWithCluster(anchor_num, points, point_idxs, normals, fps_sample_scale)
+    elif mode == 'iter_cluster':
+        return toNormalTagsWithIterativeCluster(anchor_num, points, point_idxs, normals, fps_sample_scale)
+    elif mode == 'pgr':
+        return toNormalTagWithPGR(anchor_num, points, point_idxs, normals, fps_sample_scale)
+
+    print('[ERROR][normal::toNormalTags]')
+    print('\t mode not valid! will return unrefined normal tags!')
+    print('\t valid modes:', valid_modes)
+    return torch.ones([anchor_num], dtype=points.dtype).to(points.device)

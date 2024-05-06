@@ -1,11 +1,15 @@
 cd ..
 git clone git@github.com:565353780/sdf-generate.git
 git clone git@github.com:565353780/open3d-manage.git
+git clone git@github.com:565353780/param-gauss-recon.git
 
 cd sdf-generate
 ./dev_setup.sh
 
 cd ../open3d-manage
+./dev_setup.sh
+
+cd ../param-gauss-recon
 ./dev_setup.sh
 
 if [ "$(uname)" = "Darwin" ]; then
