@@ -108,7 +108,7 @@ def toNormalTag(anchor_num: int, points: torch.Tensor,
         point_dist = torch.norm(min_dist_tagged_point - min_dist_untagged_point) ** 2
         normal_angle = torch.acos(min_dist_tagged_normal.dot(min_dist_untagged_normal))
 
-        if normal_angle < np.pi / 4.0:
+        if normal_angle < np.pi / 2.0:
             normal_tag[min_dist_untagged_idx] = normal_tag[min_dist_tagged_idx]
         else:
             normal_tag[min_dist_untagged_idx] = -1.0 * normal_tag[min_dist_tagged_idx]
