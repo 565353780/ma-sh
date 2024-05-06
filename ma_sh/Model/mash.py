@@ -462,25 +462,18 @@ class Mash(object):
         valid_mask_boundary_normals[valid_mask_boundary_idxs] = mask_boundary_normals[valid_mask_boundary_idxs] / mask_boundary_norms[valid_mask_boundary_idxs].reshape(-1, 1)
 
         if refine_normals:
-            normal_tags = toNormalTags(self.anchor_num, in_mask_sample_points, in_mask_sample_point_idxs, valid_in_mask_normals, fps_sample_scale)
+            normal_tags = toNormalTags(self.anchor_num, in_mask_sample_points, in_mask_sample_point_idxs, valid_in_mask_normals, fps_sample_scale, 'pgr')
 
-            finished = (normal_tags == 1.0).all()
+            for i in range(self.anchor_num):
+                anchor_boundary_normal_idxs = self.mask_boundary_phi_idxs == i
+                anchor_inner_normal_idxs = in_mask_sample_point_idxs == i
 
-            while not finished:
-                for i in range(self.anchor_num):
-                    anchor_boundary_normal_idxs = self.mask_boundary_phi_idxs == i
-                    anchor_inner_normal_idxs = in_mask_sample_point_idxs == i
+                valid_mask_boundary_normals[anchor_boundary_normal_idxs] *= normal_tags[i]
+                valid_in_mask_normals[anchor_inner_normal_idxs] *= normal_tags[i]
 
-                    valid_mask_boundary_normals[anchor_boundary_normal_idxs] *= normal_tags[i]
-                    valid_in_mask_normals[anchor_inner_normal_idxs] *= normal_tags[i]
-
-                normal_tags = toNormalTags(self.anchor_num, in_mask_sample_points, in_mask_sample_point_idxs, valid_in_mask_normals, fps_sample_scale)
-
-                finished = (normal_tags == 1.0).all()
-
-                if False:
-                    pcd = getPointCloud(toNumpy(in_mask_sample_points), toNumpy(valid_in_mask_normals))
-                    o3d.visualization.draw_geometries([pcd], point_show_normal=True)
+            if False:
+                pcd = getPointCloud(toNumpy(in_mask_sample_points), toNumpy(valid_in_mask_normals))
+                o3d.visualization.draw_geometries([pcd], point_show_normal=True)
 
         return (
             mask_boundary_sample_points,
@@ -537,7 +530,7 @@ class Mash(object):
 
     def toSamplePcd(self, with_normals: bool = False, refine_normals: bool = False, fps_sample_scale: float = -1) -> o3d.geometry.PointCloud:
         if with_normals:
-            return self.toSamplePointsWithNormals(refine_normals, fps_sample_scale)
+            return self.toSamplePcdWithNormals(refine_normals, fps_sample_scale)
 
         mask_boundary_sample_points, in_mask_sample_points, in_mask_sample_point_idxs = self.toSamplePoints()
 

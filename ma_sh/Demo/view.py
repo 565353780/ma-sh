@@ -49,51 +49,60 @@ def demo():
         mash_params_file_path = "/Users/fufu/Downloads/Mash/chairs/4.npy"
 
         mash_folder_path = "../Results/output-mash/"
-        mash_filename_list = os.listdir(mash_folder_path)
+        if os.path.exists(mash_folder_path):
+            mash_filename_list = os.listdir(mash_folder_path)
 
-        for mash_filename in mash_filename_list:
-            if ".npy" not in mash_filename:
-                continue
+            for mash_filename in mash_filename_list:
+                if ".npy" not in mash_filename:
+                    continue
 
-            print("start show mash:", mash_filename)
-            mash_file_path = mash_folder_path + mash_filename
+                print("start show mash:", mash_filename)
+                mash_file_path = mash_folder_path + mash_filename
 
-            if False:
-                mesh_file_path = "./output/25d40c79ac57891cfebad4f49b26ec52.obj"
-                mesh = o3d.io.read_triangle_mesh(mesh_file_path)
+                if False:
+                    mesh_file_path = "./output/25d40c79ac57891cfebad4f49b26ec52.obj"
+                    mesh = o3d.io.read_triangle_mesh(mesh_file_path)
 
-                mesh.compute_vertex_normals()
-                mesh.compute_triangle_normals()
+                    mesh.compute_vertex_normals()
+                    mesh.compute_triangle_normals()
 
-                mesh_pcd = mesh.sample_points_poisson_disk(100000)
-                o3d.io.write_point_cloud(
-                    "./output/test2_mesh_sample.ply", mesh_pcd, write_ascii=True
-                )
-                exit()
+                    mesh_pcd = mesh.sample_points_poisson_disk(100000)
+                    o3d.io.write_point_cloud(
+                        "./output/test2_mesh_sample.ply", mesh_pcd, write_ascii=True
+                    )
+                    exit()
 
-            try:
                 mash = Mash.fromParamsFile(mash_file_path, 10, 400, 0.8, device="cpu")
-            except:
-                pass
 
-            mash.renderSamplePoints(True, True, 0.1)
-            exit()
-
-            pcd = getPointCloud(toNumpy(torch.vstack(mash.toSamplePoints()[:2])))
-
-            if True:
-                pcd.estimate_normals()
-                pcd.orient_normals_consistent_tangent_plane(10)
-                o3d.visualization.draw_geometries([pcd], point_show_normal=True)
+                mash.renderSamplePoints(True, True, 0.1)
                 exit()
 
-            os.makedirs("./output/", exist_ok=True)
-            o3d.io.write_point_cloud(
-                "./output/" + mash_filename.replace(".npy", ".ply"),
-                pcd,
-                write_ascii=True,
-            )
-        exit()
+                pcd = getPointCloud(toNumpy(torch.vstack(mash.toSamplePoints()[:2])))
+
+                if True:
+                    pcd.estimate_normals()
+                    pcd.orient_normals_consistent_tangent_plane(10)
+                    o3d.visualization.draw_geometries([pcd], point_show_normal=True)
+                    exit()
+
+                os.makedirs("./output/", exist_ok=True)
+                o3d.io.write_point_cloud(
+                    "./output/" + mash_filename.replace(".npy", ".ply"),
+                    pcd,
+                    write_ascii=True,
+                )
+            exit()
+        else:
+            mash_file_name = '03001627/46bd3baefe788d166c05d60b45815'
+            mash_file_path = '/home/chli/Dataset/MashV3/ShapeNet/' + mash_file_name + '.npy'
+            print("start show mash:", mash_file_name)
+
+            mash = Mash.fromParamsFile(mash_file_path, 10, 400, 0.8, device="cpu")
+
+            pcd = mash.toSamplePcd(True, True, 0.1)
+
+            o3d.io.write_point_cloud('./output/test.ply', pcd)
+            exit()
 
     if False:
         mash_params_folder_path = "/Volumes/chLi/Dataset/Mash/ShapeNet/mash/"
