@@ -347,13 +347,11 @@ class Mash(object):
         self.sh_params = new_sh_params
         return True
 
-    def toSamplePointsWithNormals(self, refine_normals: bool=False, fps_sample_scale: float = -1) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-        self.mask_boundary_phis.requires_grad_(True)
-
+    def toMaskBoundaryThetas(self) -> torch.Tensor:
         mask_boundary_thetas = mash_cpp.toMaskBoundaryThetas(self.mask_params, self.mask_boundary_base_values, self.mask_boundary_phi_idxs)
+        return mask_boundary_thetas
 
-        mask_boundary_thetas.requires_grad_(True)
-
+    def toInMaskSamplePolars(self, mask_boundary_thetas: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         (
             in_mask_sample_phis,
             in_mask_sample_theta_weights,
@@ -369,13 +367,47 @@ class Mash(object):
             self.sample_base_values,
         )
 
+        return (
+            in_mask_sample_phis,
+            in_mask_sample_theta_weights,
+            in_mask_sample_polar_idxs,
+            in_mask_sample_base_values
+        )
+
+    def toWeightedSamplePoints(self, sample_phis: torch.Tensor, sample_theta_weights: torch.Tensor, sample_idxs: torch.Tensor, sample_base_values: torch.Tensor=torch.Tensor()) -> torch.Tensor:
+        weighted_sample_points = mash_cpp.toWeightedSamplePoints(
+            self.mask_degree_max, self.sh_degree_max, self.mask_params, self.sh_params, self.rotate_vectors,
+            self.positions, sample_phis, sample_theta_weights,
+            sample_idxs, self.use_inv, sample_base_values)
+
+        return weighted_sample_points
+
+    def toForceSamplePoints(self, sample_phis: torch.Tensor, sample_thetas: torch.Tensor, sample_idxs: torch.Tensor, sample_base_values: torch.Tensor=torch.Tensor()) -> torch.Tensor:
+        sample_points = mash_cpp.toSamplePoints(
+            self.mask_degree_max, self.sh_degree_max, self.sh_params, self.rotate_vectors, self.positions,
+            sample_phis, sample_thetas, sample_idxs, self.use_inv,
+            sample_base_values)
+        return sample_points
+
+    def toSamplePointsWithNormals(self, refine_normals: bool=False, fps_sample_scale: float = -1) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        self.mask_boundary_phis.requires_grad_(True)
+
+        mask_boundary_thetas = self.toMaskBoundaryThetas()
+
+        mask_boundary_thetas.requires_grad_(True)
+
+        (
+            in_mask_sample_phis,
+            in_mask_sample_theta_weights,
+            in_mask_sample_polar_idxs,
+            in_mask_sample_base_values
+        ) = self.toInMaskSamplePolars(mask_boundary_thetas)
+
         in_mask_sample_phis.requires_grad_(True)
         in_mask_sample_theta_weights.requires_grad_(True)
 
-        in_mask_sh_points = mash_cpp.toWeightedSamplePoints(
-            self.mask_degree_max, self.sh_degree_max, self.mask_params, self.sh_params, self.rotate_vectors,
-            self.positions, in_mask_sample_phis, in_mask_sample_theta_weights,
-            in_mask_sample_polar_idxs, self.use_inv, in_mask_sample_base_values)
+        in_mask_sh_points = self.toWeightedSamplePoints(in_mask_sample_phis, in_mask_sample_theta_weights,
+            in_mask_sample_polar_idxs, in_mask_sample_base_values)
 
         fps_in_mask_sample_point_idxs = mash_cpp.toFPSPointIdxs(
             in_mask_sh_points, in_mask_sample_polar_idxs, self.sample_point_scale, self.anchor_num
@@ -385,10 +417,8 @@ class Mash(object):
 
         in_mask_sample_point_idxs = in_mask_sample_polar_idxs[fps_in_mask_sample_point_idxs]
 
-        mask_boundary_sample_points = mash_cpp.toSamplePoints(
-            self.mask_degree_max, self.sh_degree_max, self.sh_params, self.rotate_vectors, self.positions,
-            self.mask_boundary_phis, mask_boundary_thetas, self.mask_boundary_phi_idxs, self.use_inv,
-            self.mask_boundary_base_values)
+        mask_boundary_sample_points = self.toForceSamplePoints(
+            self.mask_boundary_phis, mask_boundary_thetas, self.mask_boundary_phi_idxs, self.mask_boundary_base_values)
 
         in_mask_x = in_mask_sample_points[:, 0]
         in_mask_y = in_mask_sample_points[:, 1]
