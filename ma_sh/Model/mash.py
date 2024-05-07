@@ -5,6 +5,7 @@ import open3d as o3d
 import matplotlib.pyplot as plt
 from math import sqrt
 from copy import deepcopy
+from torch.autograd import grad
 from typing import Union, Tuple
 
 import mash_cpp
@@ -347,8 +348,6 @@ class Mash(object):
         return True
 
     def toSamplePointsWithNormals(self, refine_normals: bool=False, fps_sample_scale: float = -1) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-        self.clearGrads()
-
         self.mask_boundary_phis.requires_grad_(True)
 
         mask_boundary_thetas = mash_cpp.toMaskBoundaryThetas(self.mask_params, self.mask_boundary_base_values, self.mask_boundary_phi_idxs)
@@ -397,21 +396,18 @@ class Mash(object):
 
         in_mask_sample_phis.grad = None
         in_mask_sample_theta_weights.grad = None
-        in_mask_x.backward(torch.ones_like(in_mask_x), retain_graph=True)
-        in_mask_phi_grads_x = in_mask_sample_phis.grad[fps_in_mask_sample_point_idxs].detach().clone()
-        in_mask_theta_weight_grads_x = in_mask_sample_theta_weights.grad[fps_in_mask_sample_point_idxs].detach().clone()
+        in_mask_phi_grads_x = grad(in_mask_x, in_mask_sample_phis, torch.ones_like(in_mask_x), True)[0][fps_in_mask_sample_point_idxs].detach().clone()
+        in_mask_theta_weight_grads_x = grad(in_mask_x, in_mask_sample_theta_weights, torch.ones_like(in_mask_x), True)[0][fps_in_mask_sample_point_idxs].detach().clone()
 
         in_mask_sample_phis.grad = None
         in_mask_sample_theta_weights.grad = None
-        in_mask_y.backward(torch.ones_like(in_mask_y), retain_graph=True)
-        in_mask_phi_grads_y = in_mask_sample_phis.grad[fps_in_mask_sample_point_idxs].detach().clone()
-        in_mask_theta_weight_grads_y = in_mask_sample_theta_weights.grad[fps_in_mask_sample_point_idxs].detach().clone()
+        in_mask_phi_grads_y = grad(in_mask_y, in_mask_sample_phis, torch.ones_like(in_mask_y), True)[0][fps_in_mask_sample_point_idxs].detach().clone()
+        in_mask_theta_weight_grads_y = grad(in_mask_y, in_mask_sample_theta_weights, torch.ones_like(in_mask_y), True)[0][fps_in_mask_sample_point_idxs].detach().clone()
 
         in_mask_sample_phis.grad = None
         in_mask_sample_theta_weights.grad = None
-        in_mask_z.backward(torch.ones_like(in_mask_z))
-        in_mask_phi_grads_z = in_mask_sample_phis.grad[fps_in_mask_sample_point_idxs].detach().clone()
-        in_mask_theta_weight_grads_z = in_mask_sample_theta_weights.grad[fps_in_mask_sample_point_idxs].detach().clone()
+        in_mask_phi_grads_z = grad(in_mask_z, in_mask_sample_phis, torch.ones_like(in_mask_z), True)[0][fps_in_mask_sample_point_idxs].detach().clone()
+        in_mask_theta_weight_grads_z = grad(in_mask_z, in_mask_sample_theta_weights, torch.ones_like(in_mask_z), True)[0][fps_in_mask_sample_point_idxs].detach().clone()
 
         mask_boundary_x = mask_boundary_sample_points[:, 0]
         mask_boundary_y = mask_boundary_sample_points[:, 1]
@@ -419,25 +415,20 @@ class Mash(object):
 
         self.mask_boundary_phis.grad = None
         mask_boundary_thetas.grad = None
-        mask_boundary_x.backward(torch.ones_like(mask_boundary_x), retain_graph=True)
-        mask_boundary_phi_grads_x = self.mask_boundary_phis.grad.detach().clone()
-        mask_boundary_theta_grads_x = mask_boundary_thetas.grad.detach().clone()
+        mask_boundary_phi_grads_x = grad(mask_boundary_x, self.mask_boundary_phis, torch.ones_like(mask_boundary_x), True)[0].detach().clone()
+        mask_boundary_theta_grads_x = grad(mask_boundary_x, mask_boundary_thetas, torch.ones_like(mask_boundary_x), True)[0].detach().clone()
 
         self.mask_boundary_phis.grad = None
         mask_boundary_thetas.grad = None
-        mask_boundary_y.backward(torch.ones_like(mask_boundary_y), retain_graph=True)
-        mask_boundary_phi_grads_y = self.mask_boundary_phis.grad.detach().clone()
-        mask_boundary_theta_grads_y = mask_boundary_thetas.grad.detach().clone()
+        mask_boundary_phi_grads_y = grad(mask_boundary_y, self.mask_boundary_phis, torch.ones_like(mask_boundary_y), True)[0].detach().clone()
+        mask_boundary_theta_grads_y = grad(mask_boundary_y, mask_boundary_thetas, torch.ones_like(mask_boundary_y), True)[0].detach().clone()
 
         self.mask_boundary_phis.grad = None
         mask_boundary_thetas.grad = None
-        mask_boundary_z.backward(torch.ones_like(mask_boundary_z))
-        mask_boundary_phi_grads_z = self.mask_boundary_phis.grad.detach().clone()
-        mask_boundary_theta_grads_z = mask_boundary_thetas.grad.detach().clone()
+        mask_boundary_phi_grads_z = grad(mask_boundary_z, self.mask_boundary_phis, torch.ones_like(mask_boundary_z), True)[0].detach().clone()
+        mask_boundary_theta_grads_z = grad(mask_boundary_z, mask_boundary_thetas, torch.ones_like(mask_boundary_z), True)[0].detach().clone()
 
         self.mask_boundary_phis.requires_grad_(False)
-
-        self.clearGrads()
 
         in_mask_nx = in_mask_phi_grads_y * in_mask_theta_weight_grads_z - in_mask_phi_grads_z * in_mask_theta_weight_grads_y
         in_mask_ny = in_mask_phi_grads_z * in_mask_theta_weight_grads_x - in_mask_phi_grads_x * in_mask_theta_weight_grads_z

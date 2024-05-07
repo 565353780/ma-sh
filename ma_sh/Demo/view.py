@@ -74,7 +74,7 @@ def demo():
 
                 mash = Mash.fromParamsFile(mash_file_path, 10, 400, 0.8, device="cpu")
 
-                mash.renderSamplePoints(True, True, 0.1)
+                mash.renderSamplePoints(True, False, 0.1)
                 exit()
 
                 pcd = getPointCloud(toNumpy(torch.vstack(mash.toSamplePoints()[:2])))
