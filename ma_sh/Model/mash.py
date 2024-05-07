@@ -389,6 +389,12 @@ class Mash(object):
             sample_base_values)
         return sample_points
 
+    def toFPSPointIdxs(self, sample_points: torch.Tensor, sample_idxs: torch.Tensor) -> torch.Tensor:
+        fps_sample_point_idxs = mash_cpp.toFPSPointIdxs(
+            sample_points, sample_idxs, self.sample_point_scale, self.anchor_num
+        )
+        return fps_sample_point_idxs
+
     def toSamplePointsWithNormals(self, refine_normals: bool=False, fps_sample_scale: float = -1) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         self.mask_boundary_phis.requires_grad_(True)
 
@@ -409,9 +415,7 @@ class Mash(object):
         in_mask_sh_points = self.toWeightedSamplePoints(in_mask_sample_phis, in_mask_sample_theta_weights,
             in_mask_sample_polar_idxs, in_mask_sample_base_values)
 
-        fps_in_mask_sample_point_idxs = mash_cpp.toFPSPointIdxs(
-            in_mask_sh_points, in_mask_sample_polar_idxs, self.sample_point_scale, self.anchor_num
-        )
+        fps_in_mask_sample_point_idxs = self.toFPSPointIdxs(in_mask_sh_points, in_mask_sample_polar_idxs)
 
         in_mask_sample_points = in_mask_sh_points[fps_in_mask_sample_point_idxs]
 
@@ -580,8 +584,8 @@ class Mash(object):
         print("boundary_pts:", boundary_pts.shape, boundary_pts.dtype)
         print("inner_pts:", inner_pts.shape, inner_pts.dtype)
         print("inner_anchor_idxs:", inner_anchor_idxs.shape, inner_anchor_idxs.dtype)
-        print('valid boundary_normals num:', np.where(np.linalg.norm(valid_mask_boundary_normals, axis=1) == 0)[0].shape)
-        print('valid inner_normals num:', np.where(np.linalg.norm(valid_in_mask_normals, axis=1) == 0)[0].shape)
+        print('valid boundary_normals num:', torch.where(torch.norm(valid_mask_boundary_normals, dim=1) == 0)[0].shape)
+        print('valid inner_normals num:', torch.where(torch.norm(valid_in_mask_normals, dim=1) == 0)[0].shape)
 
         if False:
             render_pcd_list = []
