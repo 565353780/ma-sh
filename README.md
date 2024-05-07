@@ -18,14 +18,15 @@ conda activate mash
 5. python convert_mash.py
 6. python convert_capture_image.py
 7. python convert_encode_image.py
+8. python convert_encode_mash.py
 ```
 
 You can run by this orders:
 
 ```bash
-1 --> 2 --> 5
+1 --> 2 --> 5 --> 8
   |-> 3 --> 4
-        |-> 6 -> 7
+        |-> 6 --> 7
 ```
 
 ## Run
