@@ -244,7 +244,7 @@ def toNormalTagWithPGR(anchor_num: int, points: torch.Tensor,
 
     pgr_points = (pgr_points - pgr_translate) / pgr_scale * mash_scale + mash_translate
 
-    pgr_normals = torch.from_numpy(np.asarray(pgr_pcd.normals)).to(points.device)
+    pgr_normals = torch.from_numpy(np.asarray(pgr_pcd.normals)).type(points.dtype).to(points.device)
     pgr_normal_norms = torch.norm(pgr_normals, dim=1)
     valid_pgr_normal_mask = pgr_normal_norms > 0
 
