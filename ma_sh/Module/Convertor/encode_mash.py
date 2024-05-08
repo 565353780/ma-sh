@@ -2,7 +2,7 @@ import os
 import numpy as np
 
 from ma_sh.Method.data import toNumpy
-from ma_sh.Method.path import createFileFolder
+from ma_sh.Method.path import createFileFolder, removeFile
 
 from mash_autoencoder.Module.detector import Detector
 
@@ -67,17 +67,34 @@ class Convertor(object):
 
         createFileFolder(encoded_mash_file_path)
 
-        results = self.detector.encodeFile(mash_file_path)
+        wrong_time_max = 4
+        run_time = 0
+        while True:
+            if run_time >= wrong_time_max:
+                print("[ERROR][Convertor::convertOneShape]")
+                print("\t wrong mash encoding process!")
+                removeFile(start_tag_file_path)
+                return False
 
-        if results is None:
-            print("[ERROR][Convertor::convertOneShape]")
-            print("\t detectFile failed!")
-            print("\t mash_file_path:", mash_file_path)
-            return False
+            run_time += 1
+            results = self.detector.encodeFile(mash_file_path)
 
-        encoded_mash = toNumpy(results['x'][0])
+            if results is None:
+                print("[ERROR][Convertor::convertOneShape]")
+                print("\t detectFile failed!")
+                print("\t mash_file_path:", mash_file_path)
+                return False
 
-        np.save(encoded_mash_file_path, encoded_mash)
+            encoded_mash = toNumpy(results['x'][0])
+
+            np.save(encoded_mash_file_path, encoded_mash)
+
+            try:
+                np.load(encoded_mash_file_path)
+                break
+            except:
+                print('[WARN][Convertor::convertOneShape]')
+                print('\t load encoded mash file failed! will re-calculate this one!')
 
         with open(finish_tag_file_path, "w") as f:
             f.write("\n")
@@ -100,7 +117,7 @@ class Convertor(object):
             modelid_list.sort()
 
             for model_file_name in modelid_list:
-                modelid = model_file_name.split(".obj")[0]
+                modelid = model_file_name.split(".npy")[0]
 
                 self.convertOneShape("ShapeNet", classname, modelid)
 

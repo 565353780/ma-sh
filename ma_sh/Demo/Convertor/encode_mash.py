@@ -1,3 +1,6 @@
+import sys
+sys.path.append('../mash-autoencoder/')
+
 import os
 
 from ma_sh.Module.Convertor.encode_mash import Convertor
