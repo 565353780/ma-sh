@@ -1,12 +1,5 @@
-import sys
-
-sys.path.append("../mash-occ-decoder")
+import os
 import torch
-
-try:
-    from mash_occ_decoder.Dataset.sdf import SDFDataset
-except:
-    pass
 
 from ma_sh.Config.custom_path import mesh_file_path_dict
 from ma_sh.Method.pcd import getPointCloud
@@ -37,7 +30,7 @@ def demo():
     render_freq = 1
     render_init_only = False
 
-    gt_points_num = 400000
+    gt_points_num = 2048
 
     save_result_folder_path = "auto"
     save_log_folder_path = "auto"
@@ -45,22 +38,12 @@ def demo():
     if False:
         mesh_name = "linux_airplane"
         mesh_file_path = mesh_file_path_dict[mesh_name]
-    elif False:
-        dataset_root_folder_path = "/home/chli/chLi/Dataset/"
-        sdf_dataset = SDFDataset(dataset_root_folder_path, "train")
-
-        object_id = 2
-        _, sdf_file_path = sdf_dataset.paths_list[object_id]
-
-        mesh_name = "chair" + str(object_id)
-        mesh_file_path = sdf_file_path.replace(
-            sdf_dataset.sdf_folder_path + "ShapeNet/sdf/",
-            "/home/chli/chLi/Dataset/ShapeNet/Core/ShapeNetCore.v2/",
-        ).replace("_obj.npy", ".obj")
-        mesh_file_path = sdf_file_path.replace(
-            sdf_dataset.sdf_folder_path + "ShapeNet/sdf/",
-            "/home/chli/chLi/Dataset/SDF/ShapeNet/manifold/",
-        ).replace("_obj.npy", "_obj.obj")
+    elif True:
+        dataset_folder_path = "/home/chli/chLi/Dataset/NormalizedMesh/ShapeNet/03001627/"
+        mesh_filename_list = os.listdir(dataset_folder_path)
+        mesh_filename = mesh_filename_list[0]
+        mesh_file_path = dataset_folder_path + mesh_filename
+        mesh_name = mesh_filename.split('.obj')[0]
     else:
         mesh_name = "test_chair"
 
@@ -93,7 +76,7 @@ def demo():
         save_log_folder_path,
     )
 
-    if False:
+    if True:
         trainer.loadMeshFile(mesh_file_path)
     else:
         gt_points_file_path = "/home/chli/chLi/Dataset/SampledPcd/ShapeNet/04090263/22d2782aa73ea40960abd8a115f9899.npy"
