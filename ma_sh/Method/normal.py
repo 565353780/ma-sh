@@ -184,7 +184,7 @@ def toNormalTagWithPGR(anchor_num: int, points: torch.Tensor,
         valid_anchor_normals = anchor_normals[valid_normal_mask]
 
         if fps_sample_scale > 0:
-            fps_idxs = mash_cpp.toFPSPointIdxs(valid_anchor_points, torch.zeros([valid_anchor_points.shape[0]]).type(torch.int), fps_sample_scale, 1)
+            fps_idxs = mash_cpp.toFPSPointIdxs(valid_anchor_points, torch.zeros([valid_anchor_points.shape[0]]).type(torch.int).to(points.device), fps_sample_scale, 1)
 
             fps_points = valid_anchor_points[fps_idxs]
             fps_normals = valid_anchor_normals[fps_idxs]
