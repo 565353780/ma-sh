@@ -104,7 +104,7 @@ def demo():
                 mash_file_path = mash_folder_path + mash_filename
                 print("start show mash:", mash_file_path)
 
-                mash = Mash.fromParamsFile(mash_file_path, 36, 400, 0.8, device="cpu")
+                mash = Mash.fromParamsFile(mash_file_path, 90, 1000, 0.8, device="cpu")
 
                 pcd = mash.toSamplePcd(True, True, 0.1)
 

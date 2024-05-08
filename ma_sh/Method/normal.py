@@ -268,11 +268,14 @@ def toNormalTagWithPGR(anchor_num: int, points: torch.Tensor,
 
         anchor_points = mash_points[anchor_mask]
         anchor_normals = mash_normals[anchor_mask]
+        anchor_normal_pts = anchor_points + anchor_normals
+        anchor_opposite_normal_pts = anchor_points - anchor_normals
 
         pgr_idxs = idxs1[0, anchor_mask]
 
         anchor_pgr_points = valid_pgr_points[pgr_idxs]
         anchor_pgr_normals = valid_pgr_normals[pgr_idxs]
+        anchor_pgr_normal_pts = anchor_pgr_points + anchor_pgr_normals
 
         if False:
             anchor_mash_pcd = getPointCloud(toNumpy(anchor_points), toNumpy(anchor_normals))
@@ -281,11 +284,11 @@ def toNormalTagWithPGR(anchor_num: int, points: torch.Tensor,
 
             renderGeometries([anchor_mash_pcd, anchor_pgr_pcd], "Mash and PGR Anchor normals", True)
 
-        same_direction_dists = torch.norm(anchor_normals - anchor_pgr_normals, dim=1)
-        opposite_direction_dists = torch.norm(anchor_normals + anchor_pgr_normals, dim=1)
+        dist1, dist2 = mash_cpp.toChamferDistanceLoss(anchor_normal_pts, anchor_pgr_normal_pts.unsqueeze(0))
+        opposite_dist1, opposite_dist2 = mash_cpp.toChamferDistanceLoss(anchor_opposite_normal_pts, anchor_pgr_normal_pts.unsqueeze(0))
 
-        same_direction_dist = torch.mean(same_direction_dists)
-        opposite_direction_dist = torch.mean(opposite_direction_dists)
+        same_direction_dist = dist1 + dist2
+        opposite_direction_dist = opposite_dist1 + opposite_dist2
 
         if same_direction_dist > opposite_direction_dist:
             normal_tags[i] = -1.0
