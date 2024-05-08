@@ -63,7 +63,7 @@ class Convertor(object):
 
         mash = Mash.fromParamsFile(mash_file_path, 90, 1000, 0.8, device=self.device)
         mash_pcd = mash.toSamplePcd(True, True, 0.1)
-        o3d.io.write_point_cloud(mash_pcd_file_path, mash_pcd)
+        o3d.io.write_point_cloud(mash_pcd_file_path, mash_pcd, write_ascii=True)
 
         with open(finish_tag_file_path, "w") as f:
             f.write("\n")
