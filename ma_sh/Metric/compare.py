@@ -13,9 +13,10 @@ from ma_sh.Method.path import createFileFolder, removeFile, renameFile
 def compareCD():
     dataset_folder_path = '/home/chli/chLi/Dataset/'
     sample_point_num = 50000
+    compare_resolution = '4000'
     dtype = torch.float32
     device = 'cuda'
-    save_metric_file_path = './output/metric.npy'
+    save_metric_file_path = './output/metric_sample-' + compare_resolution + '.npy'
 
     metric_dict = {}
 
@@ -28,7 +29,7 @@ def compareCD():
     mash_folder_path = dataset_folder_path + 'Mash_Recon/'
     mash_type = '.ply'
 
-    pgr_folder_path = dataset_folder_path + 'PGR_Recon_2048/'
+    pgr_folder_path = dataset_folder_path + 'PGR_Recon_' + compare_resolution + '/'
     pgr_type = '.ply'
 
     dataset_name_list = os.listdir(mash_folder_path)
