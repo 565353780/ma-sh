@@ -7,7 +7,7 @@ def demo():
     HOME = os.environ["HOME"]
 
     dataset_root_folder_path = HOME + "/chLi/Dataset/"
-    device = "cuda:0"
+    device = "cpu"
     force_start = False
 
     convertor = Convertor(

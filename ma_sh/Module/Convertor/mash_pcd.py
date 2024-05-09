@@ -15,13 +15,14 @@ class Convertor(object):
         self.device = device
         self.force_start = force_start
 
+        current_appendix = '_2048'
         self.mash_folder_path = (
-            self.dataset_root_folder_path + "MashV3/"
+            self.dataset_root_folder_path + "MashV3" + current_appendix + "/"
         )
         self.mash_pcd_folder_path = (
-            self.dataset_root_folder_path + "MashPcd/"
+            self.dataset_root_folder_path + "MashPcd" + current_appendix + "/"
         )
-        self.tag_folder_path = self.dataset_root_folder_path + "Tag/MashPcd/"
+        self.tag_folder_path = self.dataset_root_folder_path + "Tag/MashPcd" + current_appendix + "/"
         return
 
     def convertOneShape(
