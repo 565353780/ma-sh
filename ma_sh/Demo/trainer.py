@@ -41,6 +41,7 @@ def demo():
     elif True:
         dataset_folder_path = "/home/chli/chLi/Dataset/NormalizedMesh/ShapeNet/03001627/"
         mesh_filename_list = os.listdir(dataset_folder_path)
+        mesh_filename_list.sort()
         mesh_filename = mesh_filename_list[0]
         mesh_file_path = dataset_folder_path + mesh_filename
         mesh_name = mesh_filename.split('.obj')[0]

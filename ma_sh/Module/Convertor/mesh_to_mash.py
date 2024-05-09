@@ -122,7 +122,7 @@ class Convertor(object):
 
         createFileFolder(mash_file_path)
 
-        if True:
+        if False:
             trainer = self.createTrainer(
                 "./output/" + rel_file_path + "/",
                 "./logs/" + rel_file_path + "/",

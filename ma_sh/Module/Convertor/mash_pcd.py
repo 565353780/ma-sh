@@ -62,7 +62,7 @@ class Convertor(object):
         createFileFolder(mash_pcd_file_path)
 
         mash = Mash.fromParamsFile(mash_file_path, 90, 1000, 0.8, device=self.device)
-        mash_pcd = mash.toSamplePcd(True, True, 0.1)
+        mash_pcd = mash.toSamplePcd(False, False, 0.1)
         o3d.io.write_point_cloud(mash_pcd_file_path, mash_pcd, write_ascii=True)
 
         with open(finish_tag_file_path, "w") as f:
@@ -79,7 +79,11 @@ class Convertor(object):
 
         classname_list = os.listdir(dataset_folder_path)
         classname_list.sort()
+        first_solve_class = ['03001627', '02691156', '02958343']
         for classname in classname_list:
+            if classname != first_solve_class[0]:
+                continue
+
             class_folder_path = dataset_folder_path + classname + "/"
 
             modelid_list = os.listdir(class_folder_path)
