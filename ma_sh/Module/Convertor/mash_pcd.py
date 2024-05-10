@@ -17,12 +17,12 @@ class Convertor(object):
 
         current_appendix = ''
         self.mash_folder_path = (
-            self.dataset_root_folder_path + "MashV3" + current_appendix + "/"
+            self.dataset_root_folder_path + "MashV4" + current_appendix + "/"
         )
         self.mash_pcd_folder_path = (
-            self.dataset_root_folder_path + "MashPcd" + current_appendix + "/"
+            self.dataset_root_folder_path + "MashPcd_Manifold" + current_appendix + "/"
         )
-        self.tag_folder_path = self.dataset_root_folder_path + "Tag/MashPcd" + current_appendix + "/"
+        self.tag_folder_path = self.dataset_root_folder_path + "Tag/MashPcd_Manifold" + current_appendix + "/"
         return
 
     def convertOneShape(
@@ -82,7 +82,7 @@ class Convertor(object):
         classname_list.sort()
         first_solve_class = ['03001627', '02691156', '02958343']
         for classname in classname_list:
-            if classname != first_solve_class[1]:
+            if classname != first_solve_class[0]:
                 continue
 
             class_folder_path = dataset_folder_path + classname + "/"
