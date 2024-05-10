@@ -180,6 +180,12 @@ def findBestCases():
     pgr_mesh_folder_path = dataset_folder_path + 'PGR_Recon_' + compare_resolution + '/'
     pgr_mesh_type = '.ply'
 
+    aro_mesh_folder_path = dataset_folder_path + 'ARONet_Recon_' + '2048' + '/'
+    aro_mesh_type = '.obj'
+
+    conv_mesh_folder_path = dataset_folder_path + 'ConvONet_Recon_' + '2048' + '/'
+    conv_mesh_type = '.obj'
+
     class IDWithError:
         def __init__(self, dataset_name: str, category: str, mesh_id: str, error: float) -> None:
             self.dataset_name = dataset_name
@@ -244,6 +250,8 @@ def findBestCases():
         mash_mesh_file_path = mash_mesh_folder_path + rel_file_path + mash_mesh_type
         mash_pcd_file_path = mash_pcd_folder_path + rel_file_path + mash_pcd_type
         pgr_mesh_file_path = pgr_mesh_folder_path + rel_file_path + pgr_mesh_type
+        aro_mesh_file_path = aro_mesh_folder_path + rel_file_path + aro_mesh_type
+        conv_mesh_file_path = conv_mesh_folder_path + rel_file_path + conv_mesh_type
 
         copyfile(gt_mesh_file_path, current_save_result_folder_path + 'gt_mesh' + gt_mesh_type)
 
@@ -255,6 +263,8 @@ def findBestCases():
         copyfile(mash_mesh_file_path, current_save_result_folder_path + 'mash_mesh' + mash_mesh_type)
         copyfile(mash_pcd_file_path, current_save_result_folder_path + 'mash_pcd' + mash_pcd_type)
         copyfile(pgr_mesh_file_path, current_save_result_folder_path + 'pgr_mesh' + pgr_mesh_type)
+        copyfile(aro_mesh_file_path, current_save_result_folder_path + 'aro_mesh' + aro_mesh_type)
+        copyfile(conv_mesh_file_path, current_save_result_folder_path + 'conv_mesh' + conv_mesh_type)
 
         saved_num += 1
         print('solved shape num:', saved_num)
