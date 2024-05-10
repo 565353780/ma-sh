@@ -53,9 +53,9 @@ class Convertor(object):
 
         self.force_start = force_start
 
-        self.sampled_pcd_folder_path = self.dataset_root_folder_path + "SampledPcd/"
-        self.mash_folder_path = self.dataset_root_folder_path + "MashV3/"
-        self.tag_folder_path = self.dataset_root_folder_path + "Tag/MashV3/"
+        self.sampled_pcd_folder_path = self.dataset_root_folder_path + "SampledPcd_Manifold/"
+        self.mash_folder_path = self.dataset_root_folder_path + "MashV4/"
+        self.tag_folder_path = self.dataset_root_folder_path + "Tag/MashV4/"
         return
 
     def createTrainer(
@@ -149,7 +149,7 @@ class Convertor(object):
         classname_list.sort()
         first_solve_class = ['03001627', '02691156', '02958343']
         for classname in classname_list:
-            if classname != first_solve_class[2]:
+            if classname != first_solve_class[0]:
                 continue
 
             class_folder_path = dataset_folder_path + classname + "/"

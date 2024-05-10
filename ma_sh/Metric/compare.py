@@ -165,7 +165,7 @@ def findBestCases():
 
     metric_dict = np.load(save_metric_file_path, allow_pickle=True).item()
 
-    gt_mesh_folder_path = dataset_folder_path + 'NormalizedMesh/'
+    gt_mesh_folder_path = dataset_folder_path + 'ManifoldMesh/'
     gt_mesh_type = '.obj'
 
     gt_pcd_folder_path = dataset_folder_path + 'SampledPcd/'

@@ -17,10 +17,10 @@ class Convertor(object):
         self.force_start = force_start
 
         self.normalized_mesh_folder_path = (
-            self.dataset_root_folder_path + "NormalizedMesh/"
+            self.dataset_root_folder_path + "ManifoldMesh/"
         )
-        self.sampled_pcd_folder_path = self.dataset_root_folder_path + "SampledPcd/"
-        self.tag_folder_path = self.dataset_root_folder_path + "Tag/SampledPcd/"
+        self.sampled_pcd_folder_path = self.dataset_root_folder_path + "SampledPcd_Manifold/"
+        self.tag_folder_path = self.dataset_root_folder_path + "Tag/SampledPcd_Manifold/"
         return
 
     def convertOneShape(
@@ -97,6 +97,8 @@ class Convertor(object):
         classname_list = os.listdir(dataset_folder_path)
         classname_list.sort()
         for classname in classname_list:
+            if classname != '03001627':
+                continue
             class_folder_path = dataset_folder_path + classname + "/"
 
             modelid_list = os.listdir(class_folder_path)
