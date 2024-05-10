@@ -20,12 +20,12 @@ class Convertor(object):
         self.force_start = force_start
 
         self.mash_folder_path = (
-            self.dataset_root_folder_path + "MashV3/"
+            self.dataset_root_folder_path + "MashV4/"
         )
         self.encoded_mash_folder_path = (
-            self.dataset_root_folder_path + "EncodedMash/"
+            self.dataset_root_folder_path + "EncodedMashV4/"
         )
-        self.tag_folder_path = self.dataset_root_folder_path + "Tag/EncodedMash/"
+        self.tag_folder_path = self.dataset_root_folder_path + "Tag/EncodedMashV4/"
 
         self.detector = Detector(model_file_path, device=self.device)
         return

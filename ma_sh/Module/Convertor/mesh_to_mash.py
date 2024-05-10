@@ -53,9 +53,9 @@ class Convertor(object):
 
         self.force_start = force_start
 
-        self.normalized_mesh_folder_path = self.dataset_root_folder_path + "NormalizedMesh/"
-        self.mash_folder_path = self.dataset_root_folder_path + "MashV3_" + str(self.gt_points_num) + "/"
-        self.tag_folder_path = self.dataset_root_folder_path + "Tag/MashV3_" + str(self.gt_points_num) + "/"
+        self.normalized_mesh_folder_path = self.dataset_root_folder_path + "ManifoldMesh/"
+        self.mash_folder_path = self.dataset_root_folder_path + "MashV4_" + str(self.gt_points_num) + "/"
+        self.tag_folder_path = self.dataset_root_folder_path + "Tag/MashV4_" + str(self.gt_points_num) + "/"
         return
 
     def createTrainer(
