@@ -267,8 +267,10 @@ def findBestCases():
         copyfile(mash_mesh_file_path, current_save_result_folder_path + 'mash_mesh' + mash_mesh_type)
         copyfile(mash_pcd_file_path, current_save_result_folder_path + 'mash_pcd' + mash_pcd_type)
         copyfile(pgr_mesh_file_path, current_save_result_folder_path + 'pgr_mesh' + pgr_mesh_type)
-        #copyfile(aro_mesh_file_path, current_save_result_folder_path + 'aro_mesh' + aro_mesh_type)
-        #copyfile(conv_mesh_file_path, current_save_result_folder_path + 'conv_mesh' + conv_mesh_type)
+        if os.path.exists(aro_mesh_file_path):
+            copyfile(aro_mesh_file_path, current_save_result_folder_path + 'aro_mesh' + aro_mesh_type)
+        if os.path.exists(conv_mesh_file_path):
+            copyfile(conv_mesh_file_path, current_save_result_folder_path + 'conv_mesh' + conv_mesh_type)
 
         saved_num += 1
         print('solved shape num:', saved_num)
