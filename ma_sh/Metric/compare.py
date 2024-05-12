@@ -144,10 +144,14 @@ old_ignored_id_list = [
     '52310bca00e6a3671201d487ecde379e', '2ac88058053d5c2671a782a4379556c7', '29b3a8cb9595cbe63b7fe46c7c128390', '53f01d977de993442ea98d69e91ba870', '40020a5e90c75d94a93412f1b60e6fba',
 ]
 
-selected_id_list = [
+chair_selected_id_list = [
     '1e2ddaef401676915a7934ad3293bab5', '3a40eb7b9122bbfe2f066782346a992', '3e973b624578fc89b76e29c9c43bc7aa', '35f83268d4280532dc89a28b5e6678e0', '42abcded68db4356352fc7e973ba7787',
     '48b257f80c7434cb56f6fc4b4ce1db04', '49cbfde1ae92ee555706d1c54190f27a', '2972fd770304663cb3d180f4523082e1', '3799a4d787d31c0bc580fdeb5460f6d6',
 ]
+airplane_selected_id_list = [
+    '10c7cdfdffe2243b88a89a28f04ce622',
+]
+selected_id_list = chair_selected_id_list + airplane_selected_id_list
 ignored_id_list = old_selected_id_list + old_ignored_id_list
 
 @torch.no_grad()
@@ -186,10 +190,10 @@ def findBestCases():
     pgr_mesh_folder_path = dataset_folder_path + 'PGR_Manifold_Recon_' + compare_resolution + '/'
     pgr_mesh_type = '.ply'
 
-    aro_mesh_folder_path = dataset_folder_path + 'ARONet_Manifold_Recon_' + '2048' + '/'
+    aro_mesh_folder_path = dataset_folder_path + 'ARONet_Manifold_Recon_' + compare_resolution + '/'
     aro_mesh_type = '.obj'
 
-    conv_mesh_folder_path = dataset_folder_path + 'ConvONet_Manifold_Recon_' + '2048' + '/'
+    conv_mesh_folder_path = dataset_folder_path + 'ConvONet_Manifold_Recon_' + compare_resolution + '/'
     conv_mesh_type = '.obj'
 
     class IDWithError:
