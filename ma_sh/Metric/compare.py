@@ -12,7 +12,7 @@ import mash_cpp
 
 from ma_sh.Method.data import toNumpy
 from ma_sh.Method.path import createFileFolder, removeFile, renameFile
-from ma_sh.Method.render import renderGeometries
+from ma_sh.Method.trimesh import renderGeometries
 
 @torch.no_grad()
 def compareCD():
@@ -146,10 +146,17 @@ old_ignored_id_list = [
 
 chair_selected_id_list = [
     '1e2ddaef401676915a7934ad3293bab5', '3a40eb7b9122bbfe2f066782346a992', '3e973b624578fc89b76e29c9c43bc7aa', '35f83268d4280532dc89a28b5e6678e0', '42abcded68db4356352fc7e973ba7787',
-    '48b257f80c7434cb56f6fc4b4ce1db04', '49cbfde1ae92ee555706d1c54190f27a', '2972fd770304663cb3d180f4523082e1', '3799a4d787d31c0bc580fdeb5460f6d6',
+    '48b257f80c7434cb56f6fc4b4ce1db04', '49cbfde1ae92ee555706d1c54190f27a', '2972fd770304663cb3d180f4523082e1', '3799a4d787d31c0bc580fdeb5460f6d6', '2b70fe0b5669985c100bd20b85b3554',
+    '29656461b26f620ff3c9c1464e55d580', '108b9cb292fd811cf51f77a6d7299806', '17b7a0e3c70dbc3d90a6b1b2b5522960', '1d7fdf837564523dc89a28b5e6678e0', '1ec5a88141aefca9cf6e4dd7ee69d71f',
+    '1f82011c2303fc7babb8f41baefc4b12', '1886b3e3f3d4af3ace522e6dda26fb51', '2c4e9d34472b4bccc16f7010a3b8fdee', '210115ebbbd9eefe5fdc736bcab9da58', '250ffcc789426a255f46d55537192b6',
+    '2bd6800d64c01d677721fafb59ea099', '1de49c5853d04e863c8d0fdfb1cc2535', '1c758127bc4fdb18be27e423fd45ffe7', '22b40d884de52ca3387379bbd607d69e', '2ae1dc95e09b858128fda76c378c923',
+    '2b783fe4230af5436a7b680929b3b0fb', '17b558e72a4d76ef8517036a5ca6b1c7', '28fad854838ac444e9920dbaf13176cb', '20ae4b27e86521a32efc7fb40a53aaac', '2c5e32bb738a5306e27790b0ec8671f7',
+    '27559a7e2b0b839d75bd952b0c911144', '20e0e65d8a10a88f91b8ec332e6d93da', '2853ec74532f23f3670cf6c75c1c5868', '36f4f54d500dfcec9969831eec1821d9',
 ]
 airplane_selected_id_list = [
-    '10c7cdfdffe2243b88a89a28f04ce622',
+    '10c7cdfdffe2243b88a89a28f04ce622', '122776d17b6a118086da73d36506db6f', '124a579e0635b8eace19d55bc5e6a406', '150cdc45dabde04f7f29c61065b4dc5a', '17c86b46990b54b65578b8865797aa0',
+    '18806a80387734b754c7b6e11bf7148d', '17ac3afd54143b797172a40a4ca640fe', '1890f6391df25286394b1e418d5c594', '189f045faacc1b5f9a8993cdad554625', '157bb84c08754307dff9b4d1071b12d7',
+    '172764bea108bbcceae5a783c313eb36', '17bc7631cbdaaa0c932e2c9d273ab571',
 ]
 selected_id_list = chair_selected_id_list + airplane_selected_id_list
 ignored_id_list = old_selected_id_list + old_ignored_id_list
@@ -160,10 +167,17 @@ def findBestCases():
     compare_resolution = '4000'
     save_metric_file_path = './output/metric_manifold_sample-' + compare_resolution + '.npy'
     valid_mode_list = ['selected', 'pgr-our', 'pgr-div-our', '1-div-our']
-    mode_id = 0
+    mode_id = 3
     mode = valid_mode_list[mode_id]
     save_result_folder_path = './output/metric_manifold_result_' + mode + '/'
     save_num = 10
+    render = True
+    compare_category_id = '03001627'
+    #compare_category_id = '02691156'
+    #compare_category_id = None
+
+    if render:
+        save_num = -1
 
     os.makedirs(save_result_folder_path, exist_ok=True)
 
@@ -190,10 +204,13 @@ def findBestCases():
     pgr_mesh_folder_path = dataset_folder_path + 'PGR_Manifold_Recon_' + compare_resolution + '/'
     pgr_mesh_type = '.ply'
 
-    aro_mesh_folder_path = dataset_folder_path + 'ARONet_Manifold_Recon_' + compare_resolution + '/'
+    pgr_high_mesh_folder_path = dataset_folder_path + 'PGR_Manifold_Recon_' + '20000' + '/'
+    pgr_high_mesh_type = '.ply'
+
+    aro_mesh_folder_path = dataset_folder_path + 'ARONet_Manifold_Recon_' + '2048' + '/'
     aro_mesh_type = '.obj'
 
-    conv_mesh_folder_path = dataset_folder_path + 'ConvONet_Manifold_Recon_' + compare_resolution + '/'
+    conv_mesh_folder_path = dataset_folder_path + 'ConvONet_Manifold_Recon_' + '2048' + '/'
     conv_mesh_type = '.obj'
 
     class IDWithError:
@@ -208,6 +225,10 @@ def findBestCases():
 
     for dataset_name in metric_dict.keys():
         for category in metric_dict[dataset_name].keys():
+            if compare_category_id is not None:
+                if category != compare_category_id:
+                    continue
+
             for mesh_id in metric_dict[dataset_name][category].keys():
                 # mesh_id = '1b5fc54e45c8768490ad276cd2af3a4'
                 mash_cd = metric_dict[dataset_name][category][mesh_id]['mash_cd']
@@ -258,8 +279,23 @@ def findBestCases():
         mash_mesh_file_path = mash_mesh_folder_path + rel_file_path + mash_mesh_type
         mash_pcd_file_path = mash_pcd_folder_path + rel_file_path + mash_pcd_type
         pgr_mesh_file_path = pgr_mesh_folder_path + rel_file_path + pgr_mesh_type
+        pgr_high_mesh_file_path = pgr_high_mesh_folder_path + rel_file_path + pgr_high_mesh_type
         aro_mesh_file_path = aro_mesh_folder_path + rel_file_path + aro_mesh_type
         conv_mesh_file_path = conv_mesh_folder_path + rel_file_path + conv_mesh_type
+
+        if render:
+            print('====')
+            print('render: ', iwe.category, iwe.mesh_id)
+            print('error:', iwe.error)
+            gt_mesh = trimesh.load_mesh(gt_mesh_file_path)
+            mash_mesh = trimesh.load_mesh(mash_mesh_file_path)
+            pgr_mesh = trimesh.load_mesh(pgr_mesh_file_path)
+
+            mash_mesh.apply_translation([1, 0, 0])
+            pgr_mesh.apply_translation([2, 0, 0])
+
+            renderGeometries([gt_mesh, mash_mesh, pgr_mesh])
+            continue
 
         copyfile(gt_mesh_file_path, current_save_result_folder_path + 'gt_mesh' + gt_mesh_type)
 
@@ -271,6 +307,8 @@ def findBestCases():
         copyfile(mash_mesh_file_path, current_save_result_folder_path + 'mash_mesh' + mash_mesh_type)
         copyfile(mash_pcd_file_path, current_save_result_folder_path + 'mash_pcd' + mash_pcd_type)
         copyfile(pgr_mesh_file_path, current_save_result_folder_path + 'pgr_mesh' + pgr_mesh_type)
+        if os.path.exists(pgr_high_mesh_file_path):
+            copyfile(pgr_high_mesh_file_path, current_save_result_folder_path + 'pgr_high_mesh' + pgr_high_mesh_type)
         if os.path.exists(aro_mesh_file_path):
             copyfile(aro_mesh_file_path, current_save_result_folder_path + 'aro_mesh' + aro_mesh_type)
         if os.path.exists(conv_mesh_file_path):
@@ -279,8 +317,9 @@ def findBestCases():
         saved_num += 1
         print('solved shape num:', saved_num)
         if mode != 'selected':
-            if saved_num >= save_num:
-                break
+            if save_num > 0:
+                if saved_num >= save_num:
+                    break
 
     exit()
     return True
