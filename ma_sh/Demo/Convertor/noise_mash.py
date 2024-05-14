@@ -4,7 +4,7 @@ import torch
 from ma_sh.Module.Convertor.noise_mash import Convertor
 
 
-def demo():
+def demo(gauss_sigma: float = 0.01):
     HOME = os.environ["HOME"]
     dataset_root_folder_path = HOME + "/chLi/Dataset/"
 
@@ -27,7 +27,7 @@ def demo():
     factor = 0.8
     patience = 2
 
-    gauss_sigma = 0.01
+    # gauss_sigma = 0.01
 
     force_start = False
 
