@@ -1,5 +1,6 @@
 import os
 import torch
+from tqdm import tqdm
 from typing import Union
 
 from ma_sh.Method.path import createFileFolder
@@ -148,20 +149,21 @@ class Convertor(object):
         classname_list = os.listdir(dataset_folder_path)
         classname_list.sort()
 
+        modelid_list_dict = {}
+
         model_num_max = 0
-        for classname in classname_list:
+        for classname in tqdm(classname_list):
             class_folder_path = dataset_folder_path + classname + "/"
 
             modelid_list = os.listdir(class_folder_path)
             modelid_list.sort()
+            modelid_list_dict[classname] = modelid_list
             model_num_max = max(model_num_max, len(modelid_list))
 
         for i in range(model_num_max):
-            for classname in classname_list:
-                class_folder_path = dataset_folder_path + classname + "/"
-
-                modelid_list = os.listdir(class_folder_path)
-                modelid_list.sort()
+            for classname, modelid_list in modelid_list_dict.items():
+                if len(modelid_list) <= i:
+                    continue
 
                 modelid = modelid_list[i].split(".npy")[0]
 
