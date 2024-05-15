@@ -147,18 +147,23 @@ class Convertor(object):
 
         classname_list = os.listdir(dataset_folder_path)
         classname_list.sort()
-        first_solve_class = ['03001627', '02691156', '02958343']
-        for classname in classname_list:
-            if classname != first_solve_class[1]:
-                continue
 
+        model_num_max = 0
+        for classname in classname_list:
             class_folder_path = dataset_folder_path + classname + "/"
 
             modelid_list = os.listdir(class_folder_path)
             modelid_list.sort()
+            model_num_max = max(model_num_max, len(modelid_list))
 
-            for model_file_name in modelid_list:
-                modelid = model_file_name.split(".npy")[0]
+        for i in range(model_num_max):
+            for classname in classname_list:
+                class_folder_path = dataset_folder_path + classname + "/"
+
+                modelid_list = os.listdir(class_folder_path)
+                modelid_list.sort()
+
+                modelid = modelid_list[i].split(".npy")[0]
 
                 self.convertOneShape("ShapeNet", classname, modelid)
 
