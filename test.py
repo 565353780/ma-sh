@@ -4,10 +4,12 @@ from ma_sh.Test.grad import test as test_grad
 from ma_sh.Test.mash_unit import test as test_mash_unit
 from ma_sh.Test.mash_model import test as test_mash_model
 from ma_sh.Test.data_check import test as test_check_data
+from ma_sh.Test.metric import test as test_metric
 
 if __name__ == "__main__":
-    test_check_data()
+    test_metric()
     exit()
+    test_check_data()
     test_import_o3d()
     test_rotate()
     test_grad()

@@ -10,7 +10,6 @@ from ma_sh.Method.Mash.mash_unit import (
     toPreLoadUniformSamplePolars,
     toPreLoadMaskBoundaryPhiIdxs,
     toPreLoadBaseValues,
-    toPreLoadDirections,
 )
 from ma_sh.Method.render import renderPoints
 from ma_sh.Module.timer import Timer
@@ -49,7 +48,6 @@ def test():
             sample_phis,
         )
     )
-    sample_sh_directions = toPreLoadDirections(sample_phis, sample_thetas)
 
     def saveGraph(data, graph_name):
         mean_data = torch.mean(data)
