@@ -15,6 +15,7 @@ from ma_sh.Method.pcd import getPointCloud
 from ma_sh.Method.path import createFileFolder, removeFile, renameFile
 from ma_sh.Method.trimesh import renderGeometries
 from ma_sh.Metric.fscore import fScore
+from ma_sh.Module.metric_manager import MetricManager
 
 @torch.no_grad()
 def compareCD():
@@ -434,4 +435,32 @@ def findBestCases():
                     break
 
     exit()
+    return True
+
+def getMeanMetrics():
+    compare_resolution = '4000'
+    save_metric_file_path = './output/metric_manifold_sample-' + compare_resolution + '.npy'
+
+    metric_dict = np.load(save_metric_file_path, allow_pickle=True).item()
+
+    metric_list = [
+        MetricManager('mash_cd'),
+        MetricManager('mash_fscore'),
+        MetricManager('pgr_cd'),
+        MetricManager('pgr_fscore'),
+        MetricManager('aro_cd'),
+        MetricManager('aro_fscore'),
+        MetricManager('conv_cd'),
+        MetricManager('conv_fscore'),
+    ]
+
+    for dataset_name in metric_dict.keys():
+        for category in metric_dict[dataset_name].keys():
+            for mesh_id in metric_dict[dataset_name][category].keys():
+                for mm in metric_list:
+                    if mm.name in metric_dict[dataset_name][category][mesh_id]:
+                        mm.addValue(category, metric_dict[dataset_name][category][mesh_id][mm.name])
+
+    for mm in metric_list:
+        mm.outputInfo()
     return True
