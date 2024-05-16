@@ -80,11 +80,7 @@ class Convertor(object):
 
         classname_list = os.listdir(dataset_folder_path)
         classname_list.sort()
-        first_solve_class = ['03001627', '02691156', '02958343']
         for classname in classname_list:
-            if classname != first_solve_class[1]:
-                continue
-
             class_folder_path = dataset_folder_path + classname + "/"
 
             modelid_list = os.listdir(class_folder_path)
