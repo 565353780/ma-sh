@@ -343,7 +343,11 @@ def findBestCases():
                     continue
 
             for mesh_id in metric_dict[dataset_name][category].keys():
-                # mesh_id = '1b5fc54e45c8768490ad276cd2af3a4'
+                if 'mash_cd' not in metric_dict[dataset_name][category][mesh_id].keys():
+                    continue
+                if 'pgr_cd' not in metric_dict[dataset_name][category][mesh_id].keys():
+                    continue
+
                 mash_cd = metric_dict[dataset_name][category][mesh_id]['mash_cd']
                 pgr_cd = metric_dict[dataset_name][category][mesh_id]['pgr_cd']
 

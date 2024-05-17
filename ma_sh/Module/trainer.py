@@ -385,6 +385,7 @@ class Trainer(object):
 
             pbar.set_description("LOSS %.6f" % (loss,))
 
+            self.autoSavePcd("train", 10, False)
             self.autoSaveMash("train")
 
             self.step += 1
@@ -465,6 +466,7 @@ class Trainer(object):
 
             pbar.set_description("LOSS %.6f" % (loss,))
 
+            self.autoSavePcd("train", 10, False)
             self.autoSaveMash("train")
 
             self.step += 1
@@ -615,12 +617,16 @@ class Trainer(object):
 
         return True
 
-    def autoSaveMash(self, state_info: str) -> bool:
+    def autoSaveMash(self, state_info: str, save_freq: int = 1, add_idx: bool = True) -> bool:
         if self.save_result_folder_path is None:
+            return False
+
+        if self.save_file_idx % save_freq != 0:
             return False
 
         save_file_path = (
             self.save_result_folder_path
+            + 'mash/'
             + str(self.save_file_idx)
             + "_"
             + state_info
@@ -630,7 +636,31 @@ class Trainer(object):
         save_mash = deepcopy(self.mash)
         save_mash.saveParamsFile(save_file_path, True)
 
-        self.save_file_idx += 1
+        if add_idx:
+            self.save_file_idx += 1
+        return True
+
+    def autoSavePcd(self, state_info: str, save_freq: int = 1, add_idx: bool = True) -> bool:
+        if self.save_result_folder_path is None:
+            return False
+
+        if self.save_file_idx % save_freq != 0:
+            return False
+
+        save_pcd_file_path = (
+            self.save_result_folder_path
+            + 'pcd/'
+            + str(self.save_file_idx)
+            + "_"
+            + state_info
+            + ".ply"
+        )
+
+        save_mash = deepcopy(self.mash)
+        save_mash.saveAsPcdFile(save_pcd_file_path, True)
+
+        if add_idx:
+            self.save_file_idx += 1
         return True
 
     def renderMash(self, gt_points: torch.Tensor) -> bool:
