@@ -587,6 +587,9 @@ class Trainer(object):
             if current_lr == self.min_lr:
                 break
 
+        self.autoSavePcd('final', add_idx=False)
+        self.autoSaveMash('final')
+
         """
             if self.upperSHDegree():
                 print("[INFO][Trainer::autoTrainMash]")
