@@ -191,17 +191,17 @@ class Mesh(object):
 
             torch_vertices = (
                 torch.from_numpy(self.vertices)
-                .type(torch.float16)
+                .type(torch.float32)
                 .reshape(1, -1, 3)
                 .to(device)
             )
             torch_points = (
                 torch.from_numpy(points)
-                .type(torch.float16)
+                .type(torch.float32)
                 .reshape(1, -1, 3)
                 .to(device)
             )
-            torch_dists, _ = mash_cpp.toChamferDistance(torch_vertices, torch_points)
+            torch_dists = mash_cpp.toChamferDistance(torch_vertices, torch_points)[0]
             dists = toNumpy(torch_dists).reshape(-1)
 
         return self.paintJetColorsByDists(dists, error_max_percent)
@@ -409,5 +409,5 @@ class Mesh(object):
             print("\t isValid failed!")
             return False
 
-        renderGeometries(self.mesh, "Mesh")
+        renderGeometries(self.toO3DMesh(), "Mesh")
         return True
