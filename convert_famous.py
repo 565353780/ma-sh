@@ -8,7 +8,7 @@ from ma_sh.Module.trainer import Trainer
 
 
 def demo():
-    anchor_num = 400
+    anchor_num = 800
     mask_degree_max = 3
     sh_degree_max = 2
     mask_boundary_sample_num = 90
@@ -32,7 +32,7 @@ def demo():
 
     gt_points_num = 400000
 
-    famous_filename_list = ['angel', 'Armadillo', 'bunny', 'dragon', 'hand', 'Liberty', 'netsuke', 'serapis', 'Utah_teapot_(solid)', 'xyzrgb_dragon_clean', 'xyzrgb_statuette']
+    famous_filename_list = ['hand', 'dragon', 'xyzrgb_dragon_clean', 'angel', 'Armadillo', 'bunny', 'Liberty', 'xyzrgb_statuette']
 
     for mesh_name in famous_filename_list:
         mesh_file_path = '/home/chli/Dataset/Famous/' + mesh_name + '.ply'
@@ -60,11 +60,14 @@ def demo():
             points = mesh.toSamplePoints(gt_points_num)
             np.save(sampled_pcd_file_path, points)
 
-        save_result_folder_path = "/home/chli/Nutstore Files/MASH-Materials/teaser_materials/" + mesh_name + '/'
-        save_log_folder_path = "./logs/" + mesh_name + '/'
+        save_result_folder_path = "/home/chli/Nutstore Files/MASH-Materials/teaser_materials/Anc-" + str(anchor_num) + '/' + mesh_name + '/'
+        if os.path.exists(save_result_folder_path):
+            continue
 
-        save_params_file_path = "./output/" + mesh_name + ".npy"
-        save_pcd_file_path = "./output/" + mesh_name + ".ply"
+        save_log_folder_path = "./logs/Anc-" + str(anchor_num) + '/' + mesh_name + '/'
+
+        save_params_file_path = "./output/Anc-" + str(anchor_num) + '/' + mesh_name + ".npy"
+        save_pcd_file_path = "./output/Anc-" + str(anchor_num) + '/' + mesh_name + ".ply"
         overwrite = True
         print_progress = True
 
