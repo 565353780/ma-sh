@@ -385,7 +385,7 @@ class Trainer(object):
 
             pbar.set_description("LOSS %.6f" % (loss,))
 
-            self.autoSavePcd("train", 10)
+            self.autoSavePcd("train", 20)
             # self.autoSaveMash("train")
 
             self.step += 1
@@ -466,7 +466,7 @@ class Trainer(object):
 
             pbar.set_description("LOSS %.6f" % (loss,))
 
-            self.autoSavePcd("train", 10)
+            self.autoSavePcd("train", 20)
             # self.autoSaveMash("train")
 
             self.step += 1
@@ -629,6 +629,11 @@ class Trainer(object):
                 self.save_file_idx += 1
             return False
 
+        if self.save_file_idx not in [0, 20, 40, 60, 80, 100] and state_info != 'final':
+            if add_idx:
+                self.save_file_idx += 1
+            return False
+
         save_file_path = (
             self.save_result_folder_path
             + 'mash/'
@@ -650,6 +655,11 @@ class Trainer(object):
             return False
 
         if self.save_file_idx % save_freq != 0:
+            if add_idx:
+                self.save_file_idx += 1
+            return False
+
+        if self.save_file_idx not in [0, 20, 40, 60, 80, 100] and state_info != 'final':
             if add_idx:
                 self.save_file_idx += 1
             return False
