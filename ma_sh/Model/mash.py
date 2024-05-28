@@ -347,6 +347,47 @@ class Mash(object):
         self.sh_params = new_sh_params
         return True
 
+    def toCenter(self) -> torch.Tensor:
+        center = torch.mean(self.positions.data, dim=0).clone()
+        return center
+
+    def translate(self, move_position: Union[torch.Tensor, np.ndarray, list]) -> bool:
+        if isinstance(move_position, list):
+            move_position = np.array(move_position)
+
+        if isinstance(move_position, np.ndarray):
+            move_position = torch.from_numpy(move_position)
+
+        move_position = move_position.type(self.positions.dtype).to(self.positions.device)
+
+        grad_state = self.positions.requires_grad
+
+        self.setGradState(False)
+
+        self.positions.data += move_position.unsqueeze(0)
+
+        self.setGradState(grad_state)
+        return True
+
+    def scale(self, scale: float, keep_position: bool = True) -> bool:
+        grad_state = self.positions.requires_grad
+
+        self.setGradState(False)
+
+        move_position = None
+        if keep_position:
+            move_position = self.toCenter()
+            self.translate(-1.0 * move_position)
+
+        self.positions.data *= scale
+        self.sh_params.data *= scale
+
+        if move_position is not None:
+            self.translate(move_position)
+
+        self.setGradState(grad_state)
+        return True
+
     def toMaskBoundaryThetas(self) -> torch.Tensor:
         mask_boundary_thetas = mash_cpp.toMaskBoundaryThetas(self.mask_params, self.mask_boundary_base_values, self.mask_boundary_phi_idxs)
         return mask_boundary_thetas

@@ -1,6 +1,7 @@
 import os
 import torch
 import numpy as np
+import open3d as o3d
 from tqdm import tqdm
 from typing import Union
 from copy import deepcopy
@@ -101,6 +102,10 @@ class Trainer(object):
             self.o3d_viewer.createWindow()
 
         self.min_lr_reach_time = 0
+
+        # tmp
+        self.translate = None
+        self.scale = None
         return
 
     def initRecords(self) -> bool:
@@ -120,17 +125,43 @@ class Trainer(object):
             self.logger.setLogFolder(self.save_log_folder_path)
         return True
 
-    def loadGTPointsFile(self, gt_points_file_path: str) -> bool:
+    def loadGTPointsFile(self, gt_points_file_path: str, sample_point_num: Union[int, None] = None) -> bool:
         if not os.path.exists(gt_points_file_path):
             print("[ERROR][Trainer::loadGTPointsFile]")
             print("\t gt points file not exist!")
             print("\t gt_points_file_path:", gt_points_file_path)
             return False
 
-        self.gt_points = np.load(gt_points_file_path)
+        gt_points_file_type = gt_points_file_path.split('.')[-1]
+        if gt_points_file_type == 'npy':
+            gt_points = np.load(gt_points_file_path)
+            gt_pcd = getPointCloud(gt_points)
+        else:
+            gt_pcd = o3d.io.read_point_cloud(gt_points_file_path)
 
-        gt_pcd = getPointCloud(self.gt_points)
+        sample_gt_pcd = gt_pcd
+        if sample_point_num is not None:
+            sample_gt_pcd = downSample(gt_pcd, sample_point_num)
+            if sample_gt_pcd is None:
+                print('[WARN][Trainer::loadGTPointsFile]')
+                print('\t downSample failed! will use all input gt points!')
+                sample_gt_pcd = gt_pcd
+
+        self.gt_points = np.asarray(sample_gt_pcd.points)
+
+        center = np.mean(self.gt_points, axis=0)
+        min_bound = np.min(self.gt_points, axis=0)
+        max_bound = np.max(self.gt_points, axis=0)
+        length = max_bound - min_bound
+        self.translate = center
+        self.scale = np.max(length)
+
+        self.gt_points = (self.gt_points - self.translate) / self.scale
+
+        sample_gt_pcd.points = o3d.utility.Vector3dVector(self.gt_points)
+
         gt_pcd.estimate_normals()
+        #gt_pcd.orient_normals_consistent_tangent_plane(4)
 
         surface_dist = 0.001
 
@@ -644,6 +675,11 @@ class Trainer(object):
         )
 
         save_mash = deepcopy(self.mash)
+
+        if self.translate is not None:
+            save_mash.scale(self.scale, False)
+            save_mash.translate(self.translate)
+
         save_mash.saveParamsFile(save_file_path, True)
 
         if add_idx:
@@ -674,6 +710,11 @@ class Trainer(object):
         )
 
         save_mash = deepcopy(self.mash)
+
+        if self.translate is not None:
+            save_mash.scale(self.scale, False)
+            save_mash.translate(self.translate)
+
         save_mash.saveAsPcdFile(save_pcd_file_path, True)
 
         if add_idx:
