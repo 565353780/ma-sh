@@ -100,7 +100,7 @@ class Convertor(object):
         for classname in classname_list:
             if '.zip' in classname:
                 continue
-            
+
             class_folder_path = dataset_folder_path + classname + "/"
 
             modelid_list = os.listdir(class_folder_path)
