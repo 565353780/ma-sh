@@ -7,8 +7,8 @@ from ma_sh.Method.render import renderGeometries
 from ma_sh.Module.trainer import Trainer
 
 
-def demo():
-    anchor_num = 400
+def demo(anchor_num: int = 400):
+    #anchor_num = 400
     mask_degree_max = 3
     sh_degree_max = 2
     mask_boundary_sample_num = 90
@@ -38,7 +38,7 @@ def demo():
     if False:
         mesh_name = "linux_airplane"
         mesh_file_path = mesh_file_path_dict[mesh_name]
-    elif True:
+    elif False:
         dataset_folder_path = "/home/chli/chLi/Dataset/NormalizedMesh/ShapeNet/03001627/"
         mesh_filename_list = os.listdir(dataset_folder_path)
         mesh_filename_list.sort()
@@ -46,10 +46,11 @@ def demo():
         mesh_file_path = dataset_folder_path + mesh_filename
         mesh_name = mesh_filename.split('.obj')[0]
     else:
-        mesh_name = "test_chair"
+        mesh_name = '03001627/1016f4debe988507589aae130c1f06fb'
+        mesh_name = '02691156/1066b65c30d153e04c3a35cee92bb95b'
 
-    save_params_file_path = "./output/" + mesh_name + ".npy"
-    save_pcd_file_path = "./output/" + mesh_name + ".ply"
+    save_params_file_path = "./output/" + mesh_name + "_Anc-" + str(anchor_num) + ".npy"
+    save_pcd_file_path = "./output/" + mesh_name + "_Anc-" + str(anchor_num) + ".ply"
     overwrite = True
     print_progress = True
 
@@ -77,13 +78,15 @@ def demo():
         save_log_folder_path,
     )
 
-    if True:
+    if False:
         trainer.loadMeshFile(mesh_file_path)
     else:
         gt_points_file_path = "/home/chli/chLi/Dataset/SampledPcd/ShapeNet/04090263/22d2782aa73ea40960abd8a115f9899.npy"
         gt_points_file_path = "/home/chli/chLi/Dataset/SampledPcd/ShapeNet/03001627/46e1939ce6ee14d6a4689f3cf5c22e6.npy"
         gt_points_file_path = "/home/chli/chLi/Dataset/SampledPcd/ShapeNet/03001627/1b8e84935fdc3ec82be289de70e8db31.npy"
         gt_points_file_path = "/home/chli/chLi/Dataset/SampledPcd/ShapeNet/03001627/e71d05f223d527a5f91663a74ccd2338.npy"
+        gt_points_file_path = "/home/chli/chLi/Dataset/SampledPcd/ShapeNet/" + mesh_name + ".npy"
+        #gt_points_file_path = "../mvs-former/output/" + mesh_name + "/" + mesh_name + ".ply"
         # gt_points_file_path = "/Users/fufu/Downloads/model_normalized_obj.npy"
         trainer.loadGTPointsFile(gt_points_file_path)
     trainer.autoTrainMash(gt_points_num)
