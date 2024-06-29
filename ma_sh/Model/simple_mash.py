@@ -7,6 +7,7 @@ from math import sqrt
 from copy import deepcopy
 from typing import Union, Tuple
 
+from ma_sh.Method.center import toOuterCenters
 import mash_cpp
 
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
@@ -429,13 +430,17 @@ class SimpleMash(object):
 
         return np.vstack(simple_sample_triangles, dtype=np.int64)
 
+    def toSimpleSampleOuterCenters(self) -> Tuple[torch.Tensor, torch.Tensor]:
+        points = self.toSimpleSamplePoints()
+        triangles = self.toSimpleSampleTriangles()
+
+        centers, radius = toOuterCenters(points, triangles)
+        return centers, radius
+
     def toSampleMesh(self) -> Mesh:
-        simple_sample_points = self.toSimpleSamplePoints()
-
         sample_mesh = Mesh()
-        sample_mesh.vertices = simple_sample_points.detach().clone().cpu().numpy()
+        sample_mesh.vertices = self.toSimpleSamplePoints().detach().clone().cpu().numpy()
         sample_mesh.triangles = self.toSimpleSampleTriangles()
-
         return sample_mesh
 
     def toSamplePcd(self) -> o3d.geometry.PointCloud:

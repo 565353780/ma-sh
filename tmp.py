@@ -7,6 +7,10 @@ for i in range(10):
 
 points = a.toSamplePoints()
 mesh = a.toSampleMesh()
+centers, radius = a.toSimpleSampleOuterCenters()
+print(centers.shape)
+print(radius.shape)
+exit()
 
 mesh.render()
 
