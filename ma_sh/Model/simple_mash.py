@@ -5,7 +5,7 @@ import open3d as o3d
 import matplotlib.pyplot as plt
 from math import sqrt
 from copy import deepcopy
-from typing import Union
+from typing import Union, Tuple
 
 import mash_cpp
 
@@ -51,8 +51,8 @@ class SimpleMash(object):
 
         # Pre Load Datas
         self.sample_phis = torch.tensor([0.0], dtype=dtype).to(self.device)
-        self.sample_thetas = torch.tensor([0.0], dtype=dtype).to(self.device)
         self.sample_base_values = torch.tensor([0.0], dtype=dtype).to(self.device)
+        self.mask_boundary_phi_idxs = torch.tensor([0.0], dtype=dtype).to(self.device)
 
         self.reset()
         return
@@ -150,6 +150,7 @@ class SimpleMash(object):
     def updatePreLoadDatas(self) -> bool:
         self.sample_phis = 2.0 * np.pi / self.sample_phi_num * torch.arange(self.sample_phi_num, dtype=self.dtype).to(self.device)
         self.sample_base_values = mash_cpp.toMaskBaseValues(self.sample_phis, self.mask_degree_max)
+        self.mask_boundary_phi_idxs = torch.arange(self.anchor_num, dtype=self.idx_dtype).to(self.device).repeat(self.sample_phi_num, 1).permute(1, 0).reshape(-1)
         return True
 
     def loadParams(
@@ -361,7 +362,14 @@ class SimpleMash(object):
         self.setGradState(grad_state)
         return True
 
-    def toSamplePoints(self) -> torch.Tensor:
+    def toForceSamplePoints(self, sample_phis: torch.Tensor, sample_thetas: torch.Tensor, sample_idxs: torch.Tensor, sample_base_values: torch.Tensor=torch.Tensor()) -> torch.Tensor:
+        sample_points = mash_cpp.toSimpleSamplePoints(
+            self.mask_degree_max, self.sh_degree_max, self.sh_params, self.rotate_vectors, self.positions,
+            sample_phis, sample_thetas, sample_idxs, self.use_inv,
+            sample_base_values)
+        return sample_points
+
+    def toSamplePoints(self) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         simple_sample_points = mash_cpp.toSimpleMashSamplePoints(
             self.anchor_num,
             self.mask_degree_max,
@@ -376,25 +384,20 @@ class SimpleMash(object):
             self.use_inv
         )
 
-        return simple_sample_points
+        single_anchor_in_mask_point_num = 1 + self.sample_phi_num * (self.sample_theta_num - 1)
+        single_anchor_point_num = single_anchor_in_mask_point_num + self.sample_phi_num
 
-    def toSamplePcdWithNormals(self, refine_normals: bool = False, fps_sample_scale: float = -1) -> o3d.geometry.PointCloud:
-        mask_boundary_sample_points, in_mask_sample_points, in_mask_sample_point_idxs, mask_boundary_normals, in_mask_normals = self.toSamplePointsWithNormals(refine_normals, fps_sample_scale)
+        mask_boundary_point_mask = torch.zeros(simple_sample_points.shape[0], dtype=torch.bool)
+        for i in range(self.anchor_num):
+            mask_boundary_point_mask[i * single_anchor_point_num + single_anchor_in_mask_point_num: (i + 1) * single_anchor_point_num] = True
 
-        sample_points = torch.vstack([mask_boundary_sample_points, in_mask_sample_points])
-        sample_normals = torch.vstack([mask_boundary_normals, in_mask_normals])
+        in_mask_points = simple_sample_points[~mask_boundary_point_mask]
+        mask_boundary_points = simple_sample_points[mask_boundary_point_mask]
+        in_mask_point_idxs = torch.arange(self.anchor_num, dtype=self.idx_dtype).to(self.device).repeat(single_anchor_in_mask_point_num, 1).permute(1, 0).reshape(-1)
 
-        sample_points_array = toNumpy(sample_points)
-        sample_normals_array = toNumpy(sample_normals)
+        return mask_boundary_points, in_mask_points, in_mask_point_idxs
 
-        sample_pcd = getPointCloud(sample_points_array, sample_normals_array)
-        return sample_pcd
-
-
-    def toSamplePcd(self, with_normals: bool = False, refine_normals: bool = False, fps_sample_scale: float = -1) -> o3d.geometry.PointCloud:
-        if with_normals:
-            return self.toSamplePcdWithNormals(refine_normals, fps_sample_scale)
-
+    def toSamplePcd(self) -> o3d.geometry.PointCloud:
         mask_boundary_sample_points, in_mask_sample_points, in_mask_sample_point_idxs = self.toSamplePoints()
 
         sample_points = torch.vstack([mask_boundary_sample_points, in_mask_sample_points])
@@ -404,67 +407,7 @@ class SimpleMash(object):
         sample_pcd = getPointCloud(sample_points_array)
         return sample_pcd
 
-    def renderSamplePointsWithNormals(self, refine_normals: bool = False, fps_sample_scale: float = -1) -> bool:
-        (
-            mask_boundary_sample_points,
-            in_mask_sample_points,
-            in_mask_sample_point_idxs,
-            valid_mask_boundary_normals,
-            valid_in_mask_normals
-        ) = self.toSamplePointsWithNormals(refine_normals, fps_sample_scale)
-
-        boundary_pts = toNumpy(mask_boundary_sample_points)
-        inner_pts = toNumpy(in_mask_sample_points)
-        inner_anchor_idxs = toNumpy(in_mask_sample_point_idxs)
-        boundary_normals = toNumpy(valid_mask_boundary_normals)
-        inner_normals = toNumpy(valid_in_mask_normals)
-
-        print("boundary_pts:", boundary_pts.shape, boundary_pts.dtype)
-        print("inner_pts:", inner_pts.shape, inner_pts.dtype)
-        print("inner_anchor_idxs:", inner_anchor_idxs.shape, inner_anchor_idxs.dtype)
-        print('valid boundary_normals num:', torch.where(torch.norm(valid_mask_boundary_normals, dim=1) == 0)[0].shape)
-        print('valid inner_normals num:', torch.where(torch.norm(valid_in_mask_normals, dim=1) == 0)[0].shape)
-
-        if False:
-            render_pcd_list = []
-
-            for i in range(self.anchor_num):
-                boundary_mask = self.mask_boundary_phi_idxs == i
-                inner_mask = inner_anchor_idxs == i
-
-                anchor_boundary_pts = boundary_pts[boundary_mask]
-                anchor_inner_pts = inner_pts[inner_mask]
-                anchor_boundary_normals = boundary_normals[boundary_mask]
-                anchor_inner_normals = inner_normals[inner_mask]
-
-                anchor_pts = np.vstack([anchor_boundary_pts, anchor_inner_pts])
-                anchor_normals = np.vstack([anchor_boundary_normals, anchor_inner_normals]) * -1.0
-
-                center = np.mean(anchor_pts, axis=0)
-
-                anchor_pts = (
-                    anchor_pts - center + 0.1 * np.array([i // 20, i % 20, 0.0])
-                )
-
-                pcd = getPointCloud(anchor_pts, anchor_normals)
-
-                render_pcd_list.append(pcd)
-
-            renderGeometries(render_pcd_list, 'Mash Anchor Sample Points With Normals', True)
-            exit()
-
-        sample_pts = np.vstack([inner_pts, boundary_pts])
-        sample_normals = np.vstack([inner_normals, boundary_normals])
-        sample_pts = inner_pts
-        sample_normals = inner_normals 
-        pcd = getPointCloud(sample_pts, sample_normals)
-        renderGeometries(pcd, 'Mash Sample Points With Normals', True)
-        return True
-
-    def renderSamplePoints(self, with_normals: bool = False, refine_normals: bool = False, fps_sample_scale: float = -1) -> bool:
-        if with_normals:
-            return self.renderSamplePointsWithNormals(refine_normals, fps_sample_scale)
-
+    def renderSamplePoints(self) -> bool:
         (
             mask_boundary_sample_points,
             in_mask_sample_points,

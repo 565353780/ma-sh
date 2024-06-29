@@ -99,7 +99,7 @@ def demo(anchor_num: int = 400):
     # trainer.mash.renderSamplePoints()
 
     # render final result
-    if False:
+    if True:
         mesh_abb_length = 2.0 * trainer.mesh.toABBLength()
         if mesh_abb_length == 0:
             mesh_abb_length = 1.1
@@ -107,7 +107,7 @@ def demo(anchor_num: int = 400):
         gt_pcd = getPointCloud(trainer.gt_points)
         gt_pcd.translate([-mesh_abb_length, 0, 0])
 
-        detect_points = trainer.mash.toSamplePoints().detach().clone().cpu().numpy()
+        detect_points = torch.vstack(trainer.mash.toSamplePoints()[:2]).detach().clone().cpu().numpy()
         print("detect_points:", detect_points.shape)
         print(
             "inner points for each anchor:",

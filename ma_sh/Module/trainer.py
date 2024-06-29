@@ -17,9 +17,11 @@ from ma_sh.Method.data import toNumpy
 from ma_sh.Method.pcd import getPointCloud, downSample
 from ma_sh.Method.time import getCurrentTime
 from ma_sh.Model.mash import Mash
+from ma_sh.Model.simple_mash import SimpleMash
 from ma_sh.Module.logger import Logger
 from ma_sh.Module.o3d_viewer import O3DViewer
 
+mode = 'mash'
 
 class Trainer(object):
     def __init__(
@@ -46,18 +48,31 @@ class Trainer(object):
         save_result_folder_path: Union[str, None] = None,
         save_log_folder_path: Union[str, None] = None,
     ) -> None:
-        self.mash = Mash(
-            anchor_num,
-            mask_degree_max,
-            sh_degree_max,
-            mask_boundary_sample_num,
-            sample_polar_num,
-            sample_point_scale,
-            use_inv,
-            idx_dtype,
-            dtype,
-            device,
-        )
+        if mode == 'mash':
+            self.mash = Mash(
+                anchor_num,
+                mask_degree_max,
+                sh_degree_max,
+                mask_boundary_sample_num,
+                sample_polar_num,
+                sample_point_scale,
+                use_inv,
+                idx_dtype,
+                dtype,
+                device,
+            )
+        elif mode == 'simple_mash':
+            self.mash = SimpleMash(
+                anchor_num,
+                mask_degree_max,
+                sh_degree_max,
+                10,
+                10,
+                use_inv,
+                idx_dtype,
+                dtype,
+                device,
+            )
 
         self.lr = lr
         self.min_lr = min_lr
