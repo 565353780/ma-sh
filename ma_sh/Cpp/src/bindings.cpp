@@ -12,6 +12,7 @@
 #include "rotate.h"
 #include "sample.h"
 #include "sh.h"
+#include "simple_mash.h"
 #include "single_ops.h"
 #include "value.h"
 
@@ -87,6 +88,9 @@ PYBIND11_MODULE(mash_cpp, m) {
   m.def("toMaskBoundaryPhis", &toMaskBoundaryPhis, "sample.toMaskBoundaryPhis");
   m.def("toSampleThetaNums", &toSampleThetaNums, "sample.toSampleThetaNums");
   m.def("toSampleThetas", &toSampleThetas, "sample.toSampleThetas");
+
+  m.def("toSimpleMashSamplePoints", &toSimpleMashSamplePoints,
+        "simple_mash.toSimpleMashSamplePoints");
 
   m.def("toSHBaseValues", &toSHBaseValues, "sh.toSHBaseValues");
 

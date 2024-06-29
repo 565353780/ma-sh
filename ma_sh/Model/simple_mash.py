@@ -5,19 +5,16 @@ import open3d as o3d
 import matplotlib.pyplot as plt
 from math import sqrt
 from copy import deepcopy
-from torch.autograd import grad
-from typing import Union, Tuple
+from typing import Union
 
-from ma_sh.Method.Mash.mash_unit import toPreLoadBaseValues
 import mash_cpp
 
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
 from ma_sh.Data.mesh import Mesh
 from ma_sh.Method.data import toNumpy
 from ma_sh.Method.check import checkShape
-from ma_sh.Method.normal import toNormalTags
 from ma_sh.Method.pcd import getPointCloud
-from ma_sh.Method.Mash.mash import toParams, toPreLoadDatas
+from ma_sh.Method.Mash.mash import toParams
 from ma_sh.Method.render import renderGeometries, renderPoints
 from ma_sh.Method.path import createFileFolder, removeFile, renameFile
 
@@ -151,13 +148,7 @@ class SimpleMash(object):
         return True
 
     def updatePreLoadDatas(self) -> bool:
-        single_zero_tensor = torch.zeros(1, dtype=self.dtype).to(self.device)
-        one_circle_sample_phis = 2.0 * np.pi / self.sample_phi_num * torch.arange(self.sample_phi_num, dtype=self.dtype).to(self.device)
-        self.sample_phis = torch.hstack([single_zero_tensor.clone(), one_circle_sample_phis.repeat(self.sample_theta_num)])
-
-        one_circle_sample_thetas = np.pi / self.sample_theta_num * torch.arange(1, self.sample_theta_num + 1, dtype=self.dtype).to(self.device)
-        self.sample_thetas = torch.hstack([single_zero_tensor.clone(), one_circle_sample_thetas.repeat(self.sample_phi_num, 1).permute(1, 0).reshape(-1)])
-
+        self.sample_phis = 2.0 * np.pi / self.sample_phi_num * torch.arange(self.sample_phi_num, dtype=self.dtype).to(self.device)
         self.sample_base_values = mash_cpp.toMaskBaseValues(self.sample_phis, self.mask_degree_max)
         return True
 
@@ -371,11 +362,7 @@ class SimpleMash(object):
         return True
 
     def toSamplePoints(self) -> torch.Tensor:
-        (
-            mask_boundary_sample_points,
-            in_mask_sample_points,
-            in_mask_sample_point_idxs,
-        ) = mash_cpp.toMashSamplePoints(
+        simple_sample_points = mash_cpp.toSimpleMashSamplePoints(
             self.anchor_num,
             self.mask_degree_max,
             self.sh_degree_max,
@@ -384,20 +371,12 @@ class SimpleMash(object):
             self.rotate_vectors,
             self.positions,
             self.sample_phis,
-            self.sample_thetas,
-            self.mask_boundary_phis,
-            self.mask_boundary_phi_idxs,
-            self.mask_boundary_base_values,
             self.sample_base_values,
-            self.sample_point_scale,
-            self.use_inv,
+            self.sample_theta_num,
+            self.use_inv
         )
 
-        return (
-            mask_boundary_sample_points,
-            in_mask_sample_points,
-            in_mask_sample_point_idxs,
-        )
+        return simple_sample_points
 
     def toSamplePcdWithNormals(self, refine_normals: bool = False, fps_sample_scale: float = -1) -> o3d.geometry.PointCloud:
         mask_boundary_sample_points, in_mask_sample_points, in_mask_sample_point_idxs, mask_boundary_normals, in_mask_normals = self.toSamplePointsWithNormals(refine_normals, fps_sample_scale)

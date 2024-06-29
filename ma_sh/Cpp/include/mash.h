@@ -15,8 +15,7 @@ const torch::Tensor toSamplePoints(
     const torch::Tensor &sh_params, const torch::Tensor &rotate_vectors,
     const torch::Tensor &positions, const torch::Tensor &sample_phis,
     const torch::Tensor &sample_thetas, const torch::Tensor &sample_polar_idxs,
-    const bool &use_inv = true,
-    const torch::Tensor &sample_base_values = torch::Tensor());
+    const bool &use_inv = true);
 
 const torch::Tensor toWeightedSamplePoints(
     const int &mask_degree_max, const int &sh_degree_max,
