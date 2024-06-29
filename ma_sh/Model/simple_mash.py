@@ -3,11 +3,11 @@ import torch
 import numpy as np
 import open3d as o3d
 import matplotlib.pyplot as plt
+from tqdm import trange
 from math import sqrt
 from copy import deepcopy
 from typing import Union, Tuple
 
-from ma_sh.Method.center import toOuterCenters
 import mash_cpp
 
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
@@ -15,8 +15,10 @@ from ma_sh.Data.mesh import Mesh
 from ma_sh.Method.data import toNumpy
 from ma_sh.Method.check import checkShape
 from ma_sh.Method.pcd import getPointCloud
+from ma_sh.Method.center import toOuterCenters
+from ma_sh.Method.rotate import toTriangleRotateMatrixs
 from ma_sh.Method.Mash.mash import toParams
-from ma_sh.Method.render import renderGeometries
+from ma_sh.Method.render import getCircle, renderGeometries
 from ma_sh.Method.path import createFileFolder, removeFile, renameFile
 
 
@@ -430,12 +432,34 @@ class SimpleMash(object):
 
         return np.vstack(simple_sample_triangles, dtype=np.int64)
 
-    def toSimpleSampleOuterCenters(self) -> Tuple[torch.Tensor, torch.Tensor]:
+    def toSimpleSampleSurfels(self) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         points = self.toSimpleSamplePoints()
         triangles = self.toSimpleSampleTriangles()
 
         centers, radius = toOuterCenters(points, triangles)
-        return centers, radius
+
+        triangle_rotate_matrixs = toTriangleRotateMatrixs(points, triangles)
+
+        return centers, radius, triangle_rotate_matrixs
+
+    def toSimpleSampleCircles(self) -> list:
+        centers, radius, triangle_rotate_matrixs = self.toSimpleSampleSurfels()
+
+        centers = centers.detach().clone().cpu().numpy()
+        radius = radius.detach().clone().cpu().numpy()
+        triangle_rotate_matrixs = triangle_rotate_matrixs.detach().clone().cpu().numpy()
+
+        circles = []
+
+        for i in trange(centers.shape[0]):
+            circle = getCircle(radius[i], 10)
+
+            circle.rotate(triangle_rotate_matrixs[i])
+            circle.translate(centers[i])
+
+            circles.append(circle)
+
+        return circles
 
     def toSampleMesh(self) -> Mesh:
         sample_mesh = Mesh()

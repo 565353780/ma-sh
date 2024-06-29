@@ -17,7 +17,7 @@ def getLineSet(
     start: Union[list, np.ndarray],
     vectors: Union[list, np.ndarray],
     color: Union[list, np.ndarray],
-) -> o3d.geometry.PointCloud:
+) -> o3d.geometry.LineSet:
     start = np.array(start, dtype=float)
     vectors = np.array(vectors, dtype=float)
     color = np.array(color, dtype=float)
@@ -62,6 +62,23 @@ def getMaskConeMesh(
     mask_cone_mesh.compute_triangle_normals()
     return mask_cone_mesh
 
+def getCircle(radius: float=1.0, resolution: int=10) -> o3d.geometry.LineSet:
+    theta = np.linspace(0, 2 * np.pi, resolution)
+    x = radius * np.cos(theta)
+    y = radius * np.sin(theta)
+    z = np.zeros_like(x)
+    points = np.vstack((x, y, z)).T
+
+    lines = [[i, (i + 1) % resolution] for i in range(resolution)]
+
+    colors = np.zeros([resolution, 3], dtype=float)
+    colors[:, 0] = 1.0
+
+    line_set = o3d.geometry.LineSet()
+    line_set.points = o3d.utility.Vector3dVector(points)
+    line_set.lines = o3d.utility.Vector2iVector(lines)
+    line_set.colors = o3d.utility.Vector3dVector(colors)
+    return line_set
 
 def renderGeometries(geometry_list, window_name="Geometry List", point_show_normal: bool = False):
     if not isinstance(geometry_list, list):
