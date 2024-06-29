@@ -15,7 +15,7 @@ from ma_sh.Method.data import toNumpy
 from ma_sh.Method.check import checkShape
 from ma_sh.Method.pcd import getPointCloud
 from ma_sh.Method.Mash.mash import toParams
-from ma_sh.Method.render import renderGeometries, renderPoints
+from ma_sh.Method.render import renderGeometries
 from ma_sh.Method.path import createFileFolder, removeFile, renameFile
 
 
@@ -369,7 +369,7 @@ class SimpleMash(object):
             sample_base_values)
         return sample_points
 
-    def toSamplePoints(self) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def toSimpleSamplePoints(self) -> torch.Tensor:
         simple_sample_points = mash_cpp.toSimpleMashSamplePoints(
             self.anchor_num,
             self.mask_degree_max,
@@ -384,6 +384,11 @@ class SimpleMash(object):
             self.use_inv
         )
 
+        return simple_sample_points
+
+    def toSamplePoints(self) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        simple_sample_points = self.toSimpleSamplePoints()
+
         single_anchor_in_mask_point_num = 1 + self.sample_phi_num * (self.sample_theta_num - 1)
         single_anchor_point_num = single_anchor_in_mask_point_num + self.sample_phi_num
 
@@ -396,6 +401,42 @@ class SimpleMash(object):
         in_mask_point_idxs = torch.arange(self.anchor_num, dtype=self.idx_dtype).to(self.device).repeat(single_anchor_in_mask_point_num, 1).permute(1, 0).reshape(-1)
 
         return mask_boundary_points, in_mask_points, in_mask_point_idxs
+
+    def toSimpleSampleTriangles(self) -> np.ndarray:
+        simple_sample_triangles = []
+
+        single_anchor_point_num = 1 + self.sample_phi_num * self.sample_theta_num
+
+        single_anchor_triangles = []
+
+        for point_idx in range(1, self.sample_phi_num + 1):
+            next_point_idx = point_idx % self.sample_phi_num + 1
+            single_anchor_triangles.append([0, point_idx, next_point_idx])
+
+        for cycle_idx in range(self.sample_theta_num - 1):
+            point_idx_start = 1 + self.sample_phi_num * cycle_idx
+
+            for j in range(self.sample_phi_num):
+                point_idx = point_idx_start + j
+                next_point_idx = point_idx_start + (j + 1) % self.sample_phi_num
+                single_anchor_triangles.append([point_idx, point_idx + self.sample_phi_num, next_point_idx + self.sample_phi_num])
+                single_anchor_triangles.append([point_idx, next_point_idx + self.sample_phi_num, next_point_idx])
+
+        single_anchor_triangles = np.asarray(single_anchor_triangles, dtype=np.int64)
+
+        for i in range(self.anchor_num):
+            simple_sample_triangles.append(i * single_anchor_point_num + single_anchor_triangles)
+
+        return np.vstack(simple_sample_triangles, dtype=np.int64)
+
+    def toSampleMesh(self) -> Mesh:
+        simple_sample_points = self.toSimpleSamplePoints()
+
+        sample_mesh = Mesh()
+        sample_mesh.vertices = simple_sample_points.detach().clone().cpu().numpy()
+        sample_mesh.triangles = self.toSimpleSampleTriangles()
+
+        return sample_mesh
 
     def toSamplePcd(self) -> o3d.geometry.PointCloud:
         mask_boundary_sample_points, in_mask_sample_points, in_mask_sample_point_idxs = self.toSamplePoints()
