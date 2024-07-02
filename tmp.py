@@ -11,8 +11,8 @@ for i in range(2):
 
 points = a.toSamplePoints()
 mesh = a.toSampleMesh()
-centers, radius, rotations = a.toSimpleSampleSurfels()
-circles = a.toSimpleSampleCircles()
+centers, radius, rotations = a.toSimpleSampleCircles()
+circles = a.toSimpleSampleO3DCircles()
 print(rotations)
 print(torch.bmm(rotations, rotations.transpose(1, 2)))
 print(centers.shape)

@@ -8,6 +8,7 @@ from math import sqrt
 from copy import deepcopy
 from typing import Union, Tuple
 
+from ma_sh.Method.rotate import toTriangleRotateMatrixs
 import mash_cpp
 
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
@@ -15,8 +16,7 @@ from ma_sh.Data.mesh import Mesh
 from ma_sh.Method.data import toNumpy
 from ma_sh.Method.check import checkShape
 from ma_sh.Method.pcd import getPointCloud
-from ma_sh.Method.center import toOuterCenters
-from ma_sh.Method.rotate import toTriangleRotateMatrixs
+from ma_sh.Method.outer import toOuterCircles, toOuterEllipses
 from ma_sh.Method.Mash.mash import toParams
 from ma_sh.Method.render import getCircle, renderGeometries
 from ma_sh.Method.path import createFileFolder, removeFile, renameFile
@@ -417,6 +417,9 @@ class SimpleMash(object):
             single_anchor_triangles.append([0, point_idx, next_point_idx])
 
         for cycle_idx in range(self.sample_theta_num - 1):
+            if cycle_idx != 0:
+                continue
+
             point_idx_start = 1 + self.sample_phi_num * cycle_idx
 
             for j in range(self.sample_phi_num):
@@ -432,18 +435,26 @@ class SimpleMash(object):
 
         return np.vstack(simple_sample_triangles, dtype=np.int64)
 
-    def toSimpleSampleSurfels(self) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def toSimpleSampleCircles(self) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         points = self.toSimpleSamplePoints()
         triangles = self.toSimpleSampleTriangles()
 
-        centers, radius = toOuterCenters(points, triangles)
+        centers, radius = toOuterCircles(points, triangles)
 
         triangle_rotate_matrixs = toTriangleRotateMatrixs(points, triangles)
 
         return centers, radius, triangle_rotate_matrixs
 
-    def toSimpleSampleCircles(self) -> list:
-        centers, radius, triangle_rotate_matrixs = self.toSimpleSampleSurfels()
+    def toSimpleSampleEllipses(self) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        points = self.toSimpleSamplePoints()
+        triangles = self.toSimpleSampleTriangles()
+
+        centers, axis_lengths, rotate_matrixs = toOuterEllipses(points, triangles)
+
+        return centers, axis_lengths, rotate_matrixs
+
+    def toSimpleSampleO3DCircles(self) -> list:
+        centers, radius, triangle_rotate_matrixs = self.toSimpleSampleCircles()
 
         centers = centers.detach().clone().cpu().numpy()
         radius = radius.detach().clone().cpu().numpy()
