@@ -18,7 +18,7 @@ from ma_sh.Method.check import checkShape
 from ma_sh.Method.pcd import getPointCloud
 from ma_sh.Method.outer import toOuterCircles, toOuterEllipses
 from ma_sh.Method.Mash.mash import toParams
-from ma_sh.Method.render import getCircle, renderGeometries
+from ma_sh.Method.render import getCircle, getEllipse, renderGeometries
 from ma_sh.Method.path import createFileFolder, removeFile, renameFile
 
 
@@ -471,6 +471,25 @@ class SimpleMash(object):
             circles.append(circle)
 
         return circles
+
+    def toSimpleSampleO3DEllipses(self) -> list:
+        centers, axis_lengths, rotate_matrixs = self.toSimpleSampleEllipses()
+
+        centers = centers.detach().clone().cpu().numpy()
+        axis_lengths = axis_lengths.detach().clone().cpu().numpy()
+        rotate_matrixs = rotate_matrixs.detach().clone().cpu().numpy()
+
+        ellipses = []
+
+        for i in trange(centers.shape[0]):
+            ellipse = getEllipse(axis_lengths[i][0], axis_lengths[i][1], 10)
+
+            ellipse.rotate(rotate_matrixs[i])
+            ellipse.translate(centers[i])
+
+            ellipses.append(ellipse)
+
+        return ellipses
 
     def toSampleMesh(self) -> Mesh:
         sample_mesh = Mesh()
