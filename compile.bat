@@ -1,10 +1,10 @@
 pip uninstall mash-cpp -y
 
 rmdir ../ma-sh/build
-rmdir ../ma-sh/*.egg-info
-rm ../ma-sh/*.so
+del ../ma-sh/*.egg-info
+del ../ma-sh/*.so
 
 python setup.py build_ext --inplace
-mv compile_commands.json build
+move compile_commands.json build
 
 pip install .
