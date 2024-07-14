@@ -6,7 +6,19 @@ from ma_sh.Module.Convertor.mash import Convertor
 
 def demo():
     HOME = os.environ["HOME"]
-    dataset_root_folder_path = HOME + "/chLi/Dataset/"
+    home_list = [HOME + '/chLi/', "Z:/"]
+
+    dataset_root_folder_path = None
+    for home in home_list:
+        dataset_root_folder_path = home + "Dataset/"
+        if os.path.exists(dataset_root_folder_path):
+            break
+        dataset_root_folder_path = None
+
+    if dataset_root_folder_path is None:
+        print('[ERROR][Convertor.mash::demo]')
+        print('\t dataset_root_folder_path not found!')
+        return False
 
     gt_points_num = 400000
     anchor_num = 400
