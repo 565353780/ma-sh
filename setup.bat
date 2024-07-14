@@ -3,7 +3,7 @@ pip install -U ninja
 pip install -U torch torchvision torchaudio
 
 cd ../ma-sh
-./compile.sh
+compile.bat
 
 pip install -U tqdm tensorboard matplotlib trimesh torchviz ftfy regex
 
