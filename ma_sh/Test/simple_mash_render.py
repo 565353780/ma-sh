@@ -5,7 +5,7 @@ from ma_sh.Model.simple_mash import SimpleMash
 from ma_sh.Test.init_values import initValues
 
 def test():
-    anchor_num = 1
+    anchor_num = 2
     mask_degree_max = 3
     sh_degree_max = 2
     sample_phi_num = 4

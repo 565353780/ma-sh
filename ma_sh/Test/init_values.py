@@ -35,8 +35,9 @@ def initValues(mask_params, sh_params, rotate_vectors, positions, init_mode):
         mask_params.data = torch.zeros_like(mask_params)
         mask_params.data[:, 0] = 1.0
         sh_params.data = torch.zeros_like(sh_params)
-        sh_params.data[:, 0] = 10.0
-        sh_params.data[:, 1] = 10.0
+        for i in range(anchor_num):
+            sh_params.data[:, 0] = 10.0 * i
+            sh_params.data[i, 1] = 10.0 * i
         rotate_vectors.data = torch.zeros_like(rotate_vectors)
         for i in range(anchor_num):
             rotate_vectors.data[i, 0] = 1.0 * i
