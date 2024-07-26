@@ -11,13 +11,12 @@ from typing import Union, Tuple
 import mash_cpp
 
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
-from ma_sh.Data.mesh import Mesh
 from ma_sh.Method.data import toNumpy
 from ma_sh.Method.check import checkShape
 from ma_sh.Method.normal import toNormalTags
 from ma_sh.Method.pcd import getPointCloud
 from ma_sh.Method.Mash.mash import toParams, toPreLoadDatas
-from ma_sh.Method.render import renderGeometries, renderPoints
+from ma_sh.Method.render import renderGeometries
 from ma_sh.Method.path import createFileFolder, removeFile, renameFile
 
 

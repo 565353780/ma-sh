@@ -26,6 +26,7 @@ set(SRC
   ${CPP_SRC_PATH}/sample.cpp
   ${CPP_SRC_PATH}/sh.cpp
   ${CPP_SRC_PATH}/value.cpp
+  ${CPP_SRC_PATH}/timer.cpp
   ${CPP_ROOT_PATH}/main.cpp
 )
 
