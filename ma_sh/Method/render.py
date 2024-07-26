@@ -91,7 +91,6 @@ def renderGeometries(geometry_list, window_name="Geometry List", point_show_norm
     o3d.visualization.draw_geometries(geometry_list, window_name, point_show_normal=point_show_normal)
     return True
 
-
 def renderPoints(points: np.ndarray, window_name="Points", point_show_normal: bool = False):
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(points)
