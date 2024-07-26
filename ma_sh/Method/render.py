@@ -62,11 +62,11 @@ def getMaskConeMesh(
     mask_cone_mesh.compute_triangle_normals()
     return mask_cone_mesh
 
-def getCircle(radius: float=1.0, resolution: int=10) -> o3d.geometry.LineSet:
-    theta = np.linspace(0, 2 * np.pi, resolution)
-    x = radius * np.cos(theta)
-    y = radius * np.sin(theta)
-    z = np.zeros_like(x)
+def getEllipse(long_axis: float = 1.0, short_axis: float = 1.0, resolution: int =10) -> o3d.geometry.LineSet:
+    t = np.linspace(0, 2 * np.pi, resolution)
+    x = long_axis * np.cos(t)
+    y = short_axis * np.sin(t)
+    z = np.zeros_like(t)
     points = np.vstack((x, y, z)).T
 
     lines = [[i, (i + 1) % resolution] for i in range(resolution)]
@@ -78,7 +78,11 @@ def getCircle(radius: float=1.0, resolution: int=10) -> o3d.geometry.LineSet:
     line_set.points = o3d.utility.Vector3dVector(points)
     line_set.lines = o3d.utility.Vector2iVector(lines)
     line_set.colors = o3d.utility.Vector3dVector(colors)
+
     return line_set
+
+def getCircle(radius: float=1.0, resolution: int=10) -> o3d.geometry.LineSet:
+    return getEllipse(radius, radius, resolution)
 
 def renderGeometries(geometry_list, window_name="Geometry List", point_show_normal: bool = False):
     if not isinstance(geometry_list, list):

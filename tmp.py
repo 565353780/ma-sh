@@ -3,7 +3,7 @@ import torch
 from ma_sh.Method.render import renderPoints, renderGeometries
 from ma_sh.Model.simple_mash import SimpleMash
 
-a = SimpleMash(2, 3, 2, 10, 10, device='cuda')
+a = SimpleMash(2, 3, 2, 10, 10, device='cpu')
 for i in range(2):
     a.positions[i, 0] = 0.1 * i
 for i in range(2):
@@ -11,15 +11,15 @@ for i in range(2):
 
 points = a.toSamplePoints()
 mesh = a.toSampleMesh()
-centers, radius, rotations = a.toSimpleSampleCircles()
-circles = a.toSimpleSampleO3DCircles()
+centers, axis_lengths, rotations = a.toSimpleSampleEllipses()
+ellipses = a.toSimpleSampleO3DEllipses()
 print(rotations)
 print(torch.bmm(rotations, rotations.transpose(1, 2)))
 print(centers.shape)
-print(radius.shape)
+print(axis_lengths.shape)
 print(rotations.shape)
 
-renderGeometries(circles)
+renderGeometries(ellipses)
 exit()
 
 mesh.render()
