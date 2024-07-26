@@ -10,7 +10,7 @@ def test():
     mask_degree_max = 3
     sh_degree_max = 2
     sample_phi_num = 10
-    sample_theta_num = 10
+    sample_theta_num = 20
     use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float32
