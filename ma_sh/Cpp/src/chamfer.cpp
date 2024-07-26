@@ -77,14 +77,19 @@ const torch::Tensor batched_pairwise_dist(const torch::Tensor &x,
 
   const torch::Tensor xx = torch::pow(x, 2).sum(2);
   const torch::Tensor yy = torch::pow(y, 2).sum(2);
-  const torch::Tensor zz = torch::bmm(x, y.transpose(2, 1));
+  torch::Tensor zz;
+  if (num_points_x < num_points_y) {
+    zz = torch::bmm(2.0f * x, y.transpose(2, 1));
+  } else {
+    zz = torch::bmm(x, (2.0f * y).transpose(2, 1));
+  }
 
   const torch::Tensor rx =
-      xx.unsqueeze(1).expand({bs, num_points_y, num_points_x});
+      xx.unsqueeze(2).expand({bs, num_points_x, num_points_y});
   const torch::Tensor ry =
       yy.unsqueeze(1).expand({bs, num_points_x, num_points_y});
 
-  const torch::Tensor P = rx.transpose(2, 1) + ry - 2 * zz;
+  const torch::Tensor P = rx + ry - zz;
 
   return P;
 }
