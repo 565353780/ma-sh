@@ -6,12 +6,15 @@ from typing import Union
 from ma_sh.Data.abb import ABB
 
 
-def getPointCloud(pts: np.ndarray, normals: Union[np.ndarray, None]=None):
+def getPointCloud(pts: np.ndarray, normals: Union[np.ndarray, None]=None, colors: Union[np.ndarray, None]=None):
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(pts)
     if normals is not None:
         if normals.shape[0] == pts.shape[0]:
             pcd.normals = o3d.utility.Vector3dVector(normals)
+    if colors is not None:
+        if colors.shape[0] == pts.shape[0]:
+            pcd.colors = o3d.utility.Vector3dVector(colors)
     return pcd
 
 
