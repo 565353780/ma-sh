@@ -449,9 +449,28 @@ class SimpleMash(object):
         points = self.toSimpleSamplePoints()
         triangles = self.toSimpleSampleTriangles()
 
-        centers, axis_lengths, rotate_matrixs = toOuterEllipses(points, triangles)
+        centers, axis_lengths, triangle_rotate_matrixs = toOuterEllipses(points, triangles)
 
-        return centers, axis_lengths, rotate_matrixs
+        return centers, axis_lengths, triangle_rotate_matrixs
+
+    def toSimpleSampleO3DEllipses(self) -> list:
+        centers, axis_lengths, triangle_rotate_matrixs = self.toSimpleSampleEllipses()
+
+        centers = centers.detach().clone().cpu().numpy()
+        axis_lengths = axis_lengths.detach().clone().cpu().numpy()
+        triangle_rotate_matrixs = triangle_rotate_matrixs.detach().clone().cpu().numpy()
+
+        ellipses = []
+
+        for i in trange(centers.shape[0]):
+            ellipses = getCircle(radius[i], 10)
+
+            circle.rotate(triangle_rotate_matrixs[i])
+            circle.translate(centers[i])
+
+            circles.append(circle)
+
+        return circles
 
     def toSimpleSampleO3DCircles(self) -> list:
         centers, radius, triangle_rotate_matrixs = self.toSimpleSampleCircles()
