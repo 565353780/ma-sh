@@ -45,16 +45,6 @@ def toOuterCircles(points: torch.Tensor, triangles: np.ndarray) -> Tuple[torch.T
     return centers, radius
 
 def toOuterEllipses(points: torch.Tensor, triangles: np.ndarray) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    """
-    计算每个三角形的最小外接椭圆的长轴和短轴的长度，以及它们相对于位于 XOY 平面和坐标原点的单位椭圆的旋转矩阵。
-
-    参数:
-    points (torch.Tensor): 三维空间点，形状为 (num_points, 3)。
-    triangles (torch.Tensor): 三角形的顶点索引，形状为 (num_triangles, 3)。
-
-    返回:
-    tuple: 长轴和短轴的长度，形状为 (num_triangles, 2)；旋转矩阵，形状为 (num_triangles, 3, 3)。
-    """
     # 获取三角形的顶点坐标
     triangle_points = points[triangles]  # 形状为 (num_triangles, 3, 3)
 
@@ -71,7 +61,8 @@ def toOuterEllipses(points: torch.Tensor, triangles: np.ndarray) -> Tuple[torch.
     eigvals, eigvecs = torch.linalg.eigh(cov_matrices)  # eigvals形状为 (num_triangles, 3)，eigvecs形状为 (num_triangles, 3, 3)
 
     # 获取长轴和短轴长度
-    axes_lengths = 2 * torch.sqrt(eigvals[:, [2, 1]])  # 形状为 (num_triangles, 2)，只取最大的两个特征值对应的轴
+    #FIXME: here ellipses are not too accurate, need to upgrade this algo
+    axes_lengths = 1.2 * torch.sqrt(eigvals[:, [2, 1]])  # 形状为 (num_triangles, 2)，只取最大的两个特征值对应的轴
 
     # 获取旋转矩阵（取对应于长轴和短轴的特征向量）
     rotation_matrices = eigvecs[:, :, [2, 1]]  # 形状为 (num_triangles, 3, 2)

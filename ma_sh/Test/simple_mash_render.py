@@ -30,6 +30,8 @@ def test():
     initValues(mash.mask_params, mash.sh_params, mash.rotate_vectors, mash.positions, 2)
 
     sample_mesh = mash.toSampleMesh().toO3DMesh()
+    #triangles = np.asarray(sample_mesh.triangles)
+    #sample_mesh.triangles = o3d.utility.Vector3iVector(triangles[0].reshape(-1, 3))
     sample_ellipses = mash.toSimpleSampleO3DEllipses()
 
     o3d.visualization.draw_geometries(sample_ellipses + [sample_mesh])
