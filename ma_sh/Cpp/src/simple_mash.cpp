@@ -65,7 +65,7 @@ const torch::Tensor toSimpleMashSamplePoints(
 
     full_sample_theta_idxs.index_put_({current_anchor_sample_theta_slice},
                                       single_anchor_sample_theta_idxs +
-                                          i * sample_theta_num);
+                                          i * sample_phi_num);
   }
   if (debug) {
     std::cout << "create full_sample_theta_idxs : " << timer.now() << std::endl;
