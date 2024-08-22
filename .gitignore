@@ -6,6 +6,7 @@ build
 *.so
 compile_commands.json
 tmp
+dist
 .DS_Store
 
 # output
