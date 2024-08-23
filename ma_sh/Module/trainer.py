@@ -140,25 +140,14 @@ class Trainer(object):
             self.logger.setLogFolder(self.save_log_folder_path)
         return True
 
-    def loadGTPointsFile(self, gt_points_file_path: str, sample_point_num: Union[int, None] = None) -> bool:
-        if not os.path.exists(gt_points_file_path):
-            print("[ERROR][Trainer::loadGTPointsFile]")
-            print("\t gt points file not exist!")
-            print("\t gt_points_file_path:", gt_points_file_path)
-            return False
-
-        gt_points_file_type = gt_points_file_path.split('.')[-1]
-        if gt_points_file_type == 'npy':
-            gt_points = np.load(gt_points_file_path)
-            gt_pcd = getPointCloud(gt_points)
-        else:
-            gt_pcd = o3d.io.read_point_cloud(gt_points_file_path)
+    def loadGTPoints(self, gt_points: np.ndarray, sample_point_num: Union[int, None] = None) -> bool:
+        gt_pcd = getPointCloud(gt_points)
 
         sample_gt_pcd = gt_pcd
         if sample_point_num is not None:
             sample_gt_pcd = downSample(gt_pcd, sample_point_num)
             if sample_gt_pcd is None:
-                print('[WARN][Trainer::loadGTPointsFile]')
+                print('[WARN][Trainer::loadGTPoints]')
                 print('\t downSample failed! will use all input gt points!')
                 sample_gt_pcd = gt_pcd
 
@@ -173,14 +162,12 @@ class Trainer(object):
 
         self.gt_points = (self.gt_points - self.translate) / self.scale
 
-        sample_gt_pcd.points = o3d.utility.Vector3dVector(self.gt_points)
-
-        gt_pcd.estimate_normals()
-        #gt_pcd.orient_normals_consistent_tangent_plane(4)
+        sample_gt_pcd.estimate_normals()
+        #sample_gt_pcd.orient_normals_consistent_tangent_plane(4)
 
         surface_dist = 0.001
 
-        anchor_pcd = downSample(gt_pcd, self.mash.anchor_num)
+        anchor_pcd = downSample(sample_gt_pcd, self.mash.anchor_num)
 
         if anchor_pcd is None:
             print("[ERROR][Trainer::loadGTPointsFile]")
@@ -198,6 +185,25 @@ class Trainer(object):
             positions=sample_pts + surface_dist * sample_normals,
             face_forward_vectors=-sample_normals,
         )
+        return True
+
+    def loadGTPointsFile(self, gt_points_file_path: str, sample_point_num: Union[int, None] = None) -> bool:
+        if not os.path.exists(gt_points_file_path):
+            print("[ERROR][Trainer::loadGTPointsFile]")
+            print("\t gt points file not exist!")
+            print("\t gt_points_file_path:", gt_points_file_path)
+            return False
+
+        gt_points_file_type = gt_points_file_path.split('.')[-1]
+        if gt_points_file_type == 'npy':
+            gt_points = np.load(gt_points_file_path)
+        else:
+            gt_pcd = o3d.io.read_point_cloud(gt_points_file_path)
+            gt_points = np.asarray(gt_pcd.points)
+
+        if not self.loadGTPoints(gt_points, sample_point_num):
+            return False
+
         return True
 
     def loadMeshFile(self, mesh_file_path: str) -> bool:
