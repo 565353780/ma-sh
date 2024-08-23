@@ -708,7 +708,7 @@ class Trainer(object):
             self.save_file_idx += 1
         return True
 
-    def saveAsPcd(self, save_pcd_file_path: str, overwrite: bool = False) -> bool:
+    def saveAsPcdFile(self, save_pcd_file_path: str, overwrite: bool = False) -> bool:
         if os.path.exists(save_pcd_file_path):
             if not overwrite:
                 return True
@@ -747,9 +747,9 @@ class Trainer(object):
             + ".ply"
         )
 
-        if not self.saveAsPcd(save_pcd_file_path, True):
+        if not self.saveAsPcdFile(save_pcd_file_path, True):
             print('[ERROR][Trainer::autoSavePcd]')
-            print('\t saveAsPcd failed!')
+            print('\t saveAsPcdFile failed!')
             return False
 
         if add_idx:
