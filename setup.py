@@ -7,7 +7,7 @@ from torch.utils.cpp_extension import CUDAExtension, CppExtension, BuildExtensio
 
 SYSTEM = system()
 
-mash_root_path = os.getcwd() + "/../ma-sh/ma_sh/Cpp/"
+mash_root_path = os.getcwd() + "/ma_sh/Cpp/"
 mash_src_path = mash_root_path + "src/"
 mash_sources = glob.glob(mash_src_path + "*.cpp")
 mash_include_dirs = [mash_root_path + "include"]
