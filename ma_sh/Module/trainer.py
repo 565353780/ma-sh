@@ -14,6 +14,7 @@ from ma_sh.Config.constant import EPSILON
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
 from ma_sh.Data.mesh import Mesh
 from ma_sh.Method.data import toNumpy
+from ma_sh.Method.path import removeFile
 from ma_sh.Method.pcd import getPointCloud, downSample
 from ma_sh.Method.time import getCurrentTime
 from ma_sh.Model.mash import Mash
@@ -707,6 +708,22 @@ class Trainer(object):
             self.save_file_idx += 1
         return True
 
+    def saveAsPcd(self, save_pcd_file_path: str, overwrite: bool = False) -> bool:
+        if os.path.exists(save_pcd_file_path):
+            if not overwrite:
+                return True
+
+            removeFile(save_pcd_file_path)
+
+        save_mash = deepcopy(self.mash)
+
+        if self.translate is not None:
+            save_mash.scale(self.scale, False)
+            save_mash.translate(self.translate)
+
+        save_mash.saveAsPcdFile(save_pcd_file_path, overwrite)
+        return True
+
     def autoSavePcd(self, state_info: str, save_freq: int = 1, add_idx: bool = True) -> bool:
         if self.save_result_folder_path is None:
             return False
@@ -730,13 +747,10 @@ class Trainer(object):
             + ".ply"
         )
 
-        save_mash = deepcopy(self.mash)
-
-        if self.translate is not None:
-            save_mash.scale(self.scale, False)
-            save_mash.translate(self.translate)
-
-        save_mash.saveAsPcdFile(save_pcd_file_path, True)
+        if not self.saveAsPcd(save_pcd_file_path, True):
+            print('[ERROR][Trainer::autoSavePcd]')
+            print('\t saveAsPcd failed!')
+            return False
 
         if add_idx:
             self.save_file_idx += 1
