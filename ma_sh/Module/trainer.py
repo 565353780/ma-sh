@@ -163,6 +163,8 @@ class Trainer(object):
 
         self.gt_points = (self.gt_points - self.translate) / self.scale
 
+        sample_gt_pcd.points = o3d.utility.Vector3dVector(self.gt_points)
+
         sample_gt_pcd.estimate_normals()
         #sample_gt_pcd.orient_normals_consistent_tangent_plane(4)
 
