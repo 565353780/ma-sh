@@ -408,6 +408,11 @@ class SimpleMash(object):
     def toSimpleSampleTriangles(self) -> np.ndarray:
         simple_sample_triangles = []
 
+        if self.anchor_num == 0:
+            print('[ERROR][SimpleMash::toSimpleSampleTriangles]')
+            print('\t anchor is empty!')
+            return np.asarray(simple_sample_triangles)
+
         single_anchor_point_num = 1 + self.sample_phi_num * self.sample_theta_num
 
         single_anchor_triangles = []

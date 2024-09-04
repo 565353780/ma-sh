@@ -45,6 +45,11 @@ def toOuterCircles(points: torch.Tensor, triangles: np.ndarray) -> Tuple[torch.T
     return centers, radius
 
 def toOuterEllipses(points: torch.Tensor, triangles: np.ndarray) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    if triangles.shape[0] == 0:
+        print('[ERROR][outer::toOuterEllipses]')
+        print('\t triangles is empty!')
+        return torch.empty(0), torch.empty(0), torch.empty(0)
+
     # 获取三角形的顶点坐标
     triangle_points = points[triangles]  # 形状为 (num_triangles, 3, 3)
 

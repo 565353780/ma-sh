@@ -675,6 +675,17 @@ class Trainer(object):
 
         return True
 
+    def toSamplePointsWithTransform(self) -> torch.Tensor:
+        sample_mash = deepcopy(self.mash)
+
+        if self.translate is not None:
+            sample_mash.scale(self.scale, False)
+            sample_mash.translate(self.translate)
+
+        mask_boundary_sample_points, in_mask_sample_points, _ = sample_mash.toSamplePoints()
+        sample_points = torch.vstack([mask_boundary_sample_points, in_mask_sample_points])
+        return sample_points
+
     def autoSaveMash(self, state_info: str, save_freq: int = 1, add_idx: bool = True) -> bool:
         if self.save_result_folder_path is None:
             return False
