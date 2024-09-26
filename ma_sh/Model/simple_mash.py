@@ -422,7 +422,7 @@ class SimpleMash(object):
             single_anchor_triangles.append([0, point_idx, next_point_idx])
 
         for cycle_idx in range(self.sample_theta_num - 1):
-            if cycle_idx != 0:
+            if cycle_idx == 0:
                 continue
 
             point_idx_start = 1 + self.sample_phi_num * cycle_idx
