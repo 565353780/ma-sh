@@ -82,6 +82,31 @@ toSamplePoints(const int &mask_degree_max, const int &sh_degree_max,
   return sh_points;
 }
 
+const torch::Tensor toFaceToPoints(const int &mask_degree_max,
+                                   const int &sh_degree_max,
+                                   const torch::Tensor &sh_params,
+                                   const torch::Tensor &rotate_vectors,
+                                   const torch::Tensor &positions,
+                                   const bool &use_inv) {
+  const torch::TensorOptions opts = torch::TensorOptions()
+                                        .dtype(sh_params.dtype())
+                                        .device(sh_params.device());
+
+  const torch::TensorOptions idx_opts =
+      torch::TensorOptions().dtype(torch::kInt64).device(sh_params.device());
+
+  const torch::Tensor sample_phis = torch::zeros({sh_params.size(0)}, opts);
+  const torch::Tensor sample_thetas = torch::zeros({sh_params.size(0)}, opts);
+  const torch::Tensor sample_polar_idxs =
+      torch::arange(sh_params.size(0), idx_opts);
+
+  const torch::Tensor face_to_points = toSamplePoints(
+      mask_degree_max, sh_degree_max, sh_params, rotate_vectors, positions,
+      sample_phis, sample_thetas, sample_polar_idxs, use_inv);
+
+  return face_to_points;
+}
+
 const torch::Tensor toWeightedSamplePoints(
     const int &mask_degree_max, const int &sh_degree_max,
     const torch::Tensor &mask_params, const torch::Tensor &sh_params,

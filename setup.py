@@ -20,9 +20,9 @@ mash_extra_compile_args = [
 ]
 
 if SYSTEM == 'Darwin':
-    mash_extra_compile_args.append("-std=c++20")
+    mash_extra_compile_args.append("-std=c++17")
 elif SYSTEM == 'Linux':
-    mash_extra_compile_args.append("-std=c++20")
+    mash_extra_compile_args.append("-std=c++17")
 
 if torch.cuda.is_available():
     os.environ["TORCH_CUDA_ARCH_LIST"] = "6.0;6.1;6.2;7.0;7.5;8.0;8.6;8.9"
@@ -36,7 +36,7 @@ if torch.cuda.is_available():
             "-Xfatbin",
             "-compress-all",
             "-DUSE_CUDA",
-            "-std=c++20",
+            "-std=c++17",
         ],
     }
 

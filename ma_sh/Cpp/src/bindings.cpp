@@ -55,6 +55,7 @@ PYBIND11_MODULE(mash_cpp, m) {
   m.def("toInMaskSamplePolars", &toInMaskSamplePolars,
         "mash.toInMaskSamplePolars");
   m.def("toSamplePoints", &toSamplePoints, "mash.toSamplePoints");
+  m.def("toFaceToPoints", &toFaceToPoints, "mash.toFaceToPoints");
   m.def("toWeightedSamplePoints", &toWeightedSamplePoints,
         "mash.toWeightedSamplePoints");
   m.def("toMashSamplePoints", &toMashSamplePoints, "mash.toMashSamplePoints");

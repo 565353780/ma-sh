@@ -391,6 +391,10 @@ class Mash(object):
         mask_boundary_thetas = mash_cpp.toMaskBoundaryThetas(self.mask_params, self.mask_boundary_base_values, self.mask_boundary_phi_idxs)
         return mask_boundary_thetas
 
+    def toFaceToPoints(self) -> torch.Tensor:
+        face_to_points = mash_cpp.toFaceToPoints(self.mask_degree_max, self.sh_degree_max, self.sh_params, self.rotate_vectors, self.positions, self.use_inv)
+        return face_to_points
+
     def toInMaskSamplePolars(self, mask_boundary_thetas: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         (
             in_mask_sample_phis,

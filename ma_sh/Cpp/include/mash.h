@@ -17,6 +17,13 @@ const torch::Tensor toSamplePoints(
     const torch::Tensor &sample_thetas, const torch::Tensor &sample_polar_idxs,
     const bool &use_inv = true);
 
+const torch::Tensor toFaceToPoints(const int &mask_degree_max,
+                                   const int &sh_degree_max,
+                                   const torch::Tensor &sh_params,
+                                   const torch::Tensor &rotate_vectors,
+                                   const torch::Tensor &positions,
+                                   const bool &use_inv = true);
+
 const torch::Tensor toWeightedSamplePoints(
     const int &mask_degree_max, const int &sh_degree_max,
     const torch::Tensor &mask_params, const torch::Tensor &sh_params,
