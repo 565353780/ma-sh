@@ -72,9 +72,6 @@ def toRegularRotateVectors(rotate_vectors: torch.Tensor) -> torch.Tensor:
     rotate_matrixs = mash_cpp.toRotateMatrixs(rotate_vectors)
 
     regular_rotate_vectors = mash_cpp.toRotateVectors(rotate_matrixs)
-
-    opposite_rotate_vector_idxs = torch.where(regular_rotate_vectors[:, 0] < 0)
-    regular_rotate_vectors[opposite_rotate_vector_idxs] = regular_rotate_vectors[opposite_rotate_vector_idxs] * -1.0
     return regular_rotate_vectors
 
 def toOrthoPosesFromRotateVectors(rotate_vectors: torch.Tensor) -> torch.Tensor:
@@ -87,7 +84,4 @@ def toRotateVectorsFromOrthoPoses(ortho_poses: torch.Tensor) -> torch.Tensor:
     rotate_matrixs = compute_rotation_matrix_from_ortho6d(ortho_poses)
 
     rotate_vectors = mash_cpp.toRotateVectors(rotate_matrixs)
-
-    opposite_rotate_vector_idxs = torch.where(rotate_vectors[:, 0] < 0)
-    rotate_vectors[opposite_rotate_vector_idxs] = rotate_vectors[opposite_rotate_vector_idxs] * -1.0
     return rotate_vectors
