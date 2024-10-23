@@ -18,6 +18,11 @@ from ma_sh.Method.pcd import getPointCloud
 from ma_sh.Method.Mash.mash import toParams, toPreLoadDatas
 from ma_sh.Method.render import renderGeometries
 from ma_sh.Method.path import createFileFolder, removeFile, renameFile
+from ma_sh.Method.rotate import (
+    toRegularRotateVectors,
+    toOrthoPosesFromRotateVectors,
+    toRotateVectorsFromOrthoPoses
+)
 
 
 class Mash(object):
@@ -31,7 +36,7 @@ class Mash(object):
         sample_point_scale: float = 0.8,
         use_inv: bool = True,
         idx_dtype=torch.int64,
-        dtype=torch.float32,
+        dtype=torch.float64,
         device: str = "cpu",
     ) -> None:
         # Super Params
@@ -73,7 +78,7 @@ class Mash(object):
         sample_polar_num: int = 1000,
         sample_point_scale: float = 0.8,
         idx_dtype=torch.int64,
-        dtype=torch.float32,
+        dtype=torch.float64,
         device: str = "cpu",
     ):
         mask_params = params_dict["mask_params"]
@@ -109,7 +114,7 @@ class Mash(object):
         sample_polar_num: int = 1000,
         sample_point_scale: float = 0.8,
         idx_dtype=torch.int64,
-        dtype=torch.float32,
+        dtype=torch.float64,
         device: str = "cpu",
     ):
         params_dict = np.load(params_file_path, allow_pickle=True).item()
@@ -186,6 +191,7 @@ class Mash(object):
         positions: Union[torch.Tensor, np.ndarray, None] = None,
         use_inv: Union[bool, None] = None,
         face_forward_vectors: Union[torch.Tensor, np.ndarray, None] = None,
+        ortho6d_poses: Union[torch.Tensor, np.ndarray, None] = None,
     ) -> bool:
         if rotate_vectors is not None and face_forward_vectors is not None:
             print("[ERROR][Mash::loadParams]")
@@ -265,6 +271,20 @@ class Mash(object):
                 trans_rotate_vectors.detach().clone().type(self.dtype).to(self.device)
             )
 
+        if ortho6d_poses is not None:
+            if not checkShape(ortho6d_poses.shape, [self.anchor_num, 6]):
+                print("[ERROR][Mash::loadParams]")
+                print("\t checkShape failed for ortho6d poses!")
+                return False
+
+            if isinstance(ortho6d_poses, np.ndarray):
+                ortho6d_poses = torch.from_numpy(ortho6d_poses)
+
+            rotate_vectors = toRotateVectorsFromOrthoPoses(ortho6d_poses)
+
+            self.rotate_vectors.data = (
+                rotate_vectors.detach().clone().type(self.dtype).to(self.device)
+            )
         return True
 
     def loadParamsDict(self, params_dict: dict) -> bool:
@@ -386,6 +406,10 @@ class Mash(object):
 
         self.setGradState(grad_state)
         return True
+
+    def toOrtho6DPoses(self) -> torch.Tensor:
+        ortho6d_poses = toOrthoPosesFromRotateVectors(self.rotate_vectors)
+        return ortho6d_poses
 
     def toMaskBoundaryThetas(self) -> torch.Tensor:
         mask_boundary_thetas = mash_cpp.toMaskBoundaryThetas(self.mask_params, self.mask_boundary_base_values, self.mask_boundary_phi_idxs)
