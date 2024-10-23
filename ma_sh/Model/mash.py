@@ -314,6 +314,11 @@ class Mash(object):
 
         return True
 
+    def regularRotateVectors(self) -> bool:
+        regular_rotate_vectors = toRegularRotateVectors(self.rotate_vectors)
+        self.loadParams(rotate_vectors=regular_rotate_vectors)
+        return True
+
     def updateMaskDegree(self, mask_degree_max: int) -> bool:
         if mask_degree_max == self.mask_degree_max:
             return True
