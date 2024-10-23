@@ -183,6 +183,11 @@ class Mash(object):
         )
         return True
 
+    def regularRotateVectors(self) -> bool:
+        regular_rotate_vectors = toRegularRotateVectors(self.rotate_vectors)
+        self.rotate_vectors.data = regular_rotate_vectors.detach().clone().type(self.dtype).to(self.device)
+        return True
+
     def loadParams(
         self,
         mask_params: Union[torch.Tensor, np.ndarray, None] = None,
@@ -238,6 +243,8 @@ class Mash(object):
                 rotate_vectors.detach().clone().type(self.dtype).to(self.device)
             )
 
+            self.regularRotateVectors()
+
         if positions is not None:
             if not checkShape(positions.shape, self.positions.shape):
                 print("[ERROR][Mash::loadParams]")
@@ -270,6 +277,8 @@ class Mash(object):
             self.rotate_vectors.data = (
                 trans_rotate_vectors.detach().clone().type(self.dtype).to(self.device)
             )
+
+            self.regularRotateVectors()
 
         if ortho6d_poses is not None:
             if not checkShape(ortho6d_poses.shape, [self.anchor_num, 6]):
@@ -312,11 +321,6 @@ class Mash(object):
             print("\t loadParamsDict failed!")
             return False
 
-        return True
-
-    def regularRotateVectors(self) -> bool:
-        regular_rotate_vectors = toRegularRotateVectors(self.rotate_vectors)
-        self.loadParams(rotate_vectors=regular_rotate_vectors)
         return True
 
     def updateMaskDegree(self, mask_degree_max: int) -> bool:
