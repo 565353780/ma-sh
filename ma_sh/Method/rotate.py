@@ -30,7 +30,7 @@ def normalize_vector(v):
     batch = v.shape[0]
     v_mag = torch.sqrt(v.pow(2).sum(1))  # batch
     v_mag = torch.max(
-        v_mag, torch.autograd.Variable(torch.FloatTensor([1e-8]).cuda()))
+        v_mag, torch.autograd.Variable(torch.FloatTensor([1e-8]).to(v.device)))
     v_mag = v_mag.view(batch, 1).expand(batch, v.shape[1])
     v = v / v_mag
     return v
