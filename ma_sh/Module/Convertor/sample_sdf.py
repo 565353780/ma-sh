@@ -95,6 +95,10 @@ class Convertor(object):
             modelid_list.sort()
 
             for model_file_name in modelid_list:
+                if solved_shape_num < 0:
+                    solved_shape_num += 1
+                    continue
+
                 modelid = model_file_name.split(".obj")[0]
 
                 self.convertOneShape("ShapeNet", classname, modelid)

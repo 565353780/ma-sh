@@ -4,7 +4,7 @@ import torch
 import numpy as np
 from PIL import Image
 
-from ma_sh.Method.path import createFileFolder
+from ma_sh.Method.path import createFileFolder, removeFile
 
 
 class Convertor(object):
@@ -50,7 +50,15 @@ class Convertor(object):
         finish_tag_file_path = self.tag_folder_path + rel_file_path + "/finish.txt"
 
         if os.path.exists(finish_tag_file_path):
-            return True
+            image_embedding_file_path = (
+                self.image_embedding_folder_path + rel_file_path + ".npy"
+            )
+            image_embedding_dict = np.load(image_embedding_file_path, allow_pickle=True).item()
+            if len(list(image_embedding_dict.keys())) < 24:
+                removeFile(finish_tag_file_path)
+                removeFile(image_embedding_file_path)
+            else:
+                return True
 
         start_tag_file_path = self.tag_folder_path + rel_file_path + "/start.txt"
 
@@ -70,6 +78,10 @@ class Convertor(object):
         createFileFolder(image_embedding_file_path)
 
         image_filename_list = os.listdir(captured_image_folder_path)
+
+        #FIXME: check if all images are captured
+        if len(image_filename_list) < 24:
+            return False
 
         image_embedding_dict = {}
 
@@ -117,6 +129,10 @@ class Convertor(object):
             modelid_list.sort()
 
             for model_file_name in modelid_list:
+                if solved_shape_num < 0:
+                    solved_shape_num += 1
+                    continue
+
                 modelid = model_file_name.split(".obj")[0]
 
                 self.convertOneShape("ShapeNet", classname, modelid)
