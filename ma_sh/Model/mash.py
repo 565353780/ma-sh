@@ -852,7 +852,7 @@ class Mash(object):
 
         createFileFolder(save_pcd_file_path)
 
-        boundary_pts, inner_pts, inner_idxs = self.toSamplePoints()
+        boundary_pts, inner_pts = self.toSamplePoints()[:2]
         sample_pts = torch.vstack([boundary_pts, inner_pts])
         sample_points = toNumpy(sample_pts)
 
