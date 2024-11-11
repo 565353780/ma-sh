@@ -3,20 +3,20 @@ sys.path.append('../ulip-manage/')
 
 import os
 
-from ma_sh.Module.Convertor.encode_image import Convertor
+from ma_sh.Module.Convertor.encode_points import Convertor
 
 
 def demo():
     HOME = os.environ["HOME"]
 
     dataset_root_folder_path = HOME + "/chLi/Dataset/"
-    clip_model_id = "ViT-L/14"
+    sample_point_num_list = [32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
     device = "cuda:0"
     force_start = False
 
     convertor = Convertor(
         dataset_root_folder_path,
-        clip_model_id,
+        sample_point_num_list,
         device,
         force_start,
     )

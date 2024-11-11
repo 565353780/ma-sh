@@ -5,7 +5,11 @@ import numpy as np
 from PIL import Image
 
 from ma_sh.Method.path import createFileFolder, removeFile
+from ulip_manage.Module.detector import Detector
 
+mode = 'ulip'
+
+assert mode in ['clip', 'ulip']
 
 class Convertor(object):
     def __init__(
@@ -24,12 +28,17 @@ class Convertor(object):
             self.dataset_root_folder_path + "CapturedImage/"
         )
         self.image_embedding_folder_path = (
-            self.dataset_root_folder_path + "ImageEmbedding/"
+            self.dataset_root_folder_path + "ImageEmbedding_" + mode + "/"
         )
-        self.tag_folder_path = self.dataset_root_folder_path + "Tag/ImageEmbedding/"
+        self.tag_folder_path = self.dataset_root_folder_path + "Tag/ImageEmbedding_" + mode + "/"
 
-        self.model, self.preprocess = clip.load(self.clip_model_id, device=self.device)
-        self.model.eval()
+        if mode == 'clip':
+            self.model, self.preprocess = clip.load(self.clip_model_id, device=self.device)
+            self.model.eval()
+        elif mode == 'ulip':
+            model_file_path = '/home/chli/chLi/Model/ULIP2/pretrained_models_ckpt_zero-sho_classification_pointbert_ULIP-2.pt'
+            open_clip_model_file_path = '/home/chli/Model/CLIP-ViT-bigG-14-laion2B-39B-b160k/open_clip_pytorch_model.bin'
+            self.detector = Detector(model_file_path, open_clip_model_file_path, device)
         return
 
     def convertOneShape(
@@ -90,13 +99,19 @@ class Convertor(object):
                 continue
 
             image_file_path = captured_image_folder_path + image_filename
-            image = Image.open(image_file_path)
-            image = self.preprocess(image).unsqueeze(0).to(self.device)
 
-            with torch.no_grad():
-                image_embedding = (
-                    self.model.encode_image(image).detach().clone().cpu().numpy()
-                )
+            if mode == 'clip':
+                image = Image.open(image_file_path)
+                image = self.preprocess(image).unsqueeze(0).to(self.device)
+
+                with torch.no_grad():
+                    image_embedding = (
+                        self.model.encode_image(image).cpu().numpy()
+                    )
+
+                    image_embedding_dict[image_filename] = image_embedding
+            elif mode == 'ulip':
+                image_embedding = self.detector.encodeImageFile(image_file_path).unsqueeze(0).cpu().numpy()
 
                 image_embedding_dict[image_filename] = image_embedding
 

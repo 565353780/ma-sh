@@ -142,7 +142,7 @@ class Convertor(object):
                     print("solved shape num:", solved_shape_num)
                     continue
 
-                print(classname, modelid)
+                print('[\'' + classname + '\', \'' + modelid + '\'],')
 
                 self.convertOneShape("ShapeNet", classname, modelid)
 

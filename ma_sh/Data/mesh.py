@@ -3,7 +3,7 @@ import torch
 import trimesh
 import numpy as np
 import open3d as o3d
-from typing import Union
+from typing import Union, Tuple
 from copy import deepcopy
 
 import mash_cpp
@@ -297,7 +297,7 @@ class Mesh(object):
         pcd.pcd = new_pcd
         return pcd
 
-    def toSamplePoints(self, sample_point_num, with_color=False):
+    def toSamplePoints(self, sample_point_num: int, with_color: bool=False) -> Union[Tuple[None, None], None, Tuple[np.ndarray, np.ndarray], np.ndarray]:
         if not self.isValid(True):
             print("[ERROR][Mesh::toSamplePoints]")
             print("\t isValid failed!")

@@ -94,6 +94,11 @@ class Convertor(object):
 
         dataset_folder_path = self.normalized_mesh_folder_path + "ShapeNet/"
 
+        skip_file_list = [
+            ['02691156', '157936971ef9b6bb858b20d410ebdb99'],
+            ['02843684', '689f228f64564e663599338e3538d2bd'],
+        ]
+
         classname_list = os.listdir(dataset_folder_path)
         classname_list.sort()
         for classname in classname_list:
@@ -104,6 +109,13 @@ class Convertor(object):
 
             for model_file_name in modelid_list:
                 modelid = model_file_name.split(".obj")[0]
+
+                if [classname, modelid] in skip_file_list:
+                    solved_shape_num += 1
+                    print("solved shape num:", solved_shape_num)
+                    continue
+
+                print('[\'' + classname + '\', \'' + modelid + '\'],')
 
                 self.convertOneShape("ShapeNet", classname, modelid)
 
