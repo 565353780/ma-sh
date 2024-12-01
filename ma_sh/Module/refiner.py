@@ -400,7 +400,7 @@ class Refiner(object):
         return True
 
     def autoTrainMash(self) -> bool:
-        fit_loss_weight = 1.0
+        fit_loss_weight = 0.0
         coverage_loss_weight = 1.0
         boundary_connect_loss_weight = 1.0
 
