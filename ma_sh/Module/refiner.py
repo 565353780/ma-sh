@@ -196,7 +196,10 @@ class Refiner(object):
         return True
 
     def loadParamsFile(self, mash_params_file_path: str) -> bool:
-        self.mash.loadParamsFile(mash_params_file_path)
+        if not self.mash.loadParamsFile(mash_params_file_path):
+            print('[ERROR][Refiner::loadParamsFile]')
+            print('\t loadParamsFile failed!')
+            return False
 
         sample_pts = torch.vstack(self.mash.toSamplePoints()[:2]).cpu().numpy()
 
@@ -249,10 +252,10 @@ class Refiner(object):
         loss_dict = {
             "State/boundary_pts": boundary_pts.shape[0],
             "State/inner_pts": inner_pts.shape[0],
-            "Train/weighted_fit_loss": toNumpy(weighted_fit_loss),
-            "Train/weighted_coverage_loss": toNumpy(weighted_coverage_loss),
-            "Train/weighted_boundary_connect_loss": toNumpy(
-                weighted_boundary_connect_loss
+            "Train/fit_loss": toNumpy(fit_loss),
+            "Train/coverage_loss": toNumpy(coverage_loss),
+            "Train/boundary_connect_loss": toNumpy(
+                boundary_connect_loss
             ),
             "Train/loss": toNumpy(loss),
             "Metric/chamfer_distance": toNumpy(fit_loss) + toNumpy(coverage_loss),

@@ -28,7 +28,7 @@ def demo():
     save_result_folder_path = 'auto'
     save_log_folder_path = 'auto'
 
-    mash_file_path = "/home/chli/github/ASDF/conditional-flow-matching/output/sample/20241104_09:41:20/iter-9/ema/category/18/mash/sample_1.npy"
+    mash_file_path = "/home/chli/github/ASDF/conditional-flow-matching/output/sample/20241202_18:30:59/iter-9/category/03001627/mash/sample_2.npy"
     save_params_file_path = "./output/mash.npy"
     save_pcd_file_path = "./output/pcd.ply"
     overwrite = True

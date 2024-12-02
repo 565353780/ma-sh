@@ -297,13 +297,41 @@ class Mash(object):
         return True
 
     def loadParamsDict(self, params_dict: dict) -> bool:
+        if 'mask_params' not in params_dict.keys():
+            print("[ERROR][Mash::loadParamsDict]")
+            print("\t mask_params not in params dict!")
+            return False
+
+        if 'sh_params' not in params_dict.keys():
+            print("[ERROR][Mash::loadParamsDict]")
+            print("\t sh_params not in params dict!")
+            return False
+
+        if 'rotate_vectors' not in params_dict.keys():
+            print("[ERROR][Mash::loadParamsDict]")
+            print("\t rotate_vectors not in params dict!")
+            return False
+
+        if 'positions' not in params_dict.keys():
+            print("[ERROR][Mash::loadParamsDict]")
+            print("\t positions not in params dict!")
+            return False
+
+        if 'use_inv' not in params_dict.keys():
+            print("[ERROR][Mash::loadParamsDict]")
+            print("\t use_inv not in params dict!")
+            return False
+
         mask_params = params_dict["mask_params"]
         sh_params = params_dict["sh_params"]
         rotate_vectors = params_dict["rotate_vectors"]
         positions = params_dict["positions"]
         use_inv = params_dict["use_inv"]
 
-        self.loadParams(mask_params, sh_params, rotate_vectors, positions, use_inv)
+        if not self.loadParams(mask_params, sh_params, rotate_vectors, positions, use_inv):
+            print("[ERROR][Mash::loadParamsDict]")
+            print("\t loadParams failed!")
+            return False
 
         return True
 
