@@ -12,10 +12,10 @@ cd ../open3d-manage
 cd ../param-gauss-recon
 ./dev_setup.sh
 
-if [ "$(uname)" = "Darwin" ]; then
-	brew install bear
-elif [ "$(uname)" = "Linux" ]; then
-	sudo apt install bear -y
+if [[ "$(uname)" = "Darwin" ]]; then
+  brew install bear
+elif [[ "$(uname)" = "Linux" ]]; then
+  sudo apt install bear -y
 fi
 
 pip install -U ninja
@@ -26,6 +26,6 @@ cd ../ma-sh
 ./compile.sh
 
 pip install -U tqdm tensorboard matplotlib trimesh torchviz \
-	ftfy regex
+  ftfy regex
 
 pip install git+https://github.com/openai/CLIP.git

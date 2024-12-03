@@ -12,9 +12,9 @@ cd ../open3d-manage
 cd ../param-gauss-recon
 ./setup.sh
 
-if [ "$(uname)" = "Darwin" ]; then
+if [[ "$(uname)" = "Darwin" ]]; then
   brew install bear
-elif [ "$(uname)" = "Linux" ]; then
+elif [[ "$(uname)" = "Linux" ]]; then
   sudo apt install bear -y
 fi
 
