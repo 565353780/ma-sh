@@ -53,10 +53,10 @@ def sampleRandomMashParams(
         mash.renderSamplePoints()
 
     random_mash_params = torch.cat((
-        mash.toOrtho6DPoses().cpu().float().reshape(sample_num, anchor_num, -1),
-        mash.positions.cpu().reshape(sample_num, anchor_num, -1),
-        mash.mask_params.cpu().reshape(sample_num, anchor_num, -1),
-        mash.sh_params.cpu().reshape(sample_num, anchor_num, -1)
+        mash.toOrtho6DPoses().float().reshape(sample_num, anchor_num, -1),
+        mash.positions.reshape(sample_num, anchor_num, -1),
+        mash.mask_params.reshape(sample_num, anchor_num, -1),
+        mash.sh_params.reshape(sample_num, anchor_num, -1)
     ), dim=2)
 
     return random_mash_params
