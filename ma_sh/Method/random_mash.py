@@ -13,6 +13,7 @@ def sampleRandomMashParams(
     mask_degree: int = 3,
     sh_degree: int = 2,
     sample_num: int = 1,
+    device: str = 'cpu',
     render: bool = False
 ) -> torch.Tensor:
     mask_dim = 2 * mask_degree + 1
@@ -36,9 +37,9 @@ def sampleRandomMashParams(
         random_sh_params[:, i] = SH_PARAMS_MEAN[i]
 
     if render:
-        mash = Mash(sample_num * anchor_num, mask_degree, sh_degree, 36, 1000, 0.8, True, torch.int64, torch.float64, 'cuda')
+        mash = Mash(sample_num * anchor_num, mask_degree, sh_degree, 36, 1000, 0.8, True, torch.int64, torch.float64, device)
     else:
-        mash = Mash(sample_num * anchor_num, mask_degree, sh_degree, 0, 1, 1.0, True, torch.int64, torch.float64, 'cpu')
+        mash = Mash(sample_num * anchor_num, mask_degree, sh_degree, 0, 1, 1.0, True, torch.int64, torch.float64, device)
 
     mash.loadParams(
         mask_params=random_mask_params,
@@ -52,10 +53,10 @@ def sampleRandomMashParams(
         mash.renderSamplePoints()
 
     random_mash_params = torch.cat((
-        mash.toOrtho6DPoses().float().reshape(sample_num, anchor_num, -1),
-        mash.positions.reshape(sample_num, anchor_num, -1),
-        mash.mask_params.reshape(sample_num, anchor_num, -1),
-        mash.sh_params.reshape(sample_num, anchor_num, -1)
+        mash.toOrtho6DPoses().cpu().float().reshape(sample_num, anchor_num, -1),
+        mash.positions.cpu().reshape(sample_num, anchor_num, -1),
+        mash.mask_params.cpu().reshape(sample_num, anchor_num, -1),
+        mash.sh_params.cpu().reshape(sample_num, anchor_num, -1)
     ), dim=2)
 
     return random_mash_params

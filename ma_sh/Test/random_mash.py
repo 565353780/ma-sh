@@ -5,9 +5,10 @@ def test():
     mask_degree = 3
     sh_degree = 2
     sample_num = 1
+    device = 'cuda'
     render = True
 
-    random_mash_params = sampleRandomMashParams(anchor_num, mask_degree, sh_degree, sample_num, render)
+    random_mash_params = sampleRandomMashParams(anchor_num, mask_degree, sh_degree, sample_num, device, render)
 
     print('random_mash_params.shape: ')
     print(random_mash_params.shape)
