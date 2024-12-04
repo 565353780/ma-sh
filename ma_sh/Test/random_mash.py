@@ -4,13 +4,11 @@ def test():
     anchor_num = 400
     mask_degree = 3
     sh_degree = 2
+    render = True
 
-    random_mash_params = sampleRandomMashParams(anchor_num, mask_degree, sh_degree)
+    random_mash_params = sampleRandomMashParams(anchor_num, mask_degree, sh_degree, render)
 
-    mask_dim = 2 * mask_degree + 1
-    sh_dim = (sh_degree + 1) ** 2
-
-    random_ortho_poses = random_mash_params[:, :6]
-    random_positions = random_mash_params[:, 6: 9]
+    print('random_mash_params.shape: ')
+    print(random_mash_params.shape)
 
     return True
