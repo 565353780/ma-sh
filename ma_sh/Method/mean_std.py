@@ -74,13 +74,13 @@ def getMashMeanAndSTD(mash_folder_path: str) -> bool:
     sh_params_std = np.std(sh_params_array, axis=0)
 
     print('[INFO][mean_std::getMashMeanAndSTD]')
-    outputArray('rotate_vectors_mean', rotate_vectors_mean)
-    outputArray('rotate_vectors_std', rotate_vectors_std)
-    outputArray('positions_mean', positions_mean)
-    outputArray('positions_std', positions_std)
-    outputArray('mask_params_mean', mask_params_mean)
-    outputArray('mask_params_std', mask_params_std)
-    outputArray('sh_params_mean', sh_params_mean)
-    outputArray('sh_params_std', sh_params_std)
+    outputArray('ROTATE_VECTORS_MEAN', rotate_vectors_mean)
+    outputArray('ROTATE_VECTORS_STD', rotate_vectors_std)
+    outputArray('POSITIONS_MEAN', positions_mean)
+    outputArray('POSITIONS_STD', positions_std)
+    outputArray('MASK_PARAMS_MEAN', mask_params_mean)
+    outputArray('MASK_PARAMS_STD', mask_params_std)
+    outputArray('SH_PARAMS_MEAN', sh_params_mean)
+    outputArray('SH_PARAMS_STD', sh_params_std)
 
     return True
