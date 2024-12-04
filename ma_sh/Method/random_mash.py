@@ -2,6 +2,7 @@ import torch
 
 from ma_sh.Config.mean_std import (
     POSITIONS_MEAN,
+    POSITIONS_STD,
     MASK_PARAMS_MEAN,
     SH_PARAMS_MEAN,
 )
@@ -26,7 +27,7 @@ def sampleRandomMashParams(
     random_face_forward_directions = random_face_forward_vectors / random_face_forward_vectors_norm.unsqueeze(1)
 
     for i in range(3):
-        random_positions[:, i] = POSITIONS_MEAN[i] - random_face_forward_directions[:, i]
+        random_positions[:, i] = POSITIONS_MEAN[i] - POSITIONS_STD[i] * random_face_forward_directions[:, i]
 
     for i in range(mask_dim):
         random_mask_params[:, i] = MASK_PARAMS_MEAN[i]
