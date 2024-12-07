@@ -1,2 +1,2 @@
 ./compile.sh
-python tmp.py
+python train.py

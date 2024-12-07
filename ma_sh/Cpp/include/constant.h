@@ -3,6 +3,8 @@
 #include <cmath>
 #include <torch/extension.h>
 
+#define TIME_INFO
+
 using namespace torch::indexing;
 
 const float EPSILON = 1e-6;

@@ -3,16 +3,17 @@ from torch import profiler
 from ma_sh.Demo.trainer import demo as demo_train
 
 if __name__ == "__main__":
-    with profiler.profile(
-        activities=[
-            profiler.ProfilerActivity.CPU,
-            profiler.ProfilerActivity.CUDA],
-        on_trace_ready=profiler.tensorboard_trace_handler('./logs/')
-    ) as prof:
-        demo_train(400)
+    if False:
+        with profiler.profile(
+            activities=[
+                profiler.ProfilerActivity.CPU,
+                profiler.ProfilerActivity.CUDA],
+            on_trace_ready=profiler.tensorboard_trace_handler('./logs/')
+        ) as prof:
+            demo_train(400)
 
-    print(prof.key_averages().table(sort_by="cpu_time_total"))
-    exit()
+        print(prof.key_averages().table(sort_by="cpu_time_total"))
+        exit()
 
     demo_train(400)
     exit()

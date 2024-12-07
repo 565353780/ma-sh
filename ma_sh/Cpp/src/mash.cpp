@@ -140,22 +140,29 @@ const std::vector<torch::Tensor> toMashSamplePoints(
     const torch::Tensor &mask_boundary_base_values,
     const torch::Tensor &sample_base_values, const float &sample_point_scale,
     const bool &use_inv) {
-  const bool debug = false;
+#ifdef TIME_INFO
+  Timer timer;
+#endif
 
-  Timer timer(false);
   const torch::Tensor mask_boundary_thetas = toMaskBoundaryThetas(
       mask_params, mask_boundary_base_values, mask_boundary_phi_idxs);
 
-  if (debug) {
-    timer.reset();
-  }
+#ifdef TIME_INFO
+  std::cout << "[INFO][mash::toMashSamplePoints]" << std::endl;
+  std::cout << "\t toMaskBoundaryThetas time: " << timer.now() << std::endl;
+  timer.reset();
+#endif
+
   const std::vector<torch::Tensor> in_mask_sample_polars_with_idxs =
       toInMaskSamplePolars(anchor_num, mask_params, sample_phis, sample_thetas,
                            mask_boundary_thetas, mask_boundary_phi_idxs,
                            sample_base_values);
-  if (debug) {
-    std::cout << "toInMaskSamplePolars : " << timer.now() << std::endl;
-  }
+
+#ifdef TIME_INFO
+  std::cout << "[INFO][mash::toMashSamplePoints]" << std::endl;
+  std::cout << "\t toInMaskSamplePolars time: " << timer.now() << std::endl;
+  timer.reset();
+#endif
 
   const torch::Tensor &in_mask_sample_phis = in_mask_sample_polars_with_idxs[0];
   const torch::Tensor &in_mask_sample_theta_weights =
@@ -165,26 +172,26 @@ const std::vector<torch::Tensor> toMashSamplePoints(
   const torch::Tensor &in_mask_sample_base_values =
       in_mask_sample_polars_with_idxs[3];
 
-  if (debug) {
-    timer.reset();
-  }
   const torch::Tensor in_mask_sh_points = toWeightedSamplePoints(
       mask_degree_max, sh_degree_max, mask_params, sh_params, rotate_vectors,
       positions, in_mask_sample_phis, in_mask_sample_theta_weights,
       in_mask_sample_polar_idxs, use_inv, in_mask_sample_base_values);
-  if (debug) {
-    std::cout << "toWeightedSamplePoints : " << timer.now() << std::endl;
-  }
 
-  if (debug) {
-    timer.reset();
-  }
+#ifdef TIME_INFO
+  std::cout << "[INFO][mash::toMashSamplePoints]" << std::endl;
+  std::cout << "\t toWeightedSamplePoints time: " << timer.now() << std::endl;
+  timer.reset();
+#endif
+
   const torch::Tensor fps_in_mask_sample_point_idxs =
       toFPSPointIdxs(in_mask_sh_points, in_mask_sample_polar_idxs,
                      sample_point_scale, anchor_num);
-  if (debug) {
-    std::cout << "toFPSPointIdxs : " << timer.now() << std::endl;
-  }
+
+#ifdef TIME_INFO
+  std::cout << "[INFO][mash::toMashSamplePoints]" << std::endl;
+  std::cout << "\t toFPSPointIdxs time: " << timer.now() << std::endl;
+  timer.reset();
+#endif
 
   const torch::Tensor in_mask_sample_points =
       in_mask_sh_points.index({fps_in_mask_sample_point_idxs});
@@ -192,16 +199,16 @@ const std::vector<torch::Tensor> toMashSamplePoints(
   const torch::Tensor in_mask_sample_point_idxs =
       in_mask_sample_polar_idxs.index({fps_in_mask_sample_point_idxs});
 
-  if (debug) {
-    timer.reset();
-  }
   const torch::Tensor mask_boundary_sample_points =
       toSamplePoints(mask_degree_max, sh_degree_max, sh_params, rotate_vectors,
                      positions, mask_boundary_phis, mask_boundary_thetas,
                      mask_boundary_phi_idxs, use_inv);
-  if (debug) {
-    std::cout << "toSamplePoints : " << timer.now() << std::endl;
-  }
+
+#ifdef TIME_INFO
+  std::cout << "[INFO][mash::toMashSamplePoints]" << std::endl;
+  std::cout << "\t toSamplePoints time: " << timer.now() << std::endl;
+  timer.reset();
+#endif
 
   const std::vector<torch::Tensor> sample_points_with_idxs(
       {mask_boundary_sample_points, in_mask_sample_points,
