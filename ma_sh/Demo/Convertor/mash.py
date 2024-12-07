@@ -20,6 +20,8 @@ def demo(device: str = 'cuda:0'):
         print('\t dataset_root_folder_path not found!')
         return False
 
+    dataset_name = 'Objaverse_82K'
+
     gt_points_num = 400000
     anchor_num = 400
     mask_degree_max = 3
@@ -43,6 +45,7 @@ def demo(device: str = 'cuda:0'):
 
     convertor = Convertor(
         dataset_root_folder_path,
+        dataset_name,
         gt_points_num,
         anchor_num,
         mask_degree_max,

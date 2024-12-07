@@ -11,6 +11,7 @@ class Convertor(object):
     def __init__(
         self,
         dataset_root_folder_path: str,
+        dataset_name: str,
         gt_points_num: int = 400000,
         anchor_num: int = 400,
         mask_degree_max: int = 3,
@@ -54,9 +55,9 @@ class Convertor(object):
 
         self.force_start = force_start
 
-        self.sampled_pcd_folder_path = self.dataset_root_folder_path + "Objaverse/pcd/"
-        self.mash_folder_path = self.dataset_root_folder_path + "Objaverse/mash/"
-        self.tag_folder_path = self.dataset_root_folder_path + "Tag/Objaverse_mash/"
+        self.sampled_pcd_folder_path = self.dataset_root_folder_path + dataset_name + "/pcd/"
+        self.mash_folder_path = self.dataset_root_folder_path + dataset_name + "/mash/"
+        self.tag_folder_path = self.dataset_root_folder_path + "Tag/" + dataset_name + "_mash/"
         return
 
     def createTrainer(

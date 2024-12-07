@@ -11,6 +11,7 @@ class Convertor(object):
     def __init__(
         self,
         dataset_root_folder_path: str,
+        dataset_name: str,
         gt_points_num: int = 400000,
         force_start: bool = False,
     ) -> None:
@@ -19,10 +20,10 @@ class Convertor(object):
         self.force_start = force_start
 
         self.normalized_mesh_folder_path = (
-            self.dataset_root_folder_path + "Objaverse/mesh/"
+            self.dataset_root_folder_path + dataset_name + "/mesh/"
         )
-        self.sampled_pcd_folder_path = self.dataset_root_folder_path + "Objaverse/pcd/"
-        self.tag_folder_path = self.dataset_root_folder_path + "Tag/Objaverse_pcd/"
+        self.sampled_pcd_folder_path = self.dataset_root_folder_path + dataset_name + "/pcd/"
+        self.tag_folder_path = self.dataset_root_folder_path + "Tag/" + dataset_name + "_pcd/"
         return
 
     def convertOneShape(
@@ -118,21 +119,4 @@ class Convertor(object):
                     desc="Processing"
                 ))
 
-
-            '''
-            for model_file_name in modelid_list:
-                modelid = model_file_name.split(".ply")[0]
-
-                if modelid in skip_file_list:
-                    solved_shape_num += 1
-                    print("solved shape num:", solved_shape_num)
-                    continue
-
-                print('[\'' + classname + '\', \'' + modelid + '\'],')
-
-                self.convertOneShape("ShapeNet", classname, modelid)
-
-                solved_shape_num += 1
-                print("solved shape num:", solved_shape_num)
-            '''
         return True
