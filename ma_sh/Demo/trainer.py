@@ -5,6 +5,7 @@ from ma_sh.Config.custom_path import mesh_file_path_dict
 from ma_sh.Method.pcd import getPointCloud
 from ma_sh.Method.render import renderGeometries
 from ma_sh.Module.trainer import Trainer
+from ma_sh.Module.timer import Timer
 
 
 def demo(anchor_num: int = 400):
@@ -42,7 +43,7 @@ def demo(anchor_num: int = 400):
         mesh_name = "linux_airplane"
         mesh_file_path = mesh_file_path_dict[mesh_name]
     elif False:
-        dataset_folder_path = "/home/chli/chLi2/Dataset/NormalizedMesh/ShapeNet/03001627/"
+        dataset_folder_path = "/home/chli/chLi2/Dataset/NormalizedMesh/ShapeNet/02691156/"
         mesh_filename_list = os.listdir(dataset_folder_path)
         mesh_filename_list.sort()
         mesh_filename = mesh_filename_list[0]
@@ -81,7 +82,7 @@ def demo(anchor_num: int = 400):
         save_log_folder_path,
     )
 
-    if False:
+    if True:
         trainer.loadMeshFile(mesh_file_path)
     else:
         gt_points_file_path = "/home/chli/chLi2/Dataset/SampledPcd_Manifold/ShapeNet/04090263/22d2782aa73ea40960abd8a115f9899.npy"
@@ -91,7 +92,9 @@ def demo(anchor_num: int = 400):
         gt_points_file_path = "/home/chli/chLi2/Dataset/SampledPcd_Manifold/ShapeNet/" + mesh_name + ".npy"
         #gt_points_file_path = "../mvs-former/output/" + mesh_name + "/" + mesh_name + ".ply"
         # gt_points_file_path = "/Users/fufu/Downloads/model_normalized_obj.npy"
-        trainer.loadGTPointsFile(gt_points_file_path)
+        trainer.loadGTPointsFile(gt_points_file_path, gt_points_num)
+
+    timer = Timer()
     trainer.autoTrainMash(gt_points_num)
     trainer.saveMashFile(save_params_file_path, overwrite)
     trainer.saveAsPcdFile(save_pcd_file_path, overwrite)
@@ -123,4 +126,6 @@ def demo(anchor_num: int = 400):
         mesh.translate([mesh_abb_length, 0, 0])
 
         renderGeometries([gt_pcd, pcd, mesh])
+
+    print('finish training, spend time :', timer.now())
     return True
