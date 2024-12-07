@@ -21,7 +21,7 @@ def demo(anchor_num: int = 400):
 
     lr = 2e-3
     min_lr = 1e-3
-    warmup_step_num = 20
+    warmup_step_num = 80
     warmup_epoch = 4
     factor = 0.8
     patience = 2
@@ -34,6 +34,9 @@ def demo(anchor_num: int = 400):
 
     save_result_folder_path = None
     save_log_folder_path = None
+
+    save_result_folder_path = 'auto'
+    save_log_folder_path = 'auto'
 
     if False:
         mesh_name = "linux_airplane"

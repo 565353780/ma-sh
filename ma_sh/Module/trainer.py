@@ -609,9 +609,6 @@ class Trainer(object):
             print('\t warmUpEpoch failed!')
             return False
 
-        #FIXME: for speed test only
-        return False
-
         print("[INFO][Trainer::autoTrainMash]")
         print("\t start trainEpoch with adaptive loss...")
         for i in range(self.warmup_epoch):
