@@ -4,7 +4,7 @@ import torch
 from ma_sh.Module.Convertor.mash import Convertor
 
 
-def demo():
+def demo(device: str = 'cuda:0'):
     HOME = os.environ["HOME"]
     home_list = [HOME + '/chLi/', "Z:/"]
 
@@ -30,7 +30,7 @@ def demo():
     use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float32
-    device = "cuda:0"
+    # device = "cuda:0"
 
     lr = 2e-3
     min_lr = 1e-3
