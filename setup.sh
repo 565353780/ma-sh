@@ -26,6 +26,6 @@ cd ../ma-sh
 ./compile.sh
 
 pip install -U tqdm tensorboard matplotlib trimesh torchviz \
-  ftfy regex
+  ftfy regex torch-tb-profiler
 
 pip install git+https://github.com/openai/CLIP.git
