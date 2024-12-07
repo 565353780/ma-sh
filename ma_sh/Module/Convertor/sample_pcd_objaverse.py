@@ -90,6 +90,9 @@ class Convertor(object):
         return True
 
     def convertAll(self, worker_num: int = 6) -> bool:
+        if self.force_start:
+            worker_num = 1
+
         print("[INFO][Convertor::convertAll]")
         print("\t start convert all shapes to mashes...")
 
@@ -97,6 +100,7 @@ class Convertor(object):
 
         classname_list = os.listdir(dataset_folder_path)
         classname_list.sort()
+
         for classname in classname_list:
             class_folder_path = dataset_folder_path + classname + "/"
 

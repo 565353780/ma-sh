@@ -150,6 +150,7 @@ class Convertor(object):
 
         classname_list = os.listdir(dataset_folder_path)
         classname_list.sort()
+
         for classname in classname_list:
             class_folder_path = dataset_folder_path + classname + "/"
 
