@@ -112,8 +112,8 @@ toChamferDistanceLoss(const torch::Tensor &detect_points,
   const std::vector<torch::Tensor> chamfer_distances =
       toChamferDistance(v_detect_points, gt_points);
 
-  const torch::Tensor fit_dists2 = chamfer_distances[0].squeeze(0);
-  const torch::Tensor coverage_dists2 = chamfer_distances[1].squeeze(0);
+  const torch::Tensor fit_dists2 = chamfer_distances[0];
+  const torch::Tensor coverage_dists2 = chamfer_distances[1];
 
   const torch::Tensor fit_dists = torch::sqrt(fit_dists2 + EPSILON);
   const torch::Tensor coverage_dists = torch::sqrt(coverage_dists2 + EPSILON);
@@ -148,9 +148,9 @@ toAnchorChamferDistanceLoss(const int &anchor_num,
   const std::vector<torch::Tensor> chamfer_distances =
       toChamferDistance(v_sample_points, gt_points);
 
-  const torch::Tensor fit_dists2 = chamfer_distances[0].squeeze(0);
-  const torch::Tensor coverage_dists2 = chamfer_distances[1].squeeze(0);
-  const torch::Tensor coverage_idxs = chamfer_distances[3].squeeze(0);
+  const torch::Tensor fit_dists2 = chamfer_distances[0];
+  const torch::Tensor coverage_dists2 = chamfer_distances[1];
+  const torch::Tensor coverage_idxs = chamfer_distances[3];
 
   const int mask_boundary_sample_point_num =
       mask_boundary_sample_points.size(0);
@@ -172,9 +172,22 @@ toAnchorChamferDistanceLoss(const int &anchor_num,
 const torch::Tensor toRegularBoundaryConnectLoss(
     const int &anchor_num, const torch::Tensor &mask_boundary_sample_points,
     const torch::Tensor &mask_boundary_sample_phi_idxs) {
+  if (anchor_num < 2) {
+    std::cout << "[WARN][loss::toRegularBoundaryConnectLoss]" << std::endl;
+    std::cout << "\t anchor num < 2!" << std::endl;
+    return torch::zeros({0}, torch::TensorOptions()
+                                 .dtype(mask_boundary_sample_points.dtype())
+                                 .device(mask_boundary_sample_points.device()));
+  }
+
 #ifdef TIME_INFO
   Timer timer;
 #endif
+
+  const torch::TensorOptions idx_opts =
+      torch::TensorOptions()
+          .dtype(mask_boundary_sample_phi_idxs.dtype())
+          .device(mask_boundary_sample_phi_idxs.device());
 
   const long single_boundary_sample_point_num =
       mask_boundary_sample_points.size(0) / anchor_num;
@@ -186,31 +199,43 @@ const torch::Tensor toRegularBoundaryConnectLoss(
       mask_boundary_sample_points.view(
           {anchor_num, single_boundary_sample_point_num, 3});
 
-  std::vector<torch::Tensor> other_mask_boundary_sample_point_idxs_vec;
-
 #ifdef TIME_INFO
   std::cout << "[INFO][loss::toBoundaryConnectLoss]" << std::endl;
   std::cout << "\t malloc time: " << timer.now() << std::endl;
   timer.reset();
 #endif
 
-  for (int i = 0; i < anchor_num; ++i) {
-    const torch::Tensor current_other_boundary_point_mask =
-        mask_boundary_sample_phi_idxs != i;
+  const torch::Tensor point_data_idx_matrix =
+      torch::arange(0, mask_boundary_sample_points.size(0), idx_opts)
+          .view({anchor_num, single_boundary_sample_point_num});
 
-    const torch::Tensor current_other_boundary_point_idxs =
-        mask_boundary_sample_phi_idxs.index(
-            {current_other_boundary_point_mask});
+  const torch::Tensor data_row_idx = torch::arange(1, anchor_num + 1, idx_opts);
 
-    other_mask_boundary_sample_point_idxs_vec.emplace_back(
-        current_other_boundary_point_idxs);
-  }
+  torch::Tensor exclusion_matrix =
+      data_row_idx.view({1, anchor_num}).repeat({anchor_num, 1});
+  exclusion_matrix.fill_diagonal_(0);
+  exclusion_matrix = exclusion_matrix.view({-1});
 
-  const torch::Tensor other_mask_boundary_sample_point_idxs =
-      torch::hstack(other_mask_boundary_sample_point_idxs_vec);
+  const torch::Tensor data_row_idxs =
+      exclusion_matrix.index({torch::nonzero(exclusion_matrix).view({-1})}) - 1;
+
+#ifdef TIME_INFO
+  std::cout << "[INFO][loss::toBoundaryConnectLoss]" << std::endl;
+  std::cout << "\t collect row idxs time: " << timer.now() << std::endl;
+  timer.reset();
+#endif
+
+  const torch::Tensor point_data_idxs =
+      point_data_idx_matrix.index({data_row_idxs}).view({-1});
+
+#ifdef TIME_INFO
+  std::cout << "[INFO][loss::toBoundaryConnectLoss]" << std::endl;
+  std::cout << "\t collect idxs time: " << timer.now() << std::endl;
+  timer.reset();
+#endif
 
   const torch::Tensor other_mask_boundary_sample_points =
-      mask_boundary_sample_points.index({other_mask_boundary_sample_point_idxs})
+      mask_boundary_sample_points.index({point_data_idxs})
           .view({anchor_num, other_boundary_sample_point_num, 3});
 
 #ifdef TIME_INFO
