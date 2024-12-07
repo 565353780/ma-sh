@@ -103,6 +103,9 @@ const std::vector<torch::Tensor>
 toChamferDistanceLoss(const torch::Tensor &detect_points,
                       const torch::Tensor &gt_points) {
 #ifdef TIME_INFO
+#ifdef USE_CUDA
+  torch::cuda::synchronize();
+#endif
   Timer timer;
 #endif
 
@@ -125,6 +128,9 @@ toChamferDistanceLoss(const torch::Tensor &detect_points,
       {fit_loss, coverage_loss});
 
 #ifdef TIME_INFO
+#ifdef USE_CUDA
+  torch::cuda::synchronize();
+#endif
   std::cout << "[INFO][loss::toChamferDistanceLoss]" << std::endl;
   std::cout << "\t time: " << timer.now() << std::endl;
 #endif
@@ -181,6 +187,9 @@ const torch::Tensor toRegularBoundaryConnectLoss(
   }
 
 #ifdef TIME_INFO
+#ifdef USE_CUDA
+  torch::cuda::synchronize();
+#endif
   Timer timer;
 #endif
 
@@ -200,6 +209,9 @@ const torch::Tensor toRegularBoundaryConnectLoss(
           {anchor_num, single_boundary_sample_point_num, 3});
 
 #ifdef TIME_INFO
+#ifdef USE_CUDA
+  torch::cuda::synchronize();
+#endif
   std::cout << "[INFO][loss::toBoundaryConnectLoss]" << std::endl;
   std::cout << "\t malloc time: " << timer.now() << std::endl;
   timer.reset();
@@ -220,6 +232,9 @@ const torch::Tensor toRegularBoundaryConnectLoss(
       exclusion_matrix.index({torch::nonzero(exclusion_matrix).view({-1})}) - 1;
 
 #ifdef TIME_INFO
+#ifdef USE_CUDA
+  torch::cuda::synchronize();
+#endif
   std::cout << "[INFO][loss::toBoundaryConnectLoss]" << std::endl;
   std::cout << "\t collect row idxs time: " << timer.now() << std::endl;
   timer.reset();
@@ -229,6 +244,9 @@ const torch::Tensor toRegularBoundaryConnectLoss(
       point_data_idx_matrix.index({data_row_idxs}).view({-1});
 
 #ifdef TIME_INFO
+#ifdef USE_CUDA
+  torch::cuda::synchronize();
+#endif
   std::cout << "[INFO][loss::toBoundaryConnectLoss]" << std::endl;
   std::cout << "\t collect idxs time: " << timer.now() << std::endl;
   timer.reset();
@@ -239,6 +257,9 @@ const torch::Tensor toRegularBoundaryConnectLoss(
           .view({anchor_num, other_boundary_sample_point_num, 3});
 
 #ifdef TIME_INFO
+#ifdef USE_CUDA
+  torch::cuda::synchronize();
+#endif
   std::cout << "[INFO][loss::toBoundaryConnectLoss]" << std::endl;
   std::cout << "\t collect data time: " << timer.now() << std::endl;
   timer.reset();
@@ -249,6 +270,9 @@ const torch::Tensor toRegularBoundaryConnectLoss(
                         other_mask_boundary_sample_points);
 
 #ifdef TIME_INFO
+#ifdef USE_CUDA
+  torch::cuda::synchronize();
+#endif
   std::cout << "[INFO][loss::toBoundaryConnectLoss]" << std::endl;
   std::cout << "\t toChamferDistance data time: " << timer.now() << std::endl;
   timer.reset();
@@ -263,6 +287,9 @@ const torch::Tensor toRegularBoundaryConnectLoss(
       torch::mean(boundary_connect_dists);
 
 #ifdef TIME_INFO
+#ifdef USE_CUDA
+  torch::cuda::synchronize();
+#endif
   std::cout << "[INFO][loss::toBoundaryConnectLoss]" << std::endl;
   std::cout << "\t post process time: " << timer.now() << std::endl;
 #endif
@@ -278,6 +305,9 @@ toBoundaryConnectLoss(const int &anchor_num,
                                       mask_boundary_sample_phi_idxs);
 
 #ifdef TIME_INFO
+#ifdef USE_CUDA
+  torch::cuda::synchronize();
+#endif
   Timer timer;
 #endif
 
@@ -297,11 +327,11 @@ toBoundaryConnectLoss(const int &anchor_num,
 
     const torch::Tensor single_mask_boundary_sample_points =
         v_mask_boundary_sample_points.index(
-            {Slice(None), current_boundary_point_mask});
+            {slice_all, current_boundary_point_mask});
 
     const torch::Tensor other_mask_boundary_sample_points =
         v_mask_boundary_sample_points.index(
-            {Slice(None), ~current_boundary_point_mask});
+            {slice_all, ~current_boundary_point_mask});
 
     const std::vector<torch::Tensor> current_boundary_chamfer_distances =
         toChamferDistance(single_mask_boundary_sample_points,
@@ -323,6 +353,9 @@ toBoundaryConnectLoss(const int &anchor_num,
   boundary_connect_loss = boundary_connect_loss / anchor_num;
 
 #ifdef TIME_INFO
+#ifdef USE_CUDA
+  torch::cuda::synchronize();
+#endif
   std::cout << "[INFO][loss::toBoundaryConnectLoss]" << std::endl;
   std::cout << "\t time: " << timer.now() << std::endl;
 #endif

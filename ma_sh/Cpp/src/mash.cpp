@@ -141,6 +141,9 @@ const std::vector<torch::Tensor> toMashSamplePoints(
     const torch::Tensor &sample_base_values, const float &sample_point_scale,
     const bool &use_inv) {
 #ifdef TIME_INFO
+#ifdef USE_CUDA
+  torch::cuda::synchronize();
+#endif
   Timer timer;
 #endif
 
@@ -148,6 +151,9 @@ const std::vector<torch::Tensor> toMashSamplePoints(
       mask_params, mask_boundary_base_values, mask_boundary_phi_idxs);
 
 #ifdef TIME_INFO
+#ifdef USE_CUDA
+  torch::cuda::synchronize();
+#endif
   std::cout << "[INFO][mash::toMashSamplePoints]" << std::endl;
   std::cout << "\t toMaskBoundaryThetas time: " << timer.now() << std::endl;
   timer.reset();
@@ -159,6 +165,9 @@ const std::vector<torch::Tensor> toMashSamplePoints(
                            sample_base_values);
 
 #ifdef TIME_INFO
+#ifdef USE_CUDA
+  torch::cuda::synchronize();
+#endif
   std::cout << "[INFO][mash::toMashSamplePoints]" << std::endl;
   std::cout << "\t toInMaskSamplePolars time: " << timer.now() << std::endl;
   timer.reset();
@@ -178,6 +187,9 @@ const std::vector<torch::Tensor> toMashSamplePoints(
       in_mask_sample_polar_idxs, use_inv, in_mask_sample_base_values);
 
 #ifdef TIME_INFO
+#ifdef USE_CUDA
+  torch::cuda::synchronize();
+#endif
   std::cout << "[INFO][mash::toMashSamplePoints]" << std::endl;
   std::cout << "\t toWeightedSamplePoints time: " << timer.now() << std::endl;
   timer.reset();
@@ -188,6 +200,9 @@ const std::vector<torch::Tensor> toMashSamplePoints(
                      sample_point_scale, anchor_num);
 
 #ifdef TIME_INFO
+#ifdef USE_CUDA
+  torch::cuda::synchronize();
+#endif
   std::cout << "[INFO][mash::toMashSamplePoints]" << std::endl;
   std::cout << "\t toFPSPointIdxs time: " << timer.now() << std::endl;
   timer.reset();
@@ -205,6 +220,9 @@ const std::vector<torch::Tensor> toMashSamplePoints(
                      mask_boundary_phi_idxs, use_inv);
 
 #ifdef TIME_INFO
+#ifdef USE_CUDA
+  torch::cuda::synchronize();
+#endif
   std::cout << "[INFO][mash::toMashSamplePoints]" << std::endl;
   std::cout << "\t toSamplePoints time: " << timer.now() << std::endl;
   timer.reset();

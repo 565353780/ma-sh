@@ -3,7 +3,7 @@
 #include <cmath>
 #include <torch/extension.h>
 
-#define TIME_INFO
+// #define TIME_INFO
 
 using namespace torch::indexing;
 
