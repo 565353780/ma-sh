@@ -404,7 +404,9 @@ class Mash(object):
         return True
 
     def toCenter(self) -> torch.Tensor:
-        center = torch.mean(self.positions.data, dim=0).clone()
+        min_bound = torch.min(self.positions.data, dim=0)[0]
+        max_bound = torch.max(self.positions.data, dim=0)[0]
+        center = (min_bound + max_bound) / 2.0
         return center
 
     def translate(self, move_position: Union[torch.Tensor, np.ndarray, list]) -> bool:
@@ -662,7 +664,7 @@ class Mash(object):
         if with_normals:
             return self.toSamplePcdWithNormals(refine_normals, fps_sample_scale)
 
-        mask_boundary_sample_points, in_mask_sample_points, in_mask_sample_point_idxs = self.toSamplePoints()
+        mask_boundary_sample_points, in_mask_sample_points = self.toSamplePoints()[:2]
 
         sample_points = torch.vstack([mask_boundary_sample_points, in_mask_sample_points])
 

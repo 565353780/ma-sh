@@ -14,7 +14,7 @@ from ma_sh.Config.constant import EPSILON
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
 from ma_sh.Data.mesh import Mesh
 from ma_sh.Method.data import toNumpy
-from ma_sh.Method.path import removeFile
+from ma_sh.Method.path import createFileFolder, removeFile
 from ma_sh.Method.pcd import getPointCloud, downSample
 from ma_sh.Method.time import getCurrentTime
 from ma_sh.Model.mash import Mash
@@ -154,14 +154,15 @@ class Trainer(object):
 
         self.gt_points = np.asarray(sample_gt_pcd.points)
 
-        center = np.mean(self.gt_points, axis=0)
         min_bound = np.min(self.gt_points, axis=0)
         max_bound = np.max(self.gt_points, axis=0)
-        length = max_bound - min_bound
+        length = np.max(max_bound - min_bound)
+        scale = 0.9 / length
+        center = (min_bound + max_bound) / 2.0
         self.translate = center
-        self.scale = np.max(length)
+        self.scale = scale
 
-        self.gt_points = (self.gt_points - self.translate) / self.scale
+        self.gt_points = (self.gt_points - self.translate) * self.scale
 
         sample_gt_pcd.points = o3d.utility.Vector3dVector(self.gt_points)
 
@@ -369,6 +370,11 @@ class Trainer(object):
             weighted_fit_loss + weighted_coverage_loss + weighted_boundary_connect_loss
         )
 
+        if torch.isnan(loss).any():
+            print('[ERROR][Trainer::trainStep]')
+            print('\t loss is nan!')
+            return None
+
         loss.backward()
 
         self.optimizer.step()
@@ -431,6 +437,11 @@ class Trainer(object):
                 coverage_loss_weight,
                 boundary_connect_loss_weight,
             )
+
+            if loss_dict is None:
+                print('[ERROR][Trainer::warmUpEpoch]')
+                print('\t trainStep failed!')
+                return False
 
             assert isinstance(loss_dict, dict)
             for key, item in loss_dict.items():
@@ -513,6 +524,11 @@ class Trainer(object):
                 boundary_connect_loss_weight,
             )
 
+            if loss_dict is None:
+                print('[ERROR][Trainer::trainEpoch]')
+                print('\t trainStep failed!')
+                return False
+
             assert isinstance(loss_dict, dict)
             for key, item in loss_dict.items():
                 self.logger.addScalar(key, item, self.step)
@@ -588,7 +604,10 @@ class Trainer(object):
 
         print("[INFO][Trainer::autoTrainMash]")
         print("\t start warmUpEpoch...")
-        self.warmUpEpoch(self.lr, gt_points, 1.0, 0.5, 0.0, self.warmup_step_num)
+        if not self.warmUpEpoch(self.lr, gt_points, 1.0, 0.5, 0.0, self.warmup_step_num):
+            print('[ERROR][Trainer::autoTrainMash]')
+            print('\t warmUpEpoch failed!')
+            return False
 
         print("[INFO][Trainer::autoTrainMash]")
         print("\t start trainEpoch with adaptive loss...")
@@ -602,13 +621,16 @@ class Trainer(object):
                 0.1 + 0.9 * manifold_loss_weight
             ) * boundary_connect_loss_weight_max
 
-            self.trainEpoch(
+            if not self.trainEpoch(
                 self.lr,
                 gt_points,
                 fit_loss_weight,
                 coverage_loss_weight,
                 boundary_connect_loss_weight,
-            )
+            ):
+                print('[ERROR][Trainer::autoTrainMash]')
+                print('\t trainEpoch failed!')
+                return False
 
         print("[INFO][Trainer::autoTrainMash]")
         print("\t start trainEpoch with adaptive lr...")
@@ -679,12 +701,24 @@ class Trainer(object):
         sample_mash = deepcopy(self.mash)
 
         if self.translate is not None:
-            sample_mash.scale(self.scale, False)
+            sample_mash.scale(1.0 / self.scale, False)
             sample_mash.translate(self.translate)
 
         mask_boundary_sample_points, in_mask_sample_points, _ = sample_mash.toSamplePoints()
         sample_points = torch.vstack([mask_boundary_sample_points, in_mask_sample_points])
         return sample_points
+
+    def saveMashFile(self, save_mash_file_path: str, overwrite: bool = False) -> bool:
+        createFileFolder(save_mash_file_path)
+
+        sample_mash = deepcopy(self.mash)
+
+        if self.translate is not None:
+            sample_mash.scale(1.0 / self.scale, False)
+            sample_mash.translate(self.translate)
+
+        sample_mash.saveParamsFile(save_mash_file_path, overwrite)
+        return True
 
     def autoSaveMash(self, state_info: str, save_freq: int = 1, add_idx: bool = True) -> bool:
         if self.save_result_folder_path is None:
@@ -712,7 +746,7 @@ class Trainer(object):
         save_mash = deepcopy(self.mash)
 
         if self.translate is not None:
-            save_mash.scale(self.scale, False)
+            save_mash.scale(1.0 / self.scale, False)
             save_mash.translate(self.translate)
 
         save_mash.saveParamsFile(save_file_path, True)
@@ -731,7 +765,7 @@ class Trainer(object):
         save_mash = deepcopy(self.mash)
 
         if self.translate is not None:
-            save_mash.scale(self.scale, False)
+            save_mash.scale(1.0 / self.scale, False)
             save_mash.translate(self.translate)
 
         save_mash.saveAsPcdFile(save_pcd_file_path, overwrite)

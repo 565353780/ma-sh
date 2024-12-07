@@ -1,6 +1,6 @@
 import os
 import torch
-from tqdm import tqdm
+from time import time
 from typing import Union
 
 from ma_sh.Method.path import createFileFolder
@@ -54,9 +54,9 @@ class Convertor(object):
 
         self.force_start = force_start
 
-        self.sampled_pcd_folder_path = self.dataset_root_folder_path + "SampledPcd_Manifold/"
-        self.mash_folder_path = self.dataset_root_folder_path + "MashV4/"
-        self.tag_folder_path = self.dataset_root_folder_path + "Tag/MashV4/"
+        self.sampled_pcd_folder_path = self.dataset_root_folder_path + "Objaverse/pcd/"
+        self.mash_folder_path = self.dataset_root_folder_path + "Objaverse/mash/"
+        self.tag_folder_path = self.dataset_root_folder_path + "Tag/Objaverse_mash/"
         return
 
     def createTrainer(
@@ -90,10 +90,8 @@ class Convertor(object):
 
         return trainer
 
-    def convertOneShape(
-        self, dataset_name: str, class_name: str, model_id: str
-    ) -> bool:
-        rel_file_path = dataset_name + "/" + class_name + "/" + model_id
+    def convertOneShape(self, model_id: str) -> bool:
+        rel_file_path = model_id
 
         sampled_pcd_file_path = self.sampled_pcd_folder_path + rel_file_path + ".npy"
 
@@ -132,8 +130,12 @@ class Convertor(object):
             trainer = self.createTrainer()
 
         trainer.loadGTPointsFile(sampled_pcd_file_path)
-        trainer.autoTrainMash(self.gt_points_num)
-        trainer.mash.saveParamsFile(mash_file_path, True)
+        if not trainer.autoTrainMash(self.gt_points_num):
+            print('[ERROR][Convertor::convertOneShape]')
+            print('\t autoTrainMash failed!')
+            return False
+
+        trainer.saveMashFile(mash_file_path, True)
 
         with open(finish_tag_file_path, "w") as f:
             f.write("\n")
@@ -144,31 +146,23 @@ class Convertor(object):
         print("\t start convert all shapes to mashes...")
         solved_shape_num = 0
 
-        dataset_folder_path = self.sampled_pcd_folder_path + "ShapeNet/"
+        dataset_folder_path = self.sampled_pcd_folder_path
 
         classname_list = os.listdir(dataset_folder_path)
         classname_list.sort()
-
-        modelid_list_dict = {}
-
-        model_num_max = 0
-        for classname in tqdm(classname_list):
+        for classname in classname_list:
             class_folder_path = dataset_folder_path + classname + "/"
 
             modelid_list = os.listdir(class_folder_path)
             modelid_list.sort()
-            modelid_list_dict[classname] = modelid_list
-            model_num_max = max(model_num_max, len(modelid_list))
 
-        for i in range(model_num_max):
-            for classname, modelid_list in modelid_list_dict.items():
-                if len(modelid_list) <= i:
-                    continue
+            full_model_id_list = [classname + '/' + model_id[:-4] for model_id in modelid_list]
 
-                modelid = modelid_list[i].split(".npy")[0]
-
-                self.convertOneShape("ShapeNet", classname, modelid)
+            for modelid in full_model_id_list:
+                start = time()
+                self.convertOneShape(modelid)
+                spend = time() - start
 
                 solved_shape_num += 1
-                print("solved shape num:", solved_shape_num)
+                print("solved shape num:", solved_shape_num, 'time:', spend)
         return True
