@@ -10,7 +10,7 @@ def demo():
     dataset_name = 'Objaverse_82K'
     gt_points_num = 400000
     force_start = False
-    worker_num = 16
+    worker_num = 1
 
     convertor = Convertor(
         dataset_root_folder_path,

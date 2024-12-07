@@ -4,6 +4,8 @@ elif [ "$(uname)" = "Linux" ]; then
   PROCESSOR_NUM=$(cat /proc/cpuinfo | grep "processor" | wc -l)
 fi
 
+PROCESSOR_NUM=32
+
 for i in $(seq 1 ${PROCESSOR_NUM}); do
   python convert_sample_pcd_objaverse.py &
   sleep 1
