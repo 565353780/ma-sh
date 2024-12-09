@@ -200,7 +200,15 @@ class Trainer(object):
 
         gt_points_file_type = gt_points_file_path.split('.')[-1]
         if gt_points_file_type == 'npy':
-            gt_points = np.load(gt_points_file_path)
+            try:
+                gt_points = np.load(gt_points_file_path)
+            except (OSError, ValueError) as e:
+                print('[ERROR][Trainer::loadGTPointsFile]')
+                print('\t load gt points file failed!')
+                print('\t gt_points_file_path:', gt_points_file_path)
+                print('\t error:')
+                print('\t', e)
+                return False
         else:
             gt_pcd = o3d.io.read_point_cloud(gt_points_file_path)
             gt_points = np.asarray(gt_pcd.points)
