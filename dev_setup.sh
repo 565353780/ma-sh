@@ -12,10 +12,11 @@ cd ../open3d-manage
 cd ../param-gauss-recon
 ./dev_setup.sh
 
-if [[ "$(uname)" = "Darwin" ]]; then
+if [ "$(uname)" = "Darwin" ]; then
   brew install bear
-elif [[ "$(uname)" = "Linux" ]]; then
+elif [ "$(uname)" = "Linux" ]; then
   sudo apt install bear -y
+  sudo apt install cmake libgl1-mesa-glx libgl1-mesa-dev -y
 fi
 
 pip install -U ninja
