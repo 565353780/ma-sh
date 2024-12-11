@@ -164,7 +164,7 @@ def sampleRandomMashParams(
     mode: str = 'randn',
     render: bool = False
 ) -> Union[torch.Tensor, None]:
-    assert mode in ['randn', 'rand', 'normal', 'sphere']
+    assert mode in ['randn', 'rand', 'normal', 'sphere'], print('mode [' + mode + '] not valid!')
 
     if mode == 'randn':
         mash = sampleRandomMashByRandn(
