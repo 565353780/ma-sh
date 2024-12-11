@@ -6,9 +6,11 @@ def test():
     sh_degree = 2
     sample_num = 1
     device = 'cuda'
+    mode = 'normal'
     render = True
 
-    random_mash_params = sampleRandomMashParams(anchor_num, mask_degree, sh_degree, sample_num, device, render)
+    random_mash_params = sampleRandomMashParams(anchor_num, mask_degree, sh_degree, sample_num, device, mode, render)
+    assert random_mash_params is not None
 
     print('random_mash_params.shape: ')
     print(random_mash_params.shape)
