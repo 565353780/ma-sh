@@ -6,18 +6,19 @@ from ma_sh.Module.Convertor.mash import Convertor
 
 def demo(device: str = 'cuda:0'):
     HOME = os.environ["HOME"]
-    home_list = [HOME + '/chLi/', "Z:/"]
-
+    root_list = [
+        '/mnt/data/jintian/chLi/Dataset/',
+        HOME + '/chLi/Dataset/',
+    ]
     dataset_root_folder_path = None
-    for home in home_list:
-        dataset_root_folder_path = home + "Dataset/"
-        if os.path.exists(dataset_root_folder_path):
+    for root in root_list:
+        if os.path.exists(root):
+            dataset_root_folder_path = root
             break
-        dataset_root_folder_path = None
 
     if dataset_root_folder_path is None:
-        print('[ERROR][Convertor.mash::demo]')
-        print('\t dataset_root_folder_path not found!')
+        print('[ERROR][sample_pcd_objaverse::demo]')
+        print('\t dataset not found!')
         return False
 
     dataset_name = 'Objaverse_82K'
