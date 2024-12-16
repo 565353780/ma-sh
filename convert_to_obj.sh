@@ -4,10 +4,10 @@ elif [ "$(uname)" = "Linux" ]; then
   PROCESSOR_NUM=$(cat /proc/cpuinfo | grep "processor" | wc -l)
 fi
 
-PROCESSOR_NUM=12
+PROCESSOR_NUM=32
 
 for i in $(seq 1 ${PROCESSOR_NUM}); do
-  python convert_encode_points.py &
+  python convert_to_obj.py &
   sleep 1
   echo "started Convertor No."$i
 done

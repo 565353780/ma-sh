@@ -12,4 +12,4 @@ done
 
 wait
 
-echo "all Convertors started!"
+echo "all Convertors finished!"
