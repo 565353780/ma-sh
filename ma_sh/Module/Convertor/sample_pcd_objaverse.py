@@ -85,7 +85,7 @@ class Convertor(object):
 
         return True
 
-    def convertAll(self, worker_num: int = 6) -> bool:
+    def convertAll(self, worker_num: int = 1) -> bool:
         print("[INFO][Convertor::convertAll]")
         print("\t start convert all shapes to mashes...")
 

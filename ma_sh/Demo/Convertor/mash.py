@@ -1,27 +1,16 @@
-import os
 import torch
 
+from ma_sh.Config.custom_path import toDatasetRootPath
 from ma_sh.Module.Convertor.mash import Convertor
 
 
 def demo(device: str = 'cuda:0'):
-    HOME = os.environ["HOME"]
-    root_list = [
-        '/mnt/data/jintian/chLi/Dataset/',
-        HOME + '/chLi/Dataset/',
-    ]
-    dataset_root_folder_path = None
-    for root in root_list:
-        if os.path.exists(root):
-            dataset_root_folder_path = root
-            break
+    dataset_root_folder_path = toDatasetRootPath()
 
     if dataset_root_folder_path is None:
         print('[ERROR][sample_pcd_objaverse::demo]')
         print('\t dataset not found!')
         return False
-
-    dataset_name = 'Objaverse_82K'
 
     gt_points_num = 400000
     anchor_num = 400
@@ -42,11 +31,8 @@ def demo(device: str = 'cuda:0'):
     factor = 0.8
     patience = 2
 
-    force_start = False
-
     convertor = Convertor(
         dataset_root_folder_path,
-        dataset_name,
         gt_points_num,
         anchor_num,
         mask_degree_max,
@@ -64,7 +50,6 @@ def demo(device: str = 'cuda:0'):
         warmup_epoch,
         factor,
         patience,
-        force_start,
     )
 
     convertor.convertAll()

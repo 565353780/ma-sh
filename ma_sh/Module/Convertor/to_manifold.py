@@ -80,7 +80,7 @@ class Convertor(object):
 
     def convertAll(self) -> bool:
         print("[INFO][Convertor::convertAll]")
-        print("\t start convert all shapes to mashes...")
+        print("\t start convert all shapes to manifold meshes...")
         solved_shape_num = 0
 
         dataset_folder_path = self.normalized_mesh_folder_path

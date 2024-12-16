@@ -3,7 +3,7 @@ import torch
 from time import time
 from typing import Union
 
-from ma_sh.Method.path import createFileFolder
+from ma_sh.Method.path import createFileFolder, removeFile
 from ma_sh.Module.trainer import Trainer
 
 
@@ -11,7 +11,6 @@ class Convertor(object):
     def __init__(
         self,
         dataset_root_folder_path: str,
-        dataset_name: str,
         gt_points_num: int = 400000,
         anchor_num: int = 400,
         mask_degree_max: int = 3,
@@ -29,7 +28,6 @@ class Convertor(object):
         warmup_epoch: int = 4,
         factor: float = 0.8,
         patience: int = 2,
-        force_start: bool = False,
     ) -> None:
         self.dataset_root_folder_path = dataset_root_folder_path
 
@@ -53,11 +51,8 @@ class Convertor(object):
         self.factor = factor
         self.patience = patience
 
-        self.force_start = force_start
-
-        self.sampled_pcd_folder_path = self.dataset_root_folder_path + dataset_name + "/pcd/"
-        self.mash_folder_path = self.dataset_root_folder_path + dataset_name + "/mash/"
-        self.tag_folder_path = self.dataset_root_folder_path + "Tag/" + dataset_name + "_mash/"
+        self.sampled_pcd_folder_path = self.dataset_root_folder_path + "/Objaverse_82K/manifold_pcd/"
+        self.mash_folder_path = self.dataset_root_folder_path + "/Objaverse_82K/manifold_mash/"
         return
 
     def createTrainer(
@@ -94,6 +89,11 @@ class Convertor(object):
     def convertOneShape(self, model_id: str) -> bool:
         rel_file_path = model_id
 
+        mash_file_path = self.mash_folder_path + rel_file_path + ".npy"
+
+        if os.path.exists(mash_file_path):
+            return True
+
         sampled_pcd_file_path = self.sampled_pcd_folder_path + rel_file_path + ".npy"
 
         if not os.path.exists(sampled_pcd_file_path):
@@ -102,33 +102,21 @@ class Convertor(object):
             print("\t sampled_pcd_file_path:", sampled_pcd_file_path)
             return False
 
-        finish_tag_file_path = self.tag_folder_path + rel_file_path + "/finish.txt"
-
-        if os.path.exists(finish_tag_file_path):
-            return True
-
-        start_tag_file_path = self.tag_folder_path + rel_file_path + "/start.txt"
+        start_tag_file_path = (
+            self.mash_folder_path + rel_file_path + "_start.txt"
+        )
 
         if os.path.exists(start_tag_file_path):
-            if not self.force_start:
-                return True
+            return True
 
         createFileFolder(start_tag_file_path)
 
         with open(start_tag_file_path, "w") as f:
             f.write("\n")
 
-        mash_file_path = self.mash_folder_path + rel_file_path + ".npy"
-
         createFileFolder(mash_file_path)
 
-        if False:
-            trainer = self.createTrainer(
-                self.save_root_folder_path + "result/" + unit_rel_folder_path + "/",
-                self.save_root_folder_path + "log/" + unit_rel_folder_path + "/",
-            )
-        else:
-            trainer = self.createTrainer()
+        trainer = self.createTrainer()
 
         try:
             if not trainer.loadGTPointsFile(sampled_pcd_file_path):
@@ -147,8 +135,8 @@ class Convertor(object):
 
         trainer.saveMashFile(mash_file_path, True)
 
-        with open(finish_tag_file_path, "w") as f:
-            f.write("\n")
+        removeFile(start_tag_file_path)
+
         return True
 
     def convertAll(self) -> bool:
@@ -167,11 +155,14 @@ class Convertor(object):
             modelid_list = os.listdir(class_folder_path)
             modelid_list.sort()
 
-            full_model_id_list = [classname + '/' + model_id[:-4] for model_id in modelid_list]
+            for modelid in modelid_list:
+                if modelid.endswith('.txt'):
+                    continue
 
-            for modelid in full_model_id_list:
+                model_id = classname + '/' + modelid[:-4]
+
                 start = time()
-                self.convertOneShape(modelid)
+                self.convertOneShape(model_id)
                 spend = time() - start
 
                 solved_shape_num += 1
