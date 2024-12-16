@@ -11,27 +11,28 @@ from ma_sh.Module.Convertor.encode_image import Convertor
 
 def demo():
     dataset_root_folder_path = toDatasetRootPath()
-    if dataset_root_folder_path is None:
-        print('[ERROR][encode_image::demo]')
-        print('\t toDatasetRootPath failed!')
-        return False
-
     model_file_path_dict = {
         'clip': os.environ['HOME'] + '/Model/open_clip/DFN5B-CLIP-ViT-H-14-378.bin',
         'dino': os.environ['HOME'] + '/Model/DINOv2/dinov2_vitg14_reg4_pretrain.pth',
         'ulip': os.environ['HOME'] + '/chLi/Model/ULIP2/pretrained_models_ckpt_zero-sho_classification_pointbert_ULIP-2.pt',
     }
-    mode = 'dino'
+    mode = 'clip'
     device = "cuda:0"
-    force_start = False
+    source_data_type = '/'
+    target_data_type = '.npy'
+
+    if dataset_root_folder_path is None:
+        print('[ERROR][encode_image::demo]')
+        print('\t toDatasetRootPath failed!')
+        return False
 
     convertor = Convertor(
-        dataset_root_folder_path,
+        dataset_root_folder_path + "Objaverse_82K/render/",
+        dataset_root_folder_path + "Objaverse_82K/render_" + mode + "/",
         model_file_path_dict[mode],
         mode,
         device,
-        force_start,
     )
 
-    convertor.convertAll()
+    convertor.convertAll(source_data_type, target_data_type)
     return True
