@@ -1,4 +1,5 @@
 import os
+from typing import Union
 
 mesh_file_path_dict = {
     "mac_plane": "/Users/fufu/Downloads/plane.obj",
@@ -39,3 +40,17 @@ mesh_file_path_dict.update(append_dict)
 asdf_folder_path_dict = {
     "mac_bunny_v2-err10": "/Users/fufu/Nutstore Files/paper-materials-ASDF/Data/bunny/v2-err10/params/",
 }
+
+DATASET_ROOT_PATH_LIST = [
+    '/mnt/data/jintian/chLi/Dataset/',
+    os.environ['HOME'] + '/chLi/Dataset/',
+]
+
+def toDatasetRootPath() -> Union[str, None]:
+    for root in DATASET_ROOT_PATH_LIST:
+        if os.path.exists(root):
+            return root
+
+    print('[ERROR][custom_path::toDatasetRootPath]')
+    print('\t dataset not found!')
+    return None

@@ -2,6 +2,9 @@ cd ..
 git clone https://github.com/565353780/sdf-generate.git
 git clone https://github.com/565353780/open3d-manage.git
 git clone https://github.com/565353780/param-gauss-recon.git
+git clone https://github.com/565353780/open-clip-detect.git
+git clone https://github.com/565353780/dino-v2-detect.git
+git clone https://github.com/565353780/ulip-manage.git
 
 cd sdf-generate
 ./setup.sh
@@ -10,6 +13,15 @@ cd ../open3d-manage
 ./setup.sh
 
 cd ../param-gauss-recon
+./setup.sh
+
+cd ../open-clip-detect
+./setup.sh
+
+cd ../dino-v2-detect
+./setup.sh
+
+cd ../ulip-manage
 ./setup.sh
 
 if [ "$(uname)" = "Darwin" ]; then
