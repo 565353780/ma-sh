@@ -1,49 +1,55 @@
 import os
+import open3d as o3d
 
 from sdf_generate.Method.to_manifold import toManifold
 
-from ma_sh.Method.path import createFileFolder
+from ma_sh.Method.path import createFileFolder, removeFile
 
 
 class Convertor(object):
     def __init__(
         self,
         dataset_root_folder_path: str,
-        gt_points_num: int = 400000,
         force_start: bool = False,
     ) -> None:
         self.dataset_root_folder_path = dataset_root_folder_path
-        self.gt_points_num = gt_points_num
         self.force_start = force_start
 
         self.normalized_mesh_folder_path = (
-            self.dataset_root_folder_path + "NormalizedMesh/"
+            self.dataset_root_folder_path + "Objaverse_82K/mesh/"
         )
-        self.manifold_mesh_folder_path = self.dataset_root_folder_path + "ManifoldMesh/"
-        self.tag_folder_path = self.dataset_root_folder_path + "Tag/ManifoldMesh/"
+        self.manifold_mesh_folder_path = self.dataset_root_folder_path + "Objaverse_82K/manifold/"
         return
 
     def convertOneShape(
-        self, dataset_name: str, class_name: str, model_id: str
+        self, model_id: str
     ) -> bool:
-        rel_file_path = dataset_name + "/" + class_name + "/" + model_id
+        rel_file_path = model_id
+
+        ply_mesh_file_path = (
+            self.normalized_mesh_folder_path + rel_file_path + ".ply"
+        )
 
         normalized_mesh_file_path = (
             self.normalized_mesh_folder_path + rel_file_path + ".obj"
         )
 
         if not os.path.exists(normalized_mesh_file_path):
-            print("[ERROR][Convertor::convertOneShape]")
-            print("\t shape file not exist!")
-            print("\t normalized_mesh_file_path:", normalized_mesh_file_path)
-            return False
+            if not os.path.exists(ply_mesh_file_path):
+                print("[ERROR][Convertor::convertOneShape]")
+                print("\t shape file not exist!")
+                print("\t normalized_mesh_file_path:", normalized_mesh_file_path)
+                return False
 
-        finish_tag_file_path = self.tag_folder_path + rel_file_path + "/finish.txt"
+            mesh = o3d.io.read_triangle_mesh(ply_mesh_file_path)
+            o3d.io.write_triangle_mesh(normalized_mesh_file_path, mesh, write_ascii=True)
 
-        if os.path.exists(finish_tag_file_path):
-            return True
+        if os.path.exists(ply_mesh_file_path):
+            removeFile(ply_mesh_file_path)
 
-        start_tag_file_path = self.tag_folder_path + rel_file_path + "/start.txt"
+        start_tag_file_path = (
+            self.manifold_mesh_folder_path + rel_file_path + "_start.txt"
+        )
 
         if os.path.exists(start_tag_file_path):
             if not self.force_start:
@@ -61,15 +67,14 @@ class Convertor(object):
         createFileFolder(manifold_mesh_file_path)
 
         try:
-            toManifold(normalized_mesh_file_path, manifold_mesh_file_path, True)
+            toManifold(normalized_mesh_file_path, manifold_mesh_file_path, False)
         except:
             print("[ERROR][Convertor::convertOneShape]")
             print("\t toManifold failed!")
             print("\t normalized_mesh_file_path:", normalized_mesh_file_path)
             return False
 
-        with open(finish_tag_file_path, "w") as f:
-            f.write("\n")
+        removeFile(start_tag_file_path)
 
         return True
 
@@ -78,7 +83,7 @@ class Convertor(object):
         print("\t start convert all shapes to mashes...")
         solved_shape_num = 0
 
-        dataset_folder_path = self.normalized_mesh_folder_path + "ShapeNet/"
+        dataset_folder_path = self.normalized_mesh_folder_path
 
         classname_list = os.listdir(dataset_folder_path)
         classname_list.sort()
@@ -88,10 +93,10 @@ class Convertor(object):
             modelid_list = os.listdir(class_folder_path)
             modelid_list.sort()
 
-            for model_file_name in modelid_list:
-                modelid = model_file_name.split(".obj")[0]
+            for modelid in modelid_list:
+                model_id = classname + '/' + modelid[:-4]
 
-                self.convertOneShape("ShapeNet", classname, modelid)
+                self.convertOneShape(model_id)
 
                 solved_shape_num += 1
                 print("solved shape num:", solved_shape_num)
