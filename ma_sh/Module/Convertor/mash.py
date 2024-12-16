@@ -130,9 +130,14 @@ class Convertor(object):
         else:
             trainer = self.createTrainer()
 
-        if not trainer.loadGTPointsFile(sampled_pcd_file_path):
+        try:
+            if not trainer.loadGTPointsFile(sampled_pcd_file_path):
+                print('[ERROR][Convertor::convertOneShape]')
+                print('\t loadGTPointsFile failed!')
+                return False
+        except:
             print('[ERROR][Convertor::convertOneShape]')
-            print('\t loadGTPointsFile failed!')
+            print('\t loadGTPointsFile raise Error!')
             return False
 
         if not trainer.autoTrainMash(self.gt_points_num):
