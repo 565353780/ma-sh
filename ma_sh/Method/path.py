@@ -9,7 +9,12 @@ def createFileFolder(file_path):
 
 
 def renameFile(source_file_path, target_file_path):
-    assert not os.path.exists(target_file_path)
+    if os.path.exists(target_file_path):
+        print('[ERROR][path::renameFile]')
+        print('\t target file already exist!')
+        print('\t source_file_path:', source_file_path)
+        print('\t target_file_path:', target_file_path)
+        return False
 
     while os.path.exists(source_file_path):
         try:
