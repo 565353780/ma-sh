@@ -13,11 +13,8 @@ def demo():
         print('\t toDatasetRootPath failed!')
         return False
 
-    force_start = False
-
     convertor = Convertor(
         dataset_root_folder_path,
-        force_start,
     )
 
     convertor.convertAll()

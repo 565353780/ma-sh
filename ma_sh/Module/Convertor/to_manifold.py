@@ -10,10 +10,8 @@ class Convertor(object):
     def __init__(
         self,
         dataset_root_folder_path: str,
-        force_start: bool = False,
     ) -> None:
         self.dataset_root_folder_path = dataset_root_folder_path
-        self.force_start = force_start
 
         self.normalized_mesh_folder_path = (
             self.dataset_root_folder_path + "Objaverse_82K/mesh/"
@@ -25,6 +23,13 @@ class Convertor(object):
         self, model_id: str
     ) -> bool:
         rel_file_path = model_id
+
+        manifold_mesh_file_path = (
+            self.manifold_mesh_folder_path + rel_file_path + ".obj"
+        )
+
+        if os.path.exists(manifold_mesh_file_path):
+            return True
 
         ply_mesh_file_path = (
             self.normalized_mesh_folder_path + rel_file_path + ".ply"
@@ -52,17 +57,12 @@ class Convertor(object):
         )
 
         if os.path.exists(start_tag_file_path):
-            if not self.force_start:
-                return True
+            return True
 
         createFileFolder(start_tag_file_path)
 
         with open(start_tag_file_path, "w") as f:
             f.write("\n")
-
-        manifold_mesh_file_path = (
-            self.manifold_mesh_folder_path + rel_file_path + ".obj"
-        )
 
         createFileFolder(manifold_mesh_file_path)
 

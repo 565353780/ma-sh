@@ -4,7 +4,7 @@ from tqdm import tqdm
 from multiprocessing import Pool
 
 from ma_sh.Data.mesh import Mesh
-from ma_sh.Method.path import createFileFolder
+from ma_sh.Method.path import createFileFolder, removeFile
 
 
 class Convertor(object):
@@ -13,17 +13,14 @@ class Convertor(object):
         dataset_root_folder_path: str,
         dataset_name: str,
         gt_points_num: int = 400000,
-        force_start: bool = False,
     ) -> None:
         self.dataset_root_folder_path = dataset_root_folder_path
         self.gt_points_num = gt_points_num
-        self.force_start = force_start
 
-        self.normalized_mesh_folder_path = (
-            self.dataset_root_folder_path + dataset_name + "/mesh/"
+        self.manifold_mesh_folder_path = (
+            self.dataset_root_folder_path + dataset_name + "/manifold/"
         )
-        self.sampled_pcd_folder_path = self.dataset_root_folder_path + dataset_name + "/pcd/"
-        self.tag_folder_path = self.dataset_root_folder_path + "Tag/" + dataset_name + "_pcd/"
+        self.sampled_pcd_folder_path = self.dataset_root_folder_path + dataset_name + "/manifold_pcd/"
         return
 
     def convertOneShape(
@@ -31,26 +28,25 @@ class Convertor(object):
     ) -> bool:
         rel_file_path = model_id
 
-        normalized_mesh_file_path = (
-            self.normalized_mesh_folder_path + rel_file_path + ".ply"
-        )
+        sampled_pcd_file_path = self.sampled_pcd_folder_path + rel_file_path + ".npy"
 
-        if not os.path.exists(normalized_mesh_file_path):
-            print("[ERROR][Convertor::convertOneShape]")
-            print("\t shape file not exist!")
-            print("\t normalized_mesh_file_path:", normalized_mesh_file_path)
-            return False
-
-        finish_tag_file_path = self.tag_folder_path + rel_file_path + "/finish.txt"
-
-        if os.path.exists(finish_tag_file_path):
+        if os.path.exists(sampled_pcd_file_path):
             return True
 
-        start_tag_file_path = self.tag_folder_path + rel_file_path + "/start.txt"
+        manifold_mesh_file_path = (
+            self.manifold_mesh_folder_path + rel_file_path + ".obj"
+        )
+
+        if not os.path.exists(manifold_mesh_file_path):
+            print("[ERROR][Convertor::convertOneShape]")
+            print("\t shape file not exist!")
+            print("\t manifold_mesh_file_path:", manifold_mesh_file_path)
+            return False
+
+        start_tag_file_path = self.sampled_pcd_folder_path + rel_file_path + "_start.txt"
 
         if os.path.exists(start_tag_file_path):
-            if not self.force_start:
-                return True
+            return True
 
         createFileFolder(start_tag_file_path)
 
@@ -61,12 +57,12 @@ class Convertor(object):
 
         createFileFolder(sampled_pcd_file_path)
 
-        mesh = Mesh(normalized_mesh_file_path)
+        mesh = Mesh(manifold_mesh_file_path)
 
         if not mesh.isValid():
             print("[ERROR][Convertor::convertOneShape]")
             print("\t mesh is not valid!")
-            print("\t normalized_mesh_file_path:", normalized_mesh_file_path)
+            print("\t manifold_mesh_file_path:", manifold_mesh_file_path)
             return False
 
         try:
@@ -74,30 +70,26 @@ class Convertor(object):
         except:
             print("[ERROR][Convertor::convertOneShape]")
             print("\t toSamplePoints failed!")
-            print("\t normalized_mesh_file_path:", normalized_mesh_file_path)
+            print("\t manifold_mesh_file_path:", manifold_mesh_file_path)
             return False
 
         if points is None:
             print("[ERROR][Convertor::convertOneShape]")
             print("\t toSamplePoints failed!")
-            print("\t normalized_mesh_file_path:", normalized_mesh_file_path)
+            print("\t manifold_mesh_file_path:", manifold_mesh_file_path)
             return False
 
         np.save(sampled_pcd_file_path, points)
 
-        with open(finish_tag_file_path, "w") as f:
-            f.write("\n")
+        removeFile(start_tag_file_path)
 
         return True
 
     def convertAll(self, worker_num: int = 6) -> bool:
-        if self.force_start:
-            worker_num = 1
-
         print("[INFO][Convertor::convertAll]")
         print("\t start convert all shapes to mashes...")
 
-        dataset_folder_path = self.normalized_mesh_folder_path
+        dataset_folder_path = self.manifold_mesh_folder_path
 
         classname_list = os.listdir(dataset_folder_path)
         classname_list.sort()
