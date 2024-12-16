@@ -1,20 +1,23 @@
-import os
-
-from ma_sh.Module.Convertor.sample_pcd import Convertor
+from ma_sh.Config.custom_path import toDatasetRootPath
+from ma_sh.Module.Convertor.sample_pcd_objaverse import Convertor
 
 
 def demo():
-    HOME = os.environ["HOME"]
-
-    dataset_root_folder_path = HOME + "/chLi/Dataset/"
+    dataset_root_folder_path = toDatasetRootPath()
     gt_points_num = 400000
-    force_start = False
+    source_data_type = '.obj'
+    target_data_type = '.npy'
+
+    if dataset_root_folder_path is None:
+        print('[ERROR][sample_pcd_objaverse::demo]')
+        print('\t toDatasetRootPath failed!')
+        return False
 
     convertor = Convertor(
-        dataset_root_folder_path,
+        dataset_root_folder_path + "/Objaverse_82K/manifold/",
+        dataset_root_folder_path + "/Objaverse_82K/manifold_pcd/",
         gt_points_num,
-        force_start,
     )
 
-    convertor.convertAll()
+    convertor.convertAll(source_data_type, target_data_type)
     return True
