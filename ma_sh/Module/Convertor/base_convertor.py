@@ -93,7 +93,7 @@ class BaseConvertor(ABC):
                 continue
 
             for file in files:
-                if file.endswith('.txt'):
+                if not file.endswith(target_data_type):
                     continue
 
                 rel_base_path = os.path.relpath(root + file, self.source_root_folder_path)
