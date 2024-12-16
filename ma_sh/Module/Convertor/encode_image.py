@@ -39,6 +39,8 @@ class Convertor(BaseConvertor):
 
         #FIXME: check if all images are captured
         if len(image_filename_list) < 12:
+            print('[ERROR][Convertor::convertData]')
+            print('\t image num not enough!')
             return False
 
         image_embedding_dict = {}
