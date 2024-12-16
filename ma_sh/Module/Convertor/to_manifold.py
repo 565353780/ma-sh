@@ -94,6 +94,9 @@ class Convertor(object):
             modelid_list.sort()
 
             for modelid in modelid_list:
+                if modelid.endswith('.txt'):
+                    continue
+
                 model_id = classname + '/' + modelid[:-4]
 
                 self.convertOneShape(model_id)

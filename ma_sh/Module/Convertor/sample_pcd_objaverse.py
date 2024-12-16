@@ -100,7 +100,7 @@ class Convertor(object):
             modelid_list = os.listdir(class_folder_path)
             modelid_list.sort()
 
-            full_model_id_list = [classname + '/' + model_id[:-4] for model_id in modelid_list]
+            full_model_id_list = [classname + '/' + modelid[:-4] for modelid in modelid_list if not modelid.endswith('.txt')]
 
             print("[INFO][Convertor::convertAll]")
             print('\t start convert all objaverse meshes to sample pcd :', classname, '...')
