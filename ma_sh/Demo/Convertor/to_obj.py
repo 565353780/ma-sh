@@ -1,5 +1,5 @@
 from ma_sh.Config.custom_path import toDatasetRootPath
-from ma_sh.Module.Convertor.to_manifold import Convertor
+from ma_sh.Module.Convertor.to_obj import Convertor
 
 
 def demo():
