@@ -88,7 +88,7 @@ class BaseConvertor(ABC):
                 if isHaveSubFolder(path):
                     continue
 
-                rel_base_path = os.path.relpath(path, self.source_root_folder_path)
+                rel_base_path = os.path.relpath(str(path), self.source_root_folder_path)
 
                 self.convertOneShape(rel_base_path, source_data_type, target_data_type)
 
@@ -99,10 +99,10 @@ class BaseConvertor(ABC):
             if not path.is_file():
                 continue
 
-            if path.name.endswith(target_data_type):
+            if not path.name.endswith(target_data_type):
                 continue
 
-            rel_base_path = os.path.relpath(path.name, self.source_root_folder_path)
+            rel_base_path = os.path.relpath(str(path), self.source_root_folder_path)
 
             rel_base_path = rel_base_path[:-len(target_data_type)]
 
