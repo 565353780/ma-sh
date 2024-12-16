@@ -1,4 +1,5 @@
 import os
+from shutil import rmtree
 
 
 def createFileFolder(file_path):
@@ -15,6 +16,15 @@ def removeFile(file_path):
             continue
     return True
 
+def removeFolder(folder_path):
+    while os.path.exists(folder_path):
+        try:
+            rmtree(folder_path)
+        except:
+            pass
+
+    return True
+
 def renameFile(source_file_path, target_file_path, overwrite: bool = False):
     if os.path.exists(target_file_path):
         if not overwrite:
@@ -27,4 +37,19 @@ def renameFile(source_file_path, target_file_path, overwrite: bool = False):
             os.rename(source_file_path, target_file_path)
         except:
             pass
+    return True
+
+def renameFolder(source_folder_path: str, target_folder_path: str, overwrite: bool = False):
+    if os.path.exists(target_folder_path):
+        if not overwrite:
+            return True
+
+        removeFolder(target_folder_path)
+
+    while os.path.exists(source_folder_path):
+        try:
+            os.rename(source_folder_path, target_folder_path)
+        except:
+            pass
+
     return True
