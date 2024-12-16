@@ -105,7 +105,7 @@ class Convertor(object):
 
             if self.mode == 'clip':
                 image_embedding = self.clip_detector.detectImageFile(image_file_path).cpu().numpy()
-            if self.mode == 'dino':
+            elif self.mode == 'dino':
                 image_embedding = self.dino_detector.detectFile(image_file_path).cpu().numpy()
             elif self.mode == 'ulip':
                 image_embedding = self.ulip_detector.encodeImageFile(image_file_path).unsqueeze(0).cpu().numpy()
