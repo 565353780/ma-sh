@@ -138,7 +138,7 @@ class BaseConvertor(ABC):
                 if file.endswith('_tmp' + source_data_type):
                     continue
 
-                rel_base_path = os.path.relpath(file, self.source_root_folder_path)
+                rel_base_path = os.path.relpath(root + '/' + file, self.source_root_folder_path)
 
                 rel_base_path = rel_base_path[:-len(target_data_type)]
 
