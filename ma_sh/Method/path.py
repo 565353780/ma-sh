@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+from typing import Union
 from shutil import rmtree
 
 
@@ -53,3 +55,23 @@ def renameFolder(source_folder_path: str, target_folder_path: str, overwrite: bo
             pass
 
     return True
+
+def isHaveSubFolder(folder_path: Union[Path, str]) -> bool:
+    if isinstance(folder_path, str):
+        folder = Path(folder_path)
+    else:
+        folder = folder_path
+
+    if not folder.is_dir():
+        print('[ERROR][path::isHaveSubFolder]')
+        print('\t folder not exist!')
+        print('\t folder_path:', folder_path)
+        return False
+
+    try:
+        return any(item.is_dir() for item in folder.iterdir())
+    except PermissionError:
+        print('[ERROR][path::isHaveSubFolder]')
+        print('\t permission denied!')
+        print('\t folder_path:', folder_path)
+        return False

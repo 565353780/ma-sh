@@ -1,7 +1,8 @@
 import os
+from pathlib import Path
 from abc import ABC, abstractmethod
 
-from ma_sh.Method.path import createFileFolder, removeFile, renameFile, renameFolder
+from ma_sh.Method.path import createFileFolder, removeFile, renameFile, renameFolder, isHaveSubFolder
 
 
 class BaseConvertor(ABC):
@@ -79,12 +80,15 @@ class BaseConvertor(ABC):
         print("\t start convert all data...")
         solved_shape_num = 0
 
-        for root, dirs, files in os.walk(self.source_root_folder_path):
+        for path in Path(self.source_root_folder_path).rglob("*"):
             if source_data_type == '/':
-                if dirs:
+                if not path.is_dir():
                     continue
 
-                rel_base_path = os.path.relpath(root, self.source_root_folder_path)
+                if isHaveSubFolder(path):
+                    continue
+
+                rel_base_path = os.path.relpath(path, self.source_root_folder_path)
 
                 self.convertOneShape(rel_base_path, source_data_type, target_data_type)
 
@@ -92,16 +96,18 @@ class BaseConvertor(ABC):
                 print("solved shape num:", solved_shape_num)
                 continue
 
-            for file in files:
-                if not file.endswith(target_data_type):
-                    continue
+            if not path.is_file():
+                continue
 
-                rel_base_path = os.path.relpath(root + '/' + file, self.source_root_folder_path)
+            if path.name.endswith(target_data_type):
+                continue
 
-                rel_base_path = rel_base_path[:-len(target_data_type)]
+            rel_base_path = os.path.relpath(path.name, self.source_root_folder_path)
 
-                self.convertOneShape(rel_base_path, source_data_type, target_data_type)
+            rel_base_path = rel_base_path[:-len(target_data_type)]
 
-                solved_shape_num += 1
-                print("solved shape num:", solved_shape_num)
+            self.convertOneShape(rel_base_path, source_data_type, target_data_type)
+
+            solved_shape_num += 1
+            print("solved shape num:", solved_shape_num)
         return True
