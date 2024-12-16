@@ -80,6 +80,7 @@ class BaseConvertor(ABC):
         print("\t start convert all data...")
         solved_shape_num = 0
 
+        '''
         for path in Path(self.source_root_folder_path).rglob("*"):
             if source_data_type == '/':
                 if not path.is_dir():
@@ -115,4 +116,35 @@ class BaseConvertor(ABC):
 
             solved_shape_num += 1
             print("solved shape num:", solved_shape_num)
+        '''
+
+        for root, dirs, files in os.walk(self.source_root_folder_path):
+            if source_data_type == '/':
+                if dirs:
+                    continue
+
+                rel_base_path = os.path.relpath(root, self.source_root_folder_path)
+
+                self.convertOneShape(rel_base_path, source_data_type, target_data_type)
+
+                solved_shape_num += 1
+                print("solved shape num:", solved_shape_num)
+                continue
+
+            for file in files:
+                if not file.endswith(source_data_type):
+                    continue
+
+                if file.endswith('_tmp' + source_data_type):
+                    continue
+
+                rel_base_path = os.path.relpath(file, self.source_root_folder_path)
+
+                rel_base_path = rel_base_path[:-len(target_data_type)]
+
+                self.convertOneShape(rel_base_path, source_data_type, target_data_type)
+
+                solved_shape_num += 1
+                print("solved shape num:", solved_shape_num)
+
         return True
