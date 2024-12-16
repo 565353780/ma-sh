@@ -98,8 +98,7 @@ class BaseConvertor(ABC):
 
                 rel_base_path = os.path.relpath(root + '/' + file, self.source_root_folder_path)
 
-                if rel_base_path[-4] == '.':
-                    rel_base_path = rel_base_path[:-4]
+                rel_base_path = rel_base_path[:-len(target_data_type)]
 
                 self.convertOneShape(rel_base_path, source_data_type, target_data_type)
 
