@@ -43,6 +43,7 @@ asdf_folder_path_dict = {
 
 DATASET_ROOT_PATH_LIST = [
     '/mnt/data/jintian/chLi/Dataset/',
+    os.environ['HOME'] + '/Dataset/',
     os.environ['HOME'] + '/chLi/Dataset/',
 ]
 
