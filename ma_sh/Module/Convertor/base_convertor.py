@@ -96,7 +96,7 @@ class BaseConvertor(ABC):
                 if not file.endswith(target_data_type):
                     continue
 
-                rel_base_path = os.path.relpath(root + file, self.source_root_folder_path)
+                rel_base_path = os.path.relpath(root + '/' + file, self.source_root_folder_path)
 
                 if rel_base_path[-4] == '.':
                     rel_base_path = rel_base_path[:-4]
