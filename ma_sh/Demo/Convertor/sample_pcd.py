@@ -1,5 +1,5 @@
 from ma_sh.Config.custom_path import toDatasetRootPath
-from ma_sh.Module.Convertor.sample_pcd_objaverse import Convertor
+from ma_sh.Module.Convertor.sample_pcd import Convertor
 
 
 def demo():
