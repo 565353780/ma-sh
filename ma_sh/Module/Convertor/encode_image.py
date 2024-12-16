@@ -5,7 +5,7 @@ from open_clip_detect.Module.detector import Detector as CLIPDetector
 from dino_v2_detect.Module.detector import Detector as DINODetector
 from ulip_manage.Module.detector import Detector as ULIPDetector
 
-from ma_sh.Method.path import createFileFolder, removeFile
+from ma_sh.Method.path import createFileFolder
 
 
 class Convertor(object):
@@ -35,6 +35,13 @@ class Convertor(object):
         )
         self.tag_folder_path = self.dataset_root_folder_path + "Tag/Objaverse_82K_render_" + mode + "/"
 
+        local_path = '/home/chli/Dataset/'
+        if os.path.exists(local_path):
+            self.image_embedding_folder_path = (
+                local_path + "Objaverse_82K/render_" + mode + "/"
+            )
+            self.tag_folder_path = local_path + "Tag/Objaverse_82K_render_" + mode + "/"
+
         if self.mode == 'clip':
             self.clip_detector = CLIPDetector(model_file_path, self.device, False)
         if self.mode == 'dino':
@@ -62,15 +69,19 @@ class Convertor(object):
         finish_tag_file_path = self.tag_folder_path + rel_file_path + "/finish.txt"
 
         if os.path.exists(finish_tag_file_path):
+            '''
+            #FIXME: check if all images are embedded
             image_embedding_file_path = (
                 self.image_embedding_folder_path + rel_file_path + ".npy"
             )
             image_embedding_dict = np.load(image_embedding_file_path, allow_pickle=True).item()
-            if len(list(image_embedding_dict.keys())) < 24:
+            if len(list(image_embedding_dict.keys())) < 12:
                 removeFile(finish_tag_file_path)
                 removeFile(image_embedding_file_path)
             else:
                 return True
+            '''
+            return True
 
         start_tag_file_path = self.tag_folder_path + rel_file_path + "/start.txt"
 
