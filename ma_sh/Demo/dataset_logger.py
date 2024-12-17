@@ -11,7 +11,7 @@ def demo():
         'mash': 'Objaverse_82K/mash/',
         'mesh': 'Objaverse_82K/mesh/',
     }
-    sleep_second = 1.0
+    sleep_second = 600.0
 
     if dataset_root_folder_path is None:
         print('[ERROR][dataset_logger::demo]')
