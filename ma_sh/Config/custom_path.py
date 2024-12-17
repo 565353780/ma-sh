@@ -42,16 +42,18 @@ asdf_folder_path_dict = {
 }
 
 DATASET_ROOT_PATH_LIST = [
-    '/mnt/data/jintian/chLi/Dataset/',
-    os.environ['HOME'] + '/chLi/Dataset/',
-    os.environ['HOME'] + '/Dataset/',
+    "/mnt/d/chLi/Dataset/",
+    os.environ["HOME"] + "/chLi/Dataset/",
+    # os.environ["HOME"] + "/Dataset/",
+    # "/mnt/data/jintian/chLi/Dataset/",
 ]
+
 
 def toDatasetRootPath() -> Union[str, None]:
     for root in DATASET_ROOT_PATH_LIST:
         if os.path.exists(root):
             return root
 
-    print('[ERROR][custom_path::toDatasetRootPath]')
-    print('\t dataset not found!')
+    print("[ERROR][custom_path::toDatasetRootPath]")
+    print("\t dataset not found!")
     return None
