@@ -1,6 +1,5 @@
 import trimesh
 import numpy as np
-import open3d as o3d
 
 from ma_sh.Method.path import removeFile
 from ma_sh.Module.Convertor.base_convertor import BaseConvertor
@@ -21,25 +20,6 @@ class Convertor(BaseConvertor):
         return
 
     def convertData(self, source_path: str, target_path: str) -> bool:
-        if source_path.endswith('.ply'):
-            mesh = o3d.io.read_triangle_mesh(source_path)
-
-            if self.need_normalize:
-                min_bound = np.min(mesh.vertices, axis=0)
-                max_bound = np.max(mesh.vertices, axis=0)
-                length = np.max(max_bound - min_bound)
-                scale = 0.9 / length
-                center = (min_bound + max_bound) / 2.0
-
-                mesh.vertices = (mesh.vertices - center) * scale
-
-            o3d.io.write_triangle_mesh(target_path, mesh, write_ascii=True)
-
-            if self.remove_source:
-                removeFile(source_path)
-
-            return True
-
         try:
             mesh = trimesh.load(source_path)
         except:

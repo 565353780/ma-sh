@@ -4,12 +4,18 @@ from ma_sh.Config.custom_path import toDatasetRootPath
 from ma_sh.Method.path import removeFile
 
 def clearTag(tag_folder_path: str) -> bool:
+    cleared_tag_num = 0
+
     for root, _, files in os.walk(tag_folder_path):
         for file in files:
             if not file.endswith('start.txt'):
                 continue
 
             removeFile(root + '/' + file)
+
+            cleared_tag_num += 1
+            print(root + '/' + file)
+            print('cleared tag num:', cleared_tag_num)
 
     return True
 

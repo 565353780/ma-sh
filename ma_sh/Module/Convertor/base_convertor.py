@@ -1,7 +1,8 @@
 import os
+from typing import Union
 from abc import ABC, abstractmethod
 
-from ma_sh.Method.path import createFileFolder, removeFile, renameFile, renameFolder
+from ma_sh.Method.path import createFileFolder, removeFile, renameFile, renameFolder, waitFile
 
 
 class BaseConvertor(ABC):
@@ -23,7 +24,7 @@ class BaseConvertor(ABC):
         rel_base_path: str,
         source_data_type: str,
         target_data_type: str,
-    ) -> bool:
+    ) -> Union[bool, None]:
         target_path = (
             self.target_root_folder_path + rel_base_path + target_data_type
         )
@@ -34,6 +35,8 @@ class BaseConvertor(ABC):
         source_path = (
             self.source_root_folder_path + rel_base_path + source_data_type
         )
+
+        waitFile(source_path, 1)
 
         if not os.path.exists(source_path):
             print("[ERROR][BaseConvertor::convertOneShape]")
@@ -46,7 +49,7 @@ class BaseConvertor(ABC):
         )
 
         if os.path.exists(start_tag_file_path):
-            return True
+            return None
 
         createFileFolder(start_tag_file_path)
 

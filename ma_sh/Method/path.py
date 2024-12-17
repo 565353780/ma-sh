@@ -1,4 +1,5 @@
 import os
+from time import time
 from shutil import rmtree
 
 
@@ -53,3 +54,14 @@ def renameFolder(source_folder_path: str, target_folder_path: str, overwrite: bo
             pass
 
     return True
+
+def waitFile(file_path: str, wait_second: int) -> bool:
+    start = time()
+
+    while not os.path.exists(file_path):
+        spend = time() - start
+
+        if spend > wait_second:
+            break
+
+    return os.path.exists(file_path)

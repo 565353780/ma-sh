@@ -23,7 +23,12 @@ class PipelineConvertor(object):
             source_data_type = data_type_list[i]
             target_data_type = data_type_list[i + 1]
 
-            if not self.convertor_list[i].convertOneShape(rel_base_path, source_data_type, target_data_type):
+            state = self.convertor_list[i].convertOneShape(rel_base_path, source_data_type, target_data_type)
+
+            if state is None:
+                return True
+
+            if not state:
                 print('[ERROR][PipelineConvertor::convertOneShape]')
                 print('\t convertOneShape failed for convertor[' + str(i) + ']!')
                 return False
