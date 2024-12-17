@@ -10,11 +10,13 @@ class Convertor(BaseConvertor):
         self,
         source_root_folder_path: str,
         target_root_folder_path: str,
+        include_texture: bool = True,
         remove_source: bool = False,
         need_normalize: bool = False,
     ) -> None:
         super().__init__(source_root_folder_path, target_root_folder_path)
 
+        self.include_texture = include_texture
         self.remove_source = remove_source
         self.need_normalize = need_normalize
         return
@@ -47,7 +49,7 @@ class Convertor(BaseConvertor):
 
             mesh.vertices = (mesh.vertices - center) * scale
 
-        mesh.export(target_path)
+        mesh.export(target_path, include_texture=self.include_texture)
 
         if self.remove_source:
             removeFile(source_path)

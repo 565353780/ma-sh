@@ -4,10 +4,11 @@ from ma_sh.Module.Convertor.to_trimesh import Convertor
 
 def demo():
     dataset_root_folder_path = toDatasetRootPath()
+    include_texture = False
     remove_source = False
     need_normalize = True
     source_data_type = '.glb'
-    target_data_type = '.ply'
+    target_data_type = '.obj'
 
     if dataset_root_folder_path is None:
         print('[ERROR][to_manifold::demo]')
@@ -17,6 +18,7 @@ def demo():
     convertor = Convertor(
         dataset_root_folder_path + "Objaverse_82K/glbs/",
         dataset_root_folder_path + "Objaverse_82K/trimesh/",
+        include_texture,
         remove_source,
         need_normalize
     )
