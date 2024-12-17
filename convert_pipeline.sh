@@ -4,8 +4,6 @@ elif [ "$(uname)" = "Linux" ]; then
   PROCESSOR_NUM=$(cat /proc/cpuinfo | grep "processor" | wc -l)
 fi
 
-PROCESSOR_NUM=16
-
 for i in $(seq 1 ${PROCESSOR_NUM}); do
   python convert_pipeline.py &
   sleep 1
