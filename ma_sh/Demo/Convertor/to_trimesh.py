@@ -5,7 +5,7 @@ from ma_sh.Module.Convertor.to_trimesh import Convertor
 def demo():
     dataset_root_folder_path = toDatasetRootPath()
     remove_source = False
-    need_normalize = False
+    need_normalize = True
     source_data_type = '.glb'
     target_data_type = '.ply'
 

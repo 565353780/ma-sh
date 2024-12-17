@@ -5,7 +5,7 @@ from ma_sh.Module.Convertor.to_o3dmesh import Convertor
 def demo():
     dataset_root_folder_path = toDatasetRootPath()
     remove_source = False
-    need_normalize = True
+    need_normalize = False
     source_data_type = '.ply'
     target_data_type = '.obj'
 
