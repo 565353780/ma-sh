@@ -1,8 +1,7 @@
 import os
-from pathlib import Path
 from abc import ABC, abstractmethod
 
-from ma_sh.Method.path import createFileFolder, removeFile, renameFile, renameFolder, isHaveSubFolder
+from ma_sh.Method.path import createFileFolder, removeFile, renameFile, renameFolder
 
 
 class BaseConvertor(ABC):
@@ -79,44 +78,6 @@ class BaseConvertor(ABC):
         print("[INFO][BaseConvertor::convertAll]")
         print("\t start convert all data...")
         solved_shape_num = 0
-
-        '''
-        for path in Path(self.source_root_folder_path).rglob("*"):
-            if source_data_type == '/':
-                if not path.is_dir():
-                    continue
-
-                if isHaveSubFolder(path):
-                    continue
-
-                rel_base_path = os.path.relpath(str(path), self.source_root_folder_path)
-
-                self.convertOneShape(rel_base_path, source_data_type, target_data_type)
-
-                solved_shape_num += 1
-                print("solved shape num:", solved_shape_num)
-                continue
-
-            if not path.is_file():
-                continue
-
-            source_file_path = str(path)
-
-            if not source_file_path.endswith(source_data_type):
-                continue
-
-            if source_file_path.endswith('_tmp' + source_data_type):
-                continue
-
-            rel_base_path = os.path.relpath(source_file_path, self.source_root_folder_path)
-
-            rel_base_path = rel_base_path[:-len(target_data_type)]
-
-            self.convertOneShape(rel_base_path, source_data_type, target_data_type)
-
-            solved_shape_num += 1
-            print("solved shape num:", solved_shape_num)
-        '''
 
         for root, dirs, files in os.walk(self.source_root_folder_path):
             if source_data_type == '/':
