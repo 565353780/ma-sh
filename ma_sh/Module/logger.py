@@ -1,3 +1,4 @@
+import os
 from typing import Union
 
 from torch.utils.tensorboard import SummaryWriter
@@ -25,6 +26,7 @@ class Logger(object):
         return self.summary_writer is not None
 
     def setLogFolder(self, log_folder_path: str) -> bool:
+        os.makedirs(log_folder_path, exist_ok=True)
         self.summary_writer = SummaryWriter(log_folder_path)
         return True
 

@@ -137,7 +137,6 @@ class Trainer(object):
         if self.save_result_folder_path is not None:
             os.makedirs(self.save_result_folder_path, exist_ok=True)
         if self.save_log_folder_path is not None:
-            os.makedirs(self.save_log_folder_path, exist_ok=True)
             self.logger.setLogFolder(self.save_log_folder_path)
         return True
 
