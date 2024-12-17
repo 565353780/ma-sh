@@ -231,6 +231,16 @@ class Trainer(object):
             print("\t mesh_file_path:", mesh_file_path)
             return False
 
+        min_bound = np.min(self.mesh.vertices, axis=0)
+        max_bound = np.max(self.mesh.vertices, axis=0)
+        length = np.max(max_bound - min_bound)
+        scale = 0.9 / length
+        center = (min_bound + max_bound) / 2.0
+        self.translate = center
+        self.scale = scale
+
+        self.mesh.vertices = (self.mesh.vertices - self.translate) * self.scale
+
         surface_dist = 0.001
 
         self.mesh.samplePoints(self.mash.anchor_num)

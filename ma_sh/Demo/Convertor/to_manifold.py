@@ -8,6 +8,7 @@ from ma_sh.Module.Convertor.to_manifold import Convertor
 
 def demo():
     dataset_root_folder_path = toDatasetRootPath()
+    depth = 8
     source_data_type = '.obj'
     target_data_type = '.obj'
 
@@ -19,6 +20,7 @@ def demo():
     convertor = Convertor(
         dataset_root_folder_path + "Objaverse_82K/mesh/",
         dataset_root_folder_path + "Objaverse_82K/manifold/",
+        depth,
     )
 
     convertor.convertAll(source_data_type, target_data_type)

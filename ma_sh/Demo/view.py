@@ -46,7 +46,7 @@ def demo():
 
     # view single mash
     if True:
-        mash_folder_path = "/home/chli/chLi/Dataset/Objaverse/mash/000-001/"
+        mash_folder_path = "/home/chli/chLi/Dataset/Objaverse_82K/mash/000-001/"
         if os.path.exists(mash_folder_path):
             mash_filename_list = os.listdir(mash_folder_path)
 
@@ -54,11 +54,13 @@ def demo():
                 if ".npy" not in mash_filename:
                     continue
 
-                print("start show mash:", mash_filename)
                 mash_file_path = mash_folder_path + mash_filename
 
                 if True:
-                    mesh_file_path = "/home/chli/chLi/Dataset/Objaverse/mesh/000-001/" + mash_filename[:-4] + '.ply'
+                    mesh_file_path = "/home/chli/chLi/Dataset/Objaverse_82K/manifold/000-001/" + mash_filename[:-4] + '.obj'
+                    if not os.path.exists(mesh_file_path):
+                        continue
+
                     mesh = o3d.io.read_triangle_mesh(mesh_file_path)
 
                     mesh.compute_vertex_normals()
@@ -68,6 +70,7 @@ def demo():
 
                 mash_pcd = mash.toSamplePcd()
 
+                print("start show mash:", mash_filename)
                 o3d.visualization.draw_geometries([mesh, mash_pcd])
 
     if False:

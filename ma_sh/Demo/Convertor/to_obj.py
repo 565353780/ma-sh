@@ -4,7 +4,9 @@ from ma_sh.Module.Convertor.to_obj import Convertor
 
 def demo():
     dataset_root_folder_path = toDatasetRootPath()
-    source_data_type = '.ply'
+    remove_source = False
+    need_normalize = True
+    source_data_type = '.glb'
     target_data_type = '.obj'
 
     if dataset_root_folder_path is None:
@@ -13,8 +15,10 @@ def demo():
         return False
 
     convertor = Convertor(
+        dataset_root_folder_path + "Objaverse_82K/glbs/",
         dataset_root_folder_path + "Objaverse_82K/mesh/",
-        dataset_root_folder_path + "Objaverse_82K/mesh/",
+        remove_source,
+        need_normalize
     )
 
     convertor.convertAll(source_data_type, target_data_type)
