@@ -28,8 +28,8 @@ def demo():
                 depth=8,
             ),
             SamplePcdConvertor(
-                dataset_root_folder_path + "/Objaverse_82K/manifold/",
-                dataset_root_folder_path + "/Objaverse_82K/manifold_pcd/",
+                dataset_root_folder_path + "Objaverse_82K/manifold/",
+                dataset_root_folder_path + "Objaverse_82K/manifold_pcd/",
                 gt_points_num=400000,
             ),
     ]

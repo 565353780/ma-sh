@@ -14,8 +14,8 @@ def demo():
         return False
 
     convertor = Convertor(
-        dataset_root_folder_path + "/Objaverse_82K/manifold/",
-        dataset_root_folder_path + "/Objaverse_82K/manifold_pcd/",
+        dataset_root_folder_path + "Objaverse_82K/manifold/",
+        dataset_root_folder_path + "Objaverse_82K/manifold_pcd/",
         gt_points_num,
     )
 
