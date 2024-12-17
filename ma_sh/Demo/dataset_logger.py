@@ -6,12 +6,12 @@ def demo():
     log_folder_path = './logs/'
     target_rel_folder_path_dict = {
         'glbs': 'Objaverse_82K/glbs/',
+        'mesh': 'Objaverse_82K/mesh/',
         'manifold': 'Objaverse_82K/manifold/',
         'manifold_pcd': 'Objaverse_82K/manifold_pcd/',
-        'mash': 'Objaverse_82K/mash/',
-        'mesh': 'Objaverse_82K/mesh/',
+        'mash': 'Objaverse_82K/manifold_mash/',
     }
-    sleep_second = 600.0
+    sleep_second = 60.0
 
     if dataset_root_folder_path is None:
         print('[ERROR][dataset_logger::demo]')
