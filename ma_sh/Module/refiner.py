@@ -9,7 +9,7 @@ from torch.optim.adamw import AdamW
 import mash_cpp
 
 from ma_sh.Method.data import toNumpy
-from ma_sh.Method.path import removeFile
+from ma_sh.Method.path import createFileFolder, removeFile
 from ma_sh.Method.pcd import getPointCloud, downSample
 from ma_sh.Method.time import getCurrentTime
 from ma_sh.Model.mash import Mash
@@ -453,6 +453,18 @@ class Refiner(object):
         sample_points = torch.vstack([mask_boundary_sample_points, in_mask_sample_points])
         return sample_points
 
+    def saveMashFile(self, save_mash_file_path: str, overwrite: bool = False) -> bool:
+        createFileFolder(save_mash_file_path)
+
+        sample_mash = deepcopy(self.mash)
+
+        if self.translate is not None:
+            sample_mash.scale(1.0 / self.scale, False)
+            sample_mash.translate(self.translate)
+
+        sample_mash.saveParamsFile(save_mash_file_path, overwrite)
+        return True
+
     def autoSaveMash(self, state_info: str, save_freq: int = 1, add_idx: bool = True) -> bool:
         if self.save_result_folder_path is None:
             return False
@@ -476,13 +488,7 @@ class Refiner(object):
             + ".npy"
         )
 
-        save_mash = deepcopy(self.mash)
-
-        if self.translate is not None:
-            save_mash.scale(self.scale, False)
-            save_mash.translate(self.translate)
-
-        save_mash.saveParamsFile(save_file_path, True)
+        self.saveMashFile(save_file_path, True)
 
         if add_idx:
             self.save_file_idx += 1

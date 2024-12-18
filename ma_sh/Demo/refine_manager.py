@@ -71,11 +71,10 @@ def demoFolder():
     factor = 0.8
     patience = 2
 
-    mash_folder_path = "/home/chli/github/ASDF/conditional-flow-matching/output/sample/select_mash/"
-    save_mash_folder_path = "/home/chli/github/ASDF/conditional-flow-matching/output/sample/select_refine_mash/"
-    save_pcd_folder_path = "/home/chli/github/ASDF/conditional-flow-matching/output/sample/select_refine_pcd/"
+    mash_folder_path = "/home/chli/github/ASDF/conditional-flow-matching/output/sample/20241218_15:08:27/"
+    save_mash_folder_path = "/home/chli/github/ASDF/conditional-flow-matching/output/sample/20241218_15:08:27/refine_mash/"
+    save_pcd_folder_path = "/home/chli/github/ASDF/conditional-flow-matching/output/sample/20241218_15:08:27/refine_pcd/"
     overwrite = True
-    print_progress = True
 
     refine_manager = RefineManager(
         anchor_num,
@@ -98,7 +97,6 @@ def demoFolder():
         mash_folder_path,
         save_mash_folder_path,
         save_pcd_folder_path,
-        overwrite,
-        print_progress)
+        overwrite)
 
     return True

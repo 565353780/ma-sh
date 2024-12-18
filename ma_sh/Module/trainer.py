@@ -760,13 +760,7 @@ class Trainer(object):
             + ".npy"
         )
 
-        save_mash = deepcopy(self.mash)
-
-        if self.translate is not None:
-            save_mash.scale(1.0 / self.scale, False)
-            save_mash.translate(self.translate)
-
-        save_mash.saveParamsFile(save_file_path, True)
+        self.saveMashFile(save_file_path, True)
 
         if add_idx:
             self.save_file_idx += 1

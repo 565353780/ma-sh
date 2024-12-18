@@ -76,8 +76,7 @@ class RefineManager(object):
         mash_file_path: str,
         save_mash_file_path: str,
         save_pcd_file_path: Union[str, None]=None,
-        overwrite: bool = False,
-        print_progress: bool = False) -> bool:
+        overwrite: bool = False) -> bool:
         if not os.path.exists(mash_file_path):
             print('[ERROR][RefineManager::refineFile]')
             print('\t mash file not exist!')
@@ -99,10 +98,10 @@ class RefineManager(object):
             return False
 
         refiner.autoTrainMash()
-        refiner.mash.saveParamsFile(save_mash_file_path, overwrite)
+        refiner.saveMashFile(save_mash_file_path, overwrite)
 
         if save_pcd_file_path is not None:
-            refiner.mash.saveAsPcdFile(save_pcd_file_path, overwrite, print_progress)
+            refiner.saveAsPcdFile(save_pcd_file_path, overwrite)
 
         return True
 
@@ -111,8 +110,7 @@ class RefineManager(object):
         mash_folder_path: str,
         save_mash_folder_path: str,
         save_pcd_folder_path: Union[str, None]=None,
-        overwrite: bool = False,
-        print_progress: bool = False) -> bool:
+        overwrite: bool = False) -> bool:
         if not os.path.exists(mash_folder_path):
             print('[ERROR][RefineManager::refineFolder]')
             print('\t mash folder not exist!')
@@ -132,7 +130,7 @@ class RefineManager(object):
                 if save_pcd_folder_path is not None:
                     save_pcd_file_path = save_pcd_folder_path + rel_folder_path + file.replace('.npy', '.ply')
 
-                if not self.refineFile(mash_file_path, save_mash_file_path, save_pcd_file_path, overwrite, print_progress):
+                if not self.refineFile(mash_file_path, save_mash_file_path, save_pcd_file_path, overwrite):
                     continue
 
         return True
