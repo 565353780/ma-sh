@@ -10,6 +10,7 @@ def demo():
         'manifold': 'Objaverse_82K/manifold/',
         'manifold_pcd': 'Objaverse_82K/manifold_pcd/',
         'mash': 'Objaverse_82K/manifold_mash/',
+        'sdf_0_25': 'Objaverse_82K/manifold_sdf_0_25/',
     }
     sleep_second = 60.0
 
