@@ -53,10 +53,10 @@ class AABBSelector:
 
             self.sliders.append((slider_min, slider_max))
 
-        self.select_button = gui.Button('Select Points')
+        self.select_button = gui.Button('Select Anchors')
         self.select_button.horizontal_padding_em = 0.5
         self.select_button.vertical_padding_em = 0
-        self.select_button.set_on_clicked(self._on_select_points)
+        self.select_button.set_on_clicked(self._on_select_anchors)
 
         aabb = self._create_aabb()
         self.scene.scene.add_geometry("AABB", aabb, self.material)
@@ -75,7 +75,7 @@ class AABBSelector:
         self.window.add_child(self.pannel)
         self.window.add_child(self.select_button)
 
-        self.last_selected_mask = None
+        self.last_selected_mask = np.zeros([mash.anchor_num], dtype=bool)
         return
 
     def _on_layout(self, layout_context):
@@ -134,7 +134,7 @@ class AABBSelector:
         aabb_box = self._create_aabb()
         self.scene.scene.add_geometry("AABB", aabb_box, self.material)
 
-        self._on_select_points()
+        self._update_selected_anchors()
 
         self.scene.force_redraw()
         return True
@@ -155,13 +155,12 @@ class AABBSelector:
             self._update_aabb()
         return callback
 
-    def _on_select_points(self):
+    def _update_selected_anchors(self):
         aabb = self._create_aabb()
         mask = np.all((self.positions >= aabb.get_min_bound()) & (self.positions <= aabb.get_max_bound()), axis=1)
 
-        if self.last_selected_mask is not None:
-            if np.all(self.last_selected_mask == mask):
-                return True
+        if np.all(self.last_selected_mask == mask):
+            return True
         self.last_selected_mask = mask
 
         selected_idxs = np.where(mask)[0]
@@ -179,6 +178,12 @@ class AABBSelector:
         self.scene.scene.remove_geometry("SelectedInnerPoints")
         self.scene.scene.add_geometry("SelectedInnerPoints", self.selected_inner_points, self.material)
         self.scene.force_redraw()
+        return True
+
+    def _on_select_anchors(self):
+        gui.Application.instance.quit()
+        print('selected anchors:')
+        print(np.where(self.last_selected_mask)[0])
         return True
 
     def run(self):
