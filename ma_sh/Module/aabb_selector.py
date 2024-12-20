@@ -182,8 +182,12 @@ class AABBSelector:
 
     def _on_select_anchors(self):
         gui.Application.instance.quit()
-        print('selected anchors:')
-        print(np.where(self.last_selected_mask)[0])
+
+        selected_idxs = (np.where(self.last_selected_mask)[0])
+
+        print('[INFO][AABBSelector::on_select_anchors]')
+        print('\t selected', selected_idxs.shape[0], 'anchors are:')
+        print(selected_idxs)
         return True
 
     def run(self):

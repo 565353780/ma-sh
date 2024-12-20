@@ -71,6 +71,36 @@ class Mash(object):
         return
 
     @classmethod
+    def fromMash(
+        cls,
+        target_mash,
+        anchor_num: Union[int, None] = None,
+        mask_degree_max: Union[int, None] = None,
+        sh_degree_max: Union[int, None] = None,
+        mask_boundary_sample_num: Union[int, None] = None,
+        sample_polar_num: Union[int, None] = None,
+        sample_point_scale: Union[float, None] = None,
+        use_inv: Union[bool, None] = None,
+        idx_dtype=None,
+        dtype=None,
+        device: Union[str, None] = None,
+        ):
+
+        mash = Mash(
+            anchor_num if anchor_num is not None else target_mash.anchor_num,
+            mask_degree_max if mask_degree_max is not None else target_mash.mask_degree_max,
+            sh_degree_max if sh_degree_max is not None else target_mash.sh_degree_max,
+            mask_boundary_sample_num if mask_boundary_sample_num is not None else target_mash.mask_boundary_sample_num,
+            sample_polar_num if sample_polar_num is not None else target_mash.sample_polar_num,
+            sample_point_scale if sample_point_scale is not None else target_mash.sample_point_scale,
+            use_inv if use_inv is not None else target_mash.use_inv,
+            idx_dtype if idx_dtype is not None else target_mash.idx_dtype,
+            dtype if dtype is not None else target_mash.dtype,
+            device if device is not None else target_mash.device,
+        )
+        return mash
+
+    @classmethod
     def fromParamsDict(
         cls,
         params_dict: dict,
