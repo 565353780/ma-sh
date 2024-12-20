@@ -7,7 +7,9 @@ from ma_sh.Model.mash import Mash
 from ma_sh.Module.aabb_selector import AABBSelector
 
 class LocalEditor(object):
-    def __init__(self) -> None:
+    def __init__(self, device: str = 'cpu') -> None:
+        self.device = device
+
         self.mash_list = []
         return
 
@@ -25,7 +27,7 @@ class LocalEditor(object):
             1.0,
             torch.int64,
             torch.float64,
-            'cuda',
+            self.device,
         )
 
         aabb_selector = AABBSelector(mash)
