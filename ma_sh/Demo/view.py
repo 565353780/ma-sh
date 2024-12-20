@@ -24,6 +24,22 @@ def compare(str_a: str, str_b: str) -> int:
 
 
 def demo():
+    # view single mash
+    if True:
+        mash_file_path_list = [
+            "/home/chli/Dataset/MashV4/ShapeNet/03001627/1006be65e7bc937e9141f9b58470d646.npy",
+            "/home/chli/Dataset/MashV4/ShapeNet/03001627/1007e20d5e811b308351982a6e40cf41.npy",
+            "./output/combined_mash.npy",
+        ]
+
+        for mash_file_path in mash_file_path_list:
+            mash = Mash.fromParamsFile(mash_file_path, 40, 100, 1.0, device="cuda")
+
+            mash_pcd = mash.toSamplePcd()
+
+            print("start show mash:", mash_file_path)
+            o3d.visualization.draw_geometries([mash_pcd])
+
     # view mash dataset
     if False:
         mash_params_folder_path = "./output/dataset/"
@@ -44,8 +60,8 @@ def demo():
 
             mash.renderSamplePoints()
 
-    # view single mash
-    if True:
+    # view mash folder
+    if False:
         mash_folder_path = "/home/chli/chLi/Dataset/Objaverse_82K/mash/000-001/"
         if os.path.exists(mash_folder_path):
             mash_filename_list = os.listdir(mash_folder_path)
