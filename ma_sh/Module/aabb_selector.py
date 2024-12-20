@@ -3,12 +3,19 @@ import open3d as o3d
 import open3d.visualization.gui as gui
 import open3d.visualization.rendering as rendering
 
+from ma_sh.Method.pcd import getPointCloud
 from ma_sh.Model.mash import Mash
 
 
 class AABBSelector:
     def __init__(self, mash: Mash):
-        self.pcd = mash.toSamplePcd()
+        boundary_pts, inner_pts, inner_idxs = mash.toSamplePoints()
+        self.positions = mash.positions.detach().clone().cpu().numpy()
+        self.boundary_idxs = mash.mask_boundary_phi_idxs.cpu().numpy()
+        self.inner_idxs = inner_idxs.detach().clone().cpu().numpy()
+
+        self.boundary_pcd = getPointCloud(boundary_pts.detach().clone().cpu().numpy())
+        self.inner_pcd = getPointCloud(inner_pts.detach().clone().cpu().numpy())
         self.selected_points = None
 
         gui.Application.instance.initialize()
@@ -25,9 +32,10 @@ class AABBSelector:
         self.material.shader = 'defaultUnlit'
         self.material.point_size = 5.0
 
-        self.scene.scene.add_geometry("MashPcd", self.pcd, self.material)
+        self.scene.scene.add_geometry("MashBoundary", self.boundary_pcd, self.material)
+        self.scene.scene.add_geometry("MashInner", self.inner_pcd, self.material)
 
-        points = np.asarray(self.pcd.points)
+        points = np.asarray(self.boundary_pcd.points)
         aabb_min = np.min(points, axis=0)
         aabb_max = np.max(points, axis=0)
 
@@ -48,11 +56,11 @@ class AABBSelector:
         self.select_button = gui.Button('Select Points')
         self.select_button.horizontal_padding_em = 0.5
         self.select_button.vertical_padding_em = 0
-        self.select_button.set_on_clicked(self._select_points)
+        self.select_button.set_on_clicked(self._on_select_points)
 
         aabb = self._create_aabb()
         self.scene.scene.add_geometry("AABB", aabb, self.material)
-        bounds = self.pcd.get_axis_aligned_bounding_box()
+        bounds = self.boundary_pcd.get_axis_aligned_bounding_box()
         self.scene.setup_camera(60, bounds, bounds.get_center())
 
         self.pannel = gui.Vert(0, gui.Margins(0.25*em, 0.25*em, 0.25*em, 0.25*em))
@@ -66,6 +74,8 @@ class AABBSelector:
         self.window.add_child(self.scene)
         self.window.add_child(self.pannel)
         self.window.add_child(self.select_button)
+
+        self.last_selected_mask = None
         return
 
     def _on_layout(self, layout_context):
@@ -123,6 +133,9 @@ class AABBSelector:
         self.scene.scene.remove_geometry("AABB")
         aabb_box = self._create_aabb()
         self.scene.scene.add_geometry("AABB", aabb_box, self.material)
+
+        self._on_select_points()
+
         self.scene.force_redraw()
         return True
 
@@ -142,15 +155,29 @@ class AABBSelector:
             self._update_aabb()
         return callback
 
-    def _select_points(self):
-        points = np.asarray(self.pcd.points)
+    def _on_select_points(self):
         aabb = self._create_aabb()
-        mask = np.all((points >= aabb.get_min_bound()) & (points <= aabb.get_max_bound()), axis=1)
-        self.selected_points = self.pcd.select_by_index(np.where(mask)[0])
-        self.selected_points.paint_uniform_color([0, 1, 0])
+        mask = np.all((self.positions >= aabb.get_min_bound()) & (self.positions <= aabb.get_max_bound()), axis=1)
 
-        self.scene.scene.remove_geometry("SelectedPoints")
-        self.scene.scene.add_geometry("SelectedPoints", self.selected_points, self.material)
+        if self.last_selected_mask is not None:
+            if np.all(self.last_selected_mask == mask):
+                return True
+        self.last_selected_mask = mask
+
+        selected_idxs = np.where(mask)[0]
+
+        selected_boundary_pts_idxs = np.where(np.isin(self.boundary_idxs, selected_idxs))[0]
+        selected_inner_pts_idxs = np.where(np.isin(self.inner_idxs, selected_idxs))[0]
+
+        self.selected_boundary_points = self.boundary_pcd.select_by_index(selected_boundary_pts_idxs)
+        self.selected_boundary_points.paint_uniform_color([0, 1, 0])
+        self.selected_inner_points = self.inner_pcd.select_by_index(selected_inner_pts_idxs)
+        self.selected_inner_points.paint_uniform_color([0, 1, 0])
+
+        self.scene.scene.remove_geometry("SelectedBoundaryPoints")
+        self.scene.scene.add_geometry("SelectedBoundaryPoints", self.selected_boundary_points, self.material)
+        self.scene.scene.remove_geometry("SelectedInnerPoints")
+        self.scene.scene.add_geometry("SelectedInnerPoints", self.selected_inner_points, self.material)
         self.scene.force_redraw()
         return True
 
