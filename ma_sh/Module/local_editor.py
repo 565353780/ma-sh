@@ -36,6 +36,20 @@ class LocalEditor(object):
         self.mash_list.append([mash, selected_anchor_idxs])
         return True
 
+    def loadMashFiles(self, mash_file_path_list: list) -> bool:
+        if len(mash_file_path_list) == 0:
+            print('[ERROR][LocalEditor::loadMashFiles]')
+            print('\t mash file not exist!')
+            return False
+
+        for mash_file_path in mash_file_path_list:
+            if not self.loadMashFile(mash_file_path):
+                print('[ERROR][LocalEditor::loadMashFiles]')
+                print('\t loadMashFile failed!')
+                return False
+
+        return True
+
     def toCombinedMash(self) -> Union[Mash, None]:
         if len(self.mash_list) == 0:
             print('[ERROR][LocalEditor::toCombinedMashParams]')
@@ -77,69 +91,3 @@ class LocalEditor(object):
         )
 
         return combined_mash
-
-    def combineMashWithFunction(
-        self,
-        mash_file_path_list: list,
-        process_func,
-        save_mash_file_path: Union[str, None]=None,
-        overwrite: bool = False,
-        render: bool = False,
-    ) -> bool:
-        if len(mash_file_path_list) == 0:
-            print('[ERROR][LocalEditor::combineMashWithFunction]')
-            print('\t mash file not exist!')
-            return False
-
-        for mash_file_path in mash_file_path_list:
-            if not self.loadMashFile(mash_file_path):
-                print('[WARN][LocalEditor::combineMashWithFunction]')
-                print('\t loadMashFile failed!')
-                continue
-
-        if len(self.mash_list) == 0:
-            print('[ERROR][LocalEditor::combineMashWithFunction]')
-            print('\t not loaded any mash!')
-            return False
-
-        combined_mash = self.toCombinedMash()
-        if combined_mash is None:
-            print('[ERROR][LocalEditor::combineMashWithFunction]')
-            print('\t toCombinedMash failed!')
-            return False
-
-        processed_mash = process_func(combined_mash)
-        if processed_mash is None:
-            print('[ERROR][LocalEditor::combineMashWithFunction]')
-            print('\t process_func failed!')
-            return False
-
-        if save_mash_file_path is not None:
-            processed_mash.saveParamsFile(save_mash_file_path, overwrite)
-
-        if render:
-            processed_mash.renderSamplePoints()
-
-        return True
-
-    def combineMash(
-        self,
-        mash_file_path_list: list,
-        save_mash_file_path: Union[str, None]=None,
-        overwrite: bool = False,
-        render: bool = False,
-    ) -> bool:
-        def process_func(mash: Mash) -> Mash:
-            return mash
-
-        if not self.combineMashWithFunction(
-            mash_file_path_list,
-            process_func,
-            save_mash_file_path,
-            overwrite,
-            render):
-            print('[ERROR][LocalEditor::combineMash]')
-            print('\t combineMashWithFunction failed!')
-            return False
-
-        return True
