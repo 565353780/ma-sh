@@ -1,8 +1,12 @@
 import os
+import torch
 import numpy as np
+import matplotlib.pyplot as plt
 from tqdm import tqdm
 from typing import Tuple, Union
 from multiprocessing import Pool
+
+from ma_sh.Method.rotate import toOrthoPosesFromRotateVectors
 
 
 def loadMashFile(mash_file_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
@@ -56,7 +60,26 @@ def outputArray(array_name: str, array_value: np.ndarray) -> bool:
     print(str(array_value[-1]) + ']')
     return True
 
-def getMashMeanAndSTD(mash_folder_path: str) -> bool:
+def plot_overall_histograms(data, bins=10):
+    num_dimensions = data.shape[1]
+    fig, axes = plt.subplots(5, 5, figsize=(15, 15))
+    axes = axes.flatten()
+
+    for i in range(num_dimensions):
+        ax = axes[i]
+        ax.hist(data[:, i], bins=bins, alpha=0.75, color='blue', edgecolor='black')
+        ax.set_title(f"Dimension {i+1}")
+        ax.set_xlabel("Value")
+        ax.set_ylabel("Frequency")
+
+    for j in range(num_dimensions, len(axes)):
+        fig.delaxes(axes[j])
+
+    plt.tight_layout()
+    plt.show()
+    return True
+
+def getMashDistribution(mash_folder_path: str) -> bool:
     rotate_vectors_array, positions_array, mask_params_array, sh_params_array = loadMashFolder(mash_folder_path, False)
     if rotate_vectors_array is None or positions_array is None or mask_params_array is None or sh_params_array is None:
         print('[ERROR][mean_std::getMashMeanAndSTD]')
@@ -64,8 +87,14 @@ def getMashMeanAndSTD(mash_folder_path: str) -> bool:
 
         return False
 
-    rotate_vectors_mean = np.mean(rotate_vectors_array, axis=0)
-    rotate_vectors_std = np.std(rotate_vectors_array, axis=0)
+    rotations_array = toOrthoPosesFromRotateVectors(torch.from_numpy(rotate_vectors_array).to(torch.float64)).numpy()
+
+    data = np.hstack([rotations_array, positions_array, mask_params_array, sh_params_array])
+
+    plot_overall_histograms(data, 100)
+
+    rotations_mean = np.mean(rotations_array, axis=0)
+    rotations_std = np.std(rotations_array, axis=0)
     positions_mean = np.mean(positions_array, axis=0)
     positions_std = np.std(positions_array, axis=0)
     mask_params_mean = np.mean(mask_params_array, axis=0)
@@ -74,8 +103,8 @@ def getMashMeanAndSTD(mash_folder_path: str) -> bool:
     sh_params_std = np.std(sh_params_array, axis=0)
 
     print('[INFO][mean_std::getMashMeanAndSTD]')
-    outputArray('ROTATE_VECTORS_MEAN', rotate_vectors_mean)
-    outputArray('ROTATE_VECTORS_STD', rotate_vectors_std)
+    outputArray('ROTATIONS_MEAN', rotations_mean)
+    outputArray('ROTATIONS_STD', rotations_std)
     outputArray('POSITIONS_MEAN', positions_mean)
     outputArray('POSITIONS_STD', positions_std)
     outputArray('MASK_PARAMS_MEAN', mask_params_mean)
