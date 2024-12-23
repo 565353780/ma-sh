@@ -29,7 +29,9 @@ def testFaceForwardRotation():
     return True
 
 def testOrtho6D():
-    random_rotate_vectors = torch.randn((10000, 3), dtype=torch.float64, device='cuda')
+    error_max = 1e-6
+
+    random_rotate_vectors = torch.randn((10000, 3), dtype=torch.float32, device='cuda')
 
     regular_rotate_vectors = toRegularRotateVectors(random_rotate_vectors)
 
@@ -39,7 +41,7 @@ def testOrtho6D():
 
     error = torch.norm(new_rotate_vectors - regular_rotate_vectors, dim=1)
 
-    error_idxs = torch.where(error > 1e-6)
+    error_idxs = torch.where(error > error_max)
 
     if error_idxs[0].shape[0] > 0:
         err = error[error_idxs]
@@ -72,7 +74,7 @@ def testOrtho6D():
 
     max_error = torch.max(error)
 
-    assert max_error < 1e-6
+    assert max_error < error_max
     return True
 
 def test():
