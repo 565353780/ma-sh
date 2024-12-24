@@ -1,10 +1,12 @@
 import os
 import torch
+import joblib
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from typing import Tuple, Union
 from multiprocessing import Pool
+from sklearn.preprocessing import PowerTransformer
 
 from ma_sh.Method.rotate import toOrthoPosesFromRotateVectors
 
@@ -80,6 +82,7 @@ def plot_overall_histograms(data, bins=10):
     return True
 
 def getMashDistribution(mash_folder_path: str) -> bool:
+
     rotate_vectors_array, positions_array, mask_params_array, sh_params_array = loadMashFolder(mash_folder_path, False)
     if rotate_vectors_array is None or positions_array is None or mask_params_array is None or sh_params_array is None:
         print('[ERROR][mean_std::getMashMeanAndSTD]')
@@ -91,7 +94,30 @@ def getMashDistribution(mash_folder_path: str) -> bool:
 
     data = np.hstack([rotations_array, positions_array, mask_params_array, sh_params_array])
 
-    plot_overall_histograms(data, 100)
+    # plot_overall_histograms(data, 100)
+
+    save_transformers_file_path = './output/transformers.pkl'
+
+    if not os.path.exists(save_transformers_file_path):
+        transformer_dict = {}
+        for i in range(25):
+            print('start fit data channel No.' + str(i) + '...')
+            transformer = PowerTransformer()
+            transformer.fit(data[:, i].reshape(1, -1))
+            transformer_dict[str(i)] = transformer
+
+        joblib.dump(transformer_dict, save_transformers_file_path)
+
+    transformer_dict = joblib.load(save_transformers_file_path)
+
+    trans_data = np.zeros_like(data)
+
+    for i in range(25):
+        print('start transform data channel No.' + str(i) + '...')
+        trans_data[:, i] = transformer_dict[str(i)].transform(data[:, i].reshape(1, -1)).reshape(-1)
+
+    plot_overall_histograms(trans_data, 100)
+    exit()
 
     rotations_mean = np.mean(rotations_array, axis=0)
     rotations_std = np.std(rotations_array, axis=0)
