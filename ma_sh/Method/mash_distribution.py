@@ -2,6 +2,7 @@ import os
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
+from time import time
 from typing import Tuple, Union
 from multiprocessing import Pool
 
@@ -104,7 +105,9 @@ def getMashDistribution(mash_folder_path: str) -> bool:
 
     data = np.hstack([rotations_array, positions_array, mask_params_array, sh_params_array])
 
-    plot_overall_histograms(data, 100, './output/data.pdf', False)
+    '''
+    Transformer.plotDistribution(data, 100, './output/vis_data.pdf', False)
+    '''
 
     Transformer.fit('uniform', data, './output/uniform_transformers.pkl', False)
     Transformer.fit('normal', data, './output/normal_transformers.pkl', False)
@@ -120,14 +123,18 @@ def getMashDistribution(mash_folder_path: str) -> bool:
     transformer = Transformer('./output/multi_linear_transformers.pkl')
 
     print('start transformData...')
+    start = time()
     trans_data = transformer.transform(data)
+    print('transform time:', time() - start)
 
-    plot_overall_histograms(trans_data, 100, './output/multi_linear_transformers.pdf', False)
+    Transformer.plotDistribution(trans_data, 100, './output/vis_multi_linear_transformers.pdf', False)
 
     print('start transformData with inverse...')
+    start = time()
     trans_back_data = transformer.inverse_transform(trans_data)
+    print('inverse_transform time:', time() - start)
 
-    plot_overall_histograms(trans_back_data, 100, './output/trans_back_data.pdf', False)
+    Transformer.plotDistribution(trans_back_data, 100, './output/vis_trans_back_data.pdf', False)
 
     error_max = np.max(np.abs(data - trans_back_data))
 
