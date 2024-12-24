@@ -1,12 +1,11 @@
 import os
 import torch
-import joblib
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import Tuple, Union
 from multiprocessing import Pool
 
-from distribution_manage.Method.transformer import *
+from distribution_manage.Module.transformer import Transformer
 
 from ma_sh.Method.rotate import toOrthoPosesFromRotateVectors
 
@@ -97,25 +96,26 @@ def getMashDistribution(mash_folder_path: str) -> bool:
 
     # plot_overall_histograms(data, 100)
 
-    toTransformersFile(getUniformTransformer, data, './output/uniform_transformers.pkl', False)
-    toTransformersFile(getNormalTransformer, data, './output/normal_transformers.pkl', False)
-    toTransformersFile(getPowerTransformer, data, './output/power_transformers.pkl', False)
-    toTransformersFile(getRobustScaler, data, './output/robust_scalers.pkl', False)
-    # toTransformersFile(getBinarizer, data, './output/binarizers.pkl', False)
-    # toTransformersFile(getKernelCenterer, data, './output/kernel_centerers.pkl', False)
-    toTransformersFile(getMinMaxScaler, data, './output/min_max_scalers.pkl', False)
-    toTransformersFile(getMaxAbsScaler, data, './output/max_abs_scalers.pkl', False)
-    toTransformersFile(getStandardScaler, data, './output/standard_scalers.pkl', False)
+    Transformer.fit('uniform', data, './output/uniform_transformers.pkl', False)
+    Transformer.fit('normal', data, './output/normal_transformers.pkl', False)
+    Transformer.fit('power', data, './output/power_transformers.pkl', False)
+    Transformer.fit('robust', data, './output/robust_scalers.pkl', False)
+    # Transformer.fit('binary', data, './output/binarizers.pkl', False)
+    # Transformer.fit('kernel', data, './output/kernel_centerers.pkl', False)
+    Transformer.fit('min_max', data, './output/min_max_scalers.pkl', False)
+    Transformer.fit('max_abs', data, './output/max_abs_scalers.pkl', False)
+    Transformer.fit('standard', data, './output/standard_scalers.pkl', False)
+    # Transformer.fit('multi_linear', data, './output/multi_linear_transformers.pkl', False)
 
-    transformer_dict = joblib.load('./output/max_abs_scalers.pkl')
+    transformer = Transformer('./output/normal_transformers.pkl')
 
     print('start transformData...')
-    trans_data = transformData(transformer_dict, data, False)
+    trans_data = transformer.transform(data)
 
     plot_overall_histograms(trans_data, 100)
 
     print('start transformData with inverse...')
-    trans_back_data = transformData(transformer_dict, trans_data, True)
+    trans_back_data = transformer.inverse_trransform(trans_data)
 
     # plot_overall_histograms(trans_back_data, 100)
 
