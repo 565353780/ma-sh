@@ -6,8 +6,9 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from typing import Tuple, Union
 from multiprocessing import Pool
-from sklearn.preprocessing import PowerTransformer
+from sklearn.preprocessing import PowerTransformer, QuantileTransformer
 
+from ma_sh.Method.path import removeFile
 from ma_sh.Method.rotate import toOrthoPosesFromRotateVectors
 
 
@@ -81,6 +82,42 @@ def plot_overall_histograms(data, bins=10):
     plt.show()
     return True
 
+def getQuantileTransformer(data: np.ndarray) -> QuantileTransformer:
+    transformer = QuantileTransformer()
+    transformer.fit(data)
+    return transformer
+
+def getPowerTransformer(data: np.ndarray) -> PowerTransformer:
+    transformer = PowerTransformer()
+    transformer.fit(data)
+    return transformer
+
+def toTransformersFile(transformer_func, data: np.ndarray, save_file_path: str, overwrite: bool = False) -> bool:
+    if os.path.exists(save_file_path):
+        if not overwrite:
+            return True
+
+        removeFile(save_file_path)
+
+    data_list = [data[:, i].reshape(-1, 1) for i in range(data.shape[1])]
+    print('start getTransformers...')
+    with Pool(data.shape[1]) as pool:
+        transformer_list = list(tqdm(pool.imap(transformer_func, data_list), total=data.shape[1]))
+
+    transformer_dict = {}
+    for i in range(len(transformer_list)):
+        transformer_dict[str(i)] = transformer_list[i]
+
+    joblib.dump(transformer_dict, save_file_path)
+    print('finish save transformers')
+    return True
+
+def toQuantileTransformersFile(data: np.ndarray, save_file_path: str, overwrite: bool = False) -> bool:
+    return toTransformersFile(getQuantileTransformer, data, save_file_path, overwrite)
+
+def toPowerTransformersFile(data: np.ndarray, save_file_path: str, overwrite: bool = False) -> bool:
+    return toTransformersFile(getPowerTransformer, data, save_file_path, overwrite)
+
 def getMashDistribution(mash_folder_path: str) -> bool:
 
     rotate_vectors_array, positions_array, mask_params_array, sh_params_array = loadMashFolder(mash_folder_path, False)
@@ -90,31 +127,23 @@ def getMashDistribution(mash_folder_path: str) -> bool:
 
         return False
 
+    print('start toOrthoPosesFromRotateVectors...')
     rotations_array = toOrthoPosesFromRotateVectors(torch.from_numpy(rotate_vectors_array).to(torch.float64)).numpy()
 
     data = np.hstack([rotations_array, positions_array, mask_params_array, sh_params_array])
 
     # plot_overall_histograms(data, 100)
 
-    save_transformers_file_path = './output/transformers.pkl'
+    toQuantileTransformersFile(data, './output/quantile_transformers.pkl', False)
+    toPowerTransformersFile(data, './output/power_transformers.pkl', False)
 
-    if not os.path.exists(save_transformers_file_path):
-        transformer_dict = {}
-        for i in range(25):
-            print('start fit data channel No.' + str(i) + '...')
-            transformer = PowerTransformer()
-            transformer.fit(data[:, i].reshape(1, -1))
-            transformer_dict[str(i)] = transformer
+    transformer_dict = joblib.load('./output/power_transformers.pkl')
 
-        joblib.dump(transformer_dict, save_transformers_file_path)
-
-    transformer_dict = joblib.load(save_transformers_file_path)
-
-    trans_data = np.zeros_like(data)
+    trans_data = np.zeros([10000, 25])
 
     for i in range(25):
         print('start transform data channel No.' + str(i) + '...')
-        trans_data[:, i] = transformer_dict[str(i)].transform(data[:, i].reshape(1, -1)).reshape(-1)
+        trans_data[:, i] = transformer_dict[str(i)].transform(data[:trans_data.shape[0], i].reshape(-1, 1)).reshape(-1)
 
     plot_overall_histograms(trans_data, 100)
     exit()
