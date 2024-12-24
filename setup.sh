@@ -5,6 +5,7 @@ git clone https://github.com/565353780/param-gauss-recon.git
 git clone https://github.com/565353780/open-clip-detect.git
 git clone https://github.com/565353780/dino-v2-detect.git
 git clone https://github.com/565353780/ulip-manage.git
+git clone https://github.com/565353780/distribution-manage.git
 
 cd sdf-generate
 ./setup.sh
@@ -22,6 +23,9 @@ cd ../dino-v2-detect
 ./setup.sh
 
 cd ../ulip-manage
+./setup.sh
+
+cd ../distribution-manage
 ./setup.sh
 
 if [ "$(uname)" = "Darwin" ]; then

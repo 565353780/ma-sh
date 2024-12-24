@@ -3,12 +3,11 @@ import torch
 import joblib
 import numpy as np
 import matplotlib.pyplot as plt
-from tqdm import tqdm
 from typing import Tuple, Union
 from multiprocessing import Pool
-from sklearn.preprocessing import PowerTransformer, QuantileTransformer
 
-from ma_sh.Method.path import removeFile
+from distribution_manage.Method.transformer import *
+
 from ma_sh.Method.rotate import toOrthoPosesFromRotateVectors
 
 
@@ -41,7 +40,7 @@ def loadMashFolder(mash_folder_path: str,
     print('[INFO][mean_std::loadMashFolder]')
     print('\t start load mash files...')
     with Pool(os.cpu_count()) as pool:
-        result_list = list(tqdm(pool.imap(loadMashFile, mash_file_path_list), total=len(mash_file_path_list)))
+        result_list = pool.map(loadMashFile, mash_file_path_list)
 
     if keep_dim:
         rotate_vectors_array = np.stack([result[0] for result in result_list], axis=0)
@@ -82,42 +81,6 @@ def plot_overall_histograms(data, bins=10):
     plt.show()
     return True
 
-def getQuantileTransformer(data: np.ndarray) -> QuantileTransformer:
-    transformer = QuantileTransformer()
-    transformer.fit(data)
-    return transformer
-
-def getPowerTransformer(data: np.ndarray) -> PowerTransformer:
-    transformer = PowerTransformer()
-    transformer.fit(data)
-    return transformer
-
-def toTransformersFile(transformer_func, data: np.ndarray, save_file_path: str, overwrite: bool = False) -> bool:
-    if os.path.exists(save_file_path):
-        if not overwrite:
-            return True
-
-        removeFile(save_file_path)
-
-    data_list = [data[:, i].reshape(-1, 1) for i in range(data.shape[1])]
-    print('start getTransformers...')
-    with Pool(data.shape[1]) as pool:
-        transformer_list = list(tqdm(pool.imap(transformer_func, data_list), total=data.shape[1]))
-
-    transformer_dict = {}
-    for i in range(len(transformer_list)):
-        transformer_dict[str(i)] = transformer_list[i]
-
-    joblib.dump(transformer_dict, save_file_path)
-    print('finish save transformers')
-    return True
-
-def toQuantileTransformersFile(data: np.ndarray, save_file_path: str, overwrite: bool = False) -> bool:
-    return toTransformersFile(getQuantileTransformer, data, save_file_path, overwrite)
-
-def toPowerTransformersFile(data: np.ndarray, save_file_path: str, overwrite: bool = False) -> bool:
-    return toTransformersFile(getPowerTransformer, data, save_file_path, overwrite)
-
 def getMashDistribution(mash_folder_path: str) -> bool:
 
     rotate_vectors_array, positions_array, mask_params_array, sh_params_array = loadMashFolder(mash_folder_path, False)
@@ -134,18 +97,32 @@ def getMashDistribution(mash_folder_path: str) -> bool:
 
     # plot_overall_histograms(data, 100)
 
-    toQuantileTransformersFile(data, './output/quantile_transformers.pkl', False)
-    toPowerTransformersFile(data, './output/power_transformers.pkl', False)
+    toTransformersFile(getUniformTransformer, data, './output/uniform_transformers.pkl', False)
+    toTransformersFile(getNormalTransformer, data, './output/normal_transformers.pkl', False)
+    toTransformersFile(getPowerTransformer, data, './output/power_transformers.pkl', False)
+    toTransformersFile(getRobustScaler, data, './output/robust_scalers.pkl', False)
+    # toTransformersFile(getBinarizer, data, './output/binarizers.pkl', False)
+    # toTransformersFile(getKernelCenterer, data, './output/kernel_centerers.pkl', False)
+    toTransformersFile(getMinMaxScaler, data, './output/min_max_scalers.pkl', False)
+    toTransformersFile(getMaxAbsScaler, data, './output/max_abs_scalers.pkl', False)
+    toTransformersFile(getStandardScaler, data, './output/standard_scalers.pkl', False)
 
-    transformer_dict = joblib.load('./output/power_transformers.pkl')
+    transformer_dict = joblib.load('./output/max_abs_scalers.pkl')
 
-    trans_data = np.zeros([10000, 25])
-
-    for i in range(25):
-        print('start transform data channel No.' + str(i) + '...')
-        trans_data[:, i] = transformer_dict[str(i)].transform(data[:trans_data.shape[0], i].reshape(-1, 1)).reshape(-1)
+    print('start transformData...')
+    trans_data = transformData(transformer_dict, data, False)
 
     plot_overall_histograms(trans_data, 100)
+
+    print('start transformData with inverse...')
+    trans_back_data = transformData(transformer_dict, trans_data, True)
+
+    # plot_overall_histograms(trans_back_data, 100)
+
+    error_max = np.max(np.abs(data - trans_back_data))
+
+    print('error_max =', error_max)
+
     exit()
 
     rotations_mean = np.mean(rotations_array, axis=0)
