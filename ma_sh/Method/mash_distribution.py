@@ -7,6 +7,7 @@ from multiprocessing import Pool
 
 from distribution_manage.Module.transformer import Transformer
 
+from ma_sh.Method.path import createFileFolder
 from ma_sh.Method.rotate import toOrthoPosesFromRotateVectors
 
 
@@ -61,7 +62,7 @@ def outputArray(array_name: str, array_value: np.ndarray) -> bool:
     print(str(array_value[-1]) + ']')
     return True
 
-def plot_overall_histograms(data, bins=10):
+def plot_overall_histograms(data, bins=10, save_image_file_path: Union[str, None]=None, render: bool = True):
     num_dimensions = data.shape[1]
     fig, axes = plt.subplots(5, 5, figsize=(15, 15))
     axes = axes.flatten()
@@ -77,7 +78,16 @@ def plot_overall_histograms(data, bins=10):
         fig.delaxes(axes[j])
 
     plt.tight_layout()
-    plt.show()
+
+    if render:
+        plt.show()
+
+    if save_image_file_path is not None:
+        createFileFolder(save_image_file_path)
+
+        plt.savefig(save_image_file_path, dpi=300)
+
+    plt.close()
     return True
 
 def getMashDistribution(mash_folder_path: str) -> bool:
@@ -94,7 +104,7 @@ def getMashDistribution(mash_folder_path: str) -> bool:
 
     data = np.hstack([rotations_array, positions_array, mask_params_array, sh_params_array])
 
-    # plot_overall_histograms(data, 100)
+    plot_overall_histograms(data, 100, './output/data.pdf', False)
 
     Transformer.fit('uniform', data, './output/uniform_transformers.pkl', False)
     Transformer.fit('normal', data, './output/normal_transformers.pkl', False)
@@ -105,19 +115,19 @@ def getMashDistribution(mash_folder_path: str) -> bool:
     Transformer.fit('min_max', data, './output/min_max_scalers.pkl', False)
     Transformer.fit('max_abs', data, './output/max_abs_scalers.pkl', False)
     Transformer.fit('standard', data, './output/standard_scalers.pkl', False)
-    # Transformer.fit('multi_linear', data, './output/multi_linear_transformers.pkl', False)
+    Transformer.fit('multi_linear', data, './output/multi_linear_transformers.pkl', False)
 
-    transformer = Transformer('./output/normal_transformers.pkl')
+    transformer = Transformer('./output/multi_linear_transformers.pkl')
 
     print('start transformData...')
     trans_data = transformer.transform(data)
 
-    plot_overall_histograms(trans_data, 100)
+    plot_overall_histograms(trans_data, 100, './output/multi_linear_transformers.pdf', False)
 
     print('start transformData with inverse...')
-    trans_back_data = transformer.inverse_trransform(trans_data)
+    trans_back_data = transformer.inverse_transform(trans_data)
 
-    # plot_overall_histograms(trans_back_data, 100)
+    plot_overall_histograms(trans_back_data, 100, './output/trans_back_data.pdf', False)
 
     error_max = np.max(np.abs(data - trans_back_data))
 
