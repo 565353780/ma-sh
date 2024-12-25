@@ -12,11 +12,11 @@ from ma_sh.Module.Convertor.encode_image import Convertor
 def demo():
     dataset_root_folder_path = toDatasetRootPath()
     model_file_path_dict = {
-        'clip': os.environ['HOME'] + '/Model/open_clip/DFN5B-CLIP-ViT-H-14-378.bin',
-        'dino': os.environ['HOME'] + '/Model/DINOv2/dinov2_vitg14_reg4_pretrain.pth',
+        'clip': os.environ['HOME'] + '/chLi/Model/open_clip/DFN5B-CLIP-ViT-H-14-378.bin',
+        'dino': os.environ['HOME'] + '/chLi/Model/DINOv2/dinov2_vitl14_reg4_pretrain.pth',
         'ulip': os.environ['HOME'] + '/chLi/Model/ULIP2/pretrained_models_ckpt_zero-sho_classification_pointbert_ULIP-2.pt',
     }
-    mode = 'clip'
+    mode = 'dino'
     device = "cuda:0"
     source_data_type = '/'
     target_data_type = '.npy'
