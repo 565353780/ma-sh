@@ -3,6 +3,7 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from time import time
+from tqdm import tqdm
 from typing import Tuple, Union
 from multiprocessing import Pool
 
@@ -41,7 +42,7 @@ def loadMashFolder(mash_folder_path: str,
     print('[INFO][mean_std::loadMashFolder]')
     print('\t start load mash files...')
     with Pool(os.cpu_count()) as pool:
-        result_list = pool.map(loadMashFile, mash_file_path_list)
+        result_list = list(tqdm(pool.imap(loadMashFile, mash_file_path_list), total=len(mash_file_path_list)))
 
     if keep_dim:
         rotate_vectors_array = np.stack([result[0] for result in result_list], axis=0)
@@ -107,15 +108,15 @@ def getMashDistribution(mash_folder_path: str) -> bool:
 
     # Transformer.plotDistribution(data, 100, './output/vis_data.pdf', False)
 
-    Transformer.fit('uniform', data, './output/uniform_transformers.pkl', False)
-    Transformer.fit('normal', data, './output/normal_transformers.pkl', False)
-    Transformer.fit('power', data, './output/power_transformers.pkl', False)
-    Transformer.fit('robust', data, './output/robust_scalers.pkl', False)
+    # Transformer.fit('uniform', data, './output/uniform_transformers.pkl', False)
+    # Transformer.fit('normal', data, './output/normal_transformers.pkl', False)
+    # Transformer.fit('power', data, './output/power_transformers.pkl', False)
+    # Transformer.fit('robust', data, './output/robust_scalers.pkl', False)
     # Transformer.fit('binary', data, './output/binarizers.pkl', False)
     # Transformer.fit('kernel', data, './output/kernel_centerers.pkl', False)
-    Transformer.fit('min_max', data, './output/min_max_scalers.pkl', False)
-    Transformer.fit('max_abs', data, './output/max_abs_scalers.pkl', False)
-    Transformer.fit('standard', data, './output/standard_scalers.pkl', False)
+    # Transformer.fit('min_max', data, './output/min_max_scalers.pkl', False)
+    # Transformer.fit('max_abs', data, './output/max_abs_scalers.pkl', False)
+    # Transformer.fit('standard', data, './output/standard_scalers.pkl', False)
     Transformer.fit('multi_linear', data, './output/multi_linear_transformers.pkl', False)
 
     transformer = Transformer('./output/multi_linear_transformers.pkl')
@@ -125,7 +126,7 @@ def getMashDistribution(mash_folder_path: str) -> bool:
     trans_data = transformer.transform(data)
     print('transform time:', time() - start)
 
-    Transformer.plotDistribution(trans_data, 100, './output/vis_multi_linear_transformers.pdf', False)
+    # Transformer.plotDistribution(trans_data, 100, './output/vis_multi_linear_transformers.pdf', False)
 
     print('start transformData with inverse...')
     start = time()
@@ -138,7 +139,7 @@ def getMashDistribution(mash_folder_path: str) -> bool:
 
     print('error_max =', error_max)
 
-    exit()
+    return True
 
     rotations_mean = np.mean(rotations_array, axis=0)
     rotations_std = np.std(rotations_array, axis=0)

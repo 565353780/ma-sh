@@ -32,8 +32,8 @@ def demo(device: str = 'cuda:0'):
         return False
 
     convertor = Convertor(
-        dataset_root_folder_path + "/Objaverse_82K/manifold_pcd/",
-        dataset_root_folder_path + "/Objaverse_82K/manifold_mash/",
+        dataset_root_folder_path + "Objaverse_82K/manifold_pcd/",
+        dataset_root_folder_path + "Objaverse_82K/manifold_mash/",
         gt_points_num,
         anchor_num,
         mask_degree_max,

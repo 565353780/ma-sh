@@ -30,8 +30,8 @@ def demoGLB2PCD():
             depth=8,
         ),
         SamplePcdConvertor(
-            dataset_root_folder_path + '/Objaverse_82K/manifold/',
-            dataset_root_folder_path + '/Objaverse_82K/manifold_pcd/',
+            dataset_root_folder_path + 'Objaverse_82K/manifold/',
+            dataset_root_folder_path + 'Objaverse_82K/manifold_pcd/',
             gt_points_num=400000,
         ),
     ]
@@ -72,8 +72,8 @@ def demoGLB2SDF(gauss_noise: float):
             depth=8,
         ),
         SampleSDFConvertor(
-            dataset_root_folder_path + '/Objaverse_82K/manifold/',
-            dataset_root_folder_path + '/Objaverse_82K/manifold_sdf_' + noise_label + '/',
+            dataset_root_folder_path + 'Objaverse_82K/manifold/',
+            dataset_root_folder_path + 'Objaverse_82K/manifold_sdf_' + noise_label + '/',
             sample_sdf_point_num=250000,
             gauss_noise=gauss_noise,
         ),
