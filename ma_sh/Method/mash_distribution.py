@@ -106,7 +106,7 @@ def getMashDistribution(mash_folder_path: str) -> bool:
 
     data = np.hstack([rotations_array, positions_array, mask_params_array, sh_params_array])
 
-    # Transformer.plotDistribution(data, 100, './output/vis_data.pdf', False)
+    Transformer.plotDistribution(data, 100, './output/vis_data.pdf', False)
 
     # Transformer.fit('uniform', data, './output/uniform_transformers.pkl', False)
     # Transformer.fit('normal', data, './output/normal_transformers.pkl', False)
@@ -126,7 +126,7 @@ def getMashDistribution(mash_folder_path: str) -> bool:
     trans_data = transformer.transform(data)
     print('transform time:', time() - start)
 
-    # Transformer.plotDistribution(trans_data, 100, './output/vis_multi_linear_transformers.pdf', False)
+    Transformer.plotDistribution(trans_data, 100, './output/vis_multi_linear_transformers.pdf', False)
 
     print('start transformData with inverse...')
     start = time()
