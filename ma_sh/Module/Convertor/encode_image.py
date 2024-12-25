@@ -28,7 +28,7 @@ class Convertor(BaseConvertor):
         if self.mode == 'clip':
             self.clip_detector = CLIPDetector(model_file_path, self.device, False)
         if self.mode == 'dino':
-            self.dino_detector = DINODetector(model_file_path, self.device)
+            self.dino_detector = DINODetector('large', model_file_path, self.device)
         elif self.mode == 'ulip':
             open_clip_model_file_path = '/home/chli/Model/CLIP-ViT-bigG-14-laion2B-39B-b160k/open_clip_pytorch_model.bin'
             self.ulip_detector = ULIPDetector(model_file_path, open_clip_model_file_path, device)

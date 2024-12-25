@@ -29,3 +29,8 @@ if [ -d "../ulip-manage/" ]; then
   cd ../ulip-manage/
   git pull
 fi
+
+if [ -d "../distribution-manage/" ]; then
+  cd ../distribution-manage/
+  git pull
+fi
