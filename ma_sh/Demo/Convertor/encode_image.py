@@ -18,7 +18,7 @@ def demo():
     }
     mode = 'dino'
     device = "cuda:0"
-    source_data_type = '/'
+    source_data_type = '.png'
     target_data_type = '.npy'
 
     if dataset_root_folder_path is None:

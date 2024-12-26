@@ -1,4 +1,3 @@
-import os
 import numpy as np
 
 from open_clip_detect.Module.detector import Detector as CLIPDetector
@@ -35,41 +34,21 @@ class Convertor(BaseConvertor):
         return
 
     def convertData(self, source_path: str, target_path: str) -> bool:
-        image_filename_list = os.listdir(source_path)
-
-        #FIXME: check if all images are captured
-        if len(image_filename_list) < 12:
-            print('[ERROR][Convertor::convertData]')
-            print('\t image num not enough!')
-            return False
-
         image_embedding_dict = {}
 
-        for image_filename in image_filename_list:
-            if ".png" not in image_filename:
-                continue
-
-            image_file_path = source_path + image_filename
-
-            if self.mode == 'clip':
-                image_embedding = self.clip_detector.detectImageFile(image_file_path).cpu().numpy()
-            elif self.mode == 'dino':
-                image_embedding = self.dino_detector.detectFile(image_file_path).cpu().numpy()
-            elif self.mode == 'ulip':
-                image_embedding = self.ulip_detector.encodeImageFile(image_file_path).unsqueeze(0).cpu().numpy()
-            else:
-                print('[ERROR][Convertor::convertData]')
-                print('\t mode not valid!')
-                print('\t mode:', self.mode)
-                return False
-
-            image_embedding_dict[image_filename] = image_embedding
-
-        if len(image_embedding_dict.keys()) == 0:
+        if self.mode == 'clip':
+            image_embedding = self.clip_detector.detectImageFile(source_path).cpu().numpy()
+        elif self.mode == 'dino':
+            image_embedding = self.dino_detector.detectFile(source_path).cpu().numpy()
+        elif self.mode == 'ulip':
+            image_embedding = self.ulip_detector.encodeImageFile(source_path).unsqueeze(0).cpu().numpy()
+        else:
             print('[ERROR][Convertor::convertData]')
-            print("\t no valid image found!")
-            print("\t source_path:", source_path)
+            print('\t mode not valid!')
+            print('\t mode:', self.mode)
             return False
+
+        image_embedding_dict[self.mode] = image_embedding
 
         np.save(target_path, image_embedding_dict)
 
