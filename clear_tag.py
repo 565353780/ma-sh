@@ -28,7 +28,7 @@ if __name__ == "__main__":
         print("\t dataset not found!")
         exit()
 
+    clearTag(dataset_root_folder_path + "Objaverse_82K/manifold_mash/")
     clearTag(dataset_root_folder_path + "Objaverse_82K/mesh/")
     clearTag(dataset_root_folder_path + "Objaverse_82K/manifold/")
     clearTag(dataset_root_folder_path + "Objaverse_82K/manifold_pcd/")
-    clearTag(dataset_root_folder_path + "Objaverse_82K/mash/")
