@@ -9,7 +9,7 @@ from multiprocessing import Pool
 
 from distribution_manage.Module.transformer import Transformer
 
-from ma_sh.Method.path import createFileFolder
+from ma_sh.Method.path import createFileFolder, removeFile
 from ma_sh.Method.rotate import toOrthoPosesFromRotateVectors
 
 
@@ -92,11 +92,27 @@ def plot_overall_histograms(data, bins=10, save_image_file_path: Union[str, None
     plt.close()
     return True
 
-def getMashDistribution(mash_folder_path: str) -> bool:
+def getMashDistribution(
+    mash_folder_path: str,
+    transformers_id: str,
+    save_transformers_folder_path: str,
+    overwrite: bool = False,
+) -> bool:
+    save_transformers_file_basepath = save_transformers_folder_path + transformers_id
+
+    save_transformers_file_path = save_transformers_file_basepath + '.pkl'
+
+    if os.path.exists(save_transformers_file_path):
+        if not overwrite:
+            return True
+
+        removeFile(save_transformers_file_path)
+
+    os.makedirs(save_transformers_folder_path, exist_ok=True)
 
     rotate_vectors_array, positions_array, mask_params_array, sh_params_array = loadMashFolder(mash_folder_path, False)
     if rotate_vectors_array is None or positions_array is None or mask_params_array is None or sh_params_array is None:
-        print('[ERROR][mean_std::getMashMeanAndSTD]')
+        print('[ERROR][mean_std::getMashDistribution]')
         print('\t loadMashFolder failed!')
 
         return False
@@ -106,7 +122,7 @@ def getMashDistribution(mash_folder_path: str) -> bool:
 
     data = np.hstack([rotations_array, positions_array, mask_params_array, sh_params_array])
 
-    Transformer.plotDistribution(data, 100, './output/vis_data.pdf', False)
+    Transformer.plotDistribution(data, 100, save_transformers_file_basepath + '_vis_data.pdf', False)
 
     # Transformer.fit('uniform', data, './output/uniform_transformers.pkl', False)
     # Transformer.fit('normal', data, './output/normal_transformers.pkl', False)
@@ -117,23 +133,23 @@ def getMashDistribution(mash_folder_path: str) -> bool:
     # Transformer.fit('min_max', data, './output/min_max_scalers.pkl', False)
     # Transformer.fit('max_abs', data, './output/max_abs_scalers.pkl', False)
     # Transformer.fit('standard', data, './output/standard_scalers.pkl', False)
-    Transformer.fit('multi_linear', data, './output/multi_linear_transformers.pkl', False)
+    Transformer.fit('multi_linear', data, save_transformers_file_path, False)
 
-    transformer = Transformer('./output/multi_linear_transformers.pkl')
+    transformer = Transformer(save_transformers_file_path)
 
     print('start transformData...')
     start = time()
     trans_data = transformer.transform(data)
     print('transform time:', time() - start)
 
-    Transformer.plotDistribution(trans_data, 100, './output/vis_multi_linear_transformers.pdf', False)
+    Transformer.plotDistribution(trans_data, 100, save_transformers_file_basepath + '_vis_trans_data.pdf', False)
 
     print('start transformData with inverse...')
     start = time()
     trans_back_data = transformer.inverse_transform(trans_data)
     print('inverse_transform time:', time() - start)
 
-    # Transformer.plotDistribution(trans_back_data, 100, './output/vis_trans_back_data.pdf', False)
+    Transformer.plotDistribution(trans_back_data, 100, save_transformers_file_basepath + '_vis_trans_back_data.pdf', False)
 
     error_max = np.max(np.abs(data - trans_back_data))
 

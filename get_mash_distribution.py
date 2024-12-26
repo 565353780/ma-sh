@@ -13,5 +13,10 @@ if __name__ == "__main__":
         exit()
 
     mash_folder_path = dataset_root_folder_path + 'MashV4/'
+    transformers_id = 'multi_linear_shapenet'
+    save_transformers_folder_path = dataset_root_folder_path + 'Transformers/'
+    overwrite = False
 
-    getMashDistribution(mash_folder_path)
+    getMashDistribution(dataset_root_folder_path + 'MashV4/', 'ShapeNet', save_transformers_folder_path, overwrite)
+    getMashDistribution(dataset_root_folder_path + 'MashV4/ShapeNet/03001627/', 'ShapeNet_03001627', save_transformers_folder_path, overwrite)
+    getMashDistribution(dataset_root_folder_path + 'Objaverse_82K/manifold_mash/', 'Objaverse_82K', save_transformers_folder_path, overwrite)
