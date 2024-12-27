@@ -22,30 +22,46 @@ class Convertor(BaseConvertor):
         self.mode = mode
         self.device = device
 
-        assert mode in ['clip', 'dino', 'ulip']
+        assert mode in ["clip", "dino", "ulip"]
 
-        if self.mode == 'clip':
+        if self.mode == "clip":
             self.clip_detector = CLIPDetector(model_file_path, self.device, False)
-        if self.mode == 'dino':
-            self.dino_detector = DINODetector('large', model_file_path, self.device)
-        elif self.mode == 'ulip':
-            open_clip_model_file_path = '/home/chli/Model/CLIP-ViT-bigG-14-laion2B-39B-b160k/open_clip_pytorch_model.bin'
-            self.ulip_detector = ULIPDetector(model_file_path, open_clip_model_file_path, device)
+        if self.mode == "dino":
+            self.dino_detector = DINODetector("large", model_file_path, self.device)
+        elif self.mode == "ulip":
+            open_clip_model_file_path = "/home/chli/Model/CLIP-ViT-bigG-14-laion2B-39B-b160k/open_clip_pytorch_model.bin"
+            self.ulip_detector = ULIPDetector(
+                model_file_path, open_clip_model_file_path, device
+            )
         return
 
     def convertData(self, source_path: str, target_path: str) -> bool:
         image_embedding_dict = {}
 
-        if self.mode == 'clip':
-            image_embedding = self.clip_detector.detectImageFile(source_path).cpu().numpy()
-        elif self.mode == 'dino':
-            image_embedding = self.dino_detector.detectFile(source_path).cpu().numpy()
-        elif self.mode == 'ulip':
-            image_embedding = self.ulip_detector.encodeImageFile(source_path).unsqueeze(0).cpu().numpy()
-        else:
-            print('[ERROR][Convertor::convertData]')
-            print('\t mode not valid!')
-            print('\t mode:', self.mode)
+        try:
+            if self.mode == "clip":
+                image_embedding = (
+                    self.clip_detector.detectImageFile(source_path).cpu().numpy()
+                )
+            elif self.mode == "dino":
+                image_embedding = (
+                    self.dino_detector.detectFile(source_path).cpu().numpy()
+                )
+            elif self.mode == "ulip":
+                image_embedding = (
+                    self.ulip_detector.encodeImageFile(source_path)
+                    .unsqueeze(0)
+                    .cpu()
+                    .numpy()
+                )
+            else:
+                print("[ERROR][Convertor::convertData]")
+                print("\t mode not valid!")
+                print("\t mode:", self.mode)
+                return False
+        except:
+            print("[ERROR][Convertor::convertData]")
+            print("\t detectImageFile failed!")
             return False
 
         image_embedding_dict[self.mode] = image_embedding
