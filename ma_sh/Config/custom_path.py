@@ -42,18 +42,32 @@ asdf_folder_path_dict = {
 }
 
 DATASET_ROOT_PATH_LIST = [
+    os.environ["HOME"] + "/Dataset/",
     "/mnt/d/chLi/Dataset/",
     os.environ["HOME"] + "/chLi/Dataset/",
     # os.environ["HOME"] + "/Dataset/",
     # "/mnt/data/jintian/chLi/Dataset/",
 ]
 
+MODEL_ROOT_PATH_LIST = [
+    os.environ["HOME"] + "/Model/",
+    "/mnt/d/chLi/Model/",
+    os.environ["HOME"] + "/chLi/Model/",
+    # os.environ["HOME"] + "/Dataset/",
+    # "/mnt/data/jintian/chLi/Dataset/",
+]
 
-def toDatasetRootPath() -> Union[str, None]:
-    for root in DATASET_ROOT_PATH_LIST:
+def toValidPath(path_list: list) -> Union[str, None]:
+    for root in path_list:
         if os.path.exists(root):
             return root
 
-    print("[ERROR][custom_path::toDatasetRootPath]")
-    print("\t dataset not found!")
+    print("[ERROR][custom_path::toValidPath]")
+    print("\t all paths not exist!")
     return None
+
+def toDatasetRootPath() -> Union[str, None]:
+    return toValidPath(DATASET_ROOT_PATH_LIST)
+
+def toModelRootPath() -> Union[str, None]:
+    return toValidPath(MODEL_ROOT_PATH_LIST)

@@ -2,7 +2,7 @@ import numpy as np
 
 from open_clip_detect.Module.detector import Detector as CLIPDetector
 from dino_v2_detect.Module.detector import Detector as DINODetector
-from ulip_manage.Module.detector import Detector as ULIPDetector
+# from ulip_manage.Module.detector import Detector as ULIPDetector
 
 from ma_sh.Module.Convertor.base_convertor import BaseConvertor
 

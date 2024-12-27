@@ -4,7 +4,7 @@ from ma_sh.Config.custom_path import toDatasetRootPath
 from ma_sh.Module.Convertor.mash import Convertor
 
 
-def demo(device: str = 'cuda:0'):
+def demo():
     dataset_root_folder_path = toDatasetRootPath()
     gt_points_num = 400000
     anchor_num = 400
@@ -16,7 +16,7 @@ def demo(device: str = 'cuda:0'):
     use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float32
-    # device = "cuda:0"
+    device = "cuda:0"
     lr = 2e-3
     min_lr = 1e-3
     warmup_step_num = 80

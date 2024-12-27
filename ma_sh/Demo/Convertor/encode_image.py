@@ -1,23 +1,23 @@
 import sys
 sys.path.append('../open-clip-detect/')
 sys.path.append('../dino-v2-detect/')
-sys.path.append('../ulip-manage/')
+# sys.path.append('../ulip-manage/')
 
-from ma_sh.Config.custom_path import toDatasetRootPath
+from ma_sh.Config.custom_path import toDatasetRootPath, toModelRootPath
 from ma_sh.Module.Convertor.encode_image import Convertor
 
 
 def demo():
     dataset_root_folder_path = toDatasetRootPath()
-    if dataset_root_folder_path is None:
-        print('[ERROR][encode_image::demo]')
-        print('\t toDatasetRootPath failed!')
-        return False
+    assert dataset_root_folder_path is not None
+
+    model_root_folder_path = toModelRootPath()
+    assert model_root_folder_path is not None
 
     model_file_path_dict = {
-        'clip': dataset_root_folder_path + '../Model/open_clip/DFN5B-CLIP-ViT-H-14-378.bin',
-        'dino': dataset_root_folder_path + '../Model/DINOv2/dinov2_vitl14_reg4_pretrain.pth',
-        'ulip': dataset_root_folder_path + '../Model/ULIP2/pretrained_models_ckpt_zero-sho_classification_pointbert_ULIP-2.pt',
+        'clip': model_root_folder_path + 'open_clip/DFN5B-CLIP-ViT-H-14-378.bin',
+        'dino': model_root_folder_path + 'DINOv2/dinov2_vitl14_reg4_pretrain.pth',
+        'ulip': model_root_folder_path + 'ULIP2/pretrained_models_ckpt_zero-sho_classification_pointbert_ULIP-2.pt',
     }
     mode = 'dino'
     device = "cuda:0"

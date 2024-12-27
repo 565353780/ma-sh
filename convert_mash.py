@@ -1,13 +1,9 @@
 from time import sleep
-import argparse
+
 from ma_sh.Demo.Convertor.mash import demo as demo_convert_mash
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="This is a sample program")
-    parser.add_argument("device", default="cpu", type=str, help="Input file")
-    args = parser.parse_args()
-
     while True:
-        demo_convert_mash(args.device)
+        demo_convert_mash()
         sleep(1)
