@@ -31,7 +31,7 @@ class Mash(object):
         anchor_num: int = 400,
         mask_degree_max: int = 3,
         sh_degree_max: int = 2,
-        mask_boundary_sample_num: int = 36,
+        mask_boundary_sample_num: int = 90,
         sample_polar_num: int = 1000,
         sample_point_scale: float = 0.8,
         use_inv: bool = True,
