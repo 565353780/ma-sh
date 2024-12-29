@@ -42,19 +42,15 @@ asdf_folder_path_dict = {
 }
 
 DATASET_ROOT_PATH_LIST = [
+    os.environ["HOME"] + "/chLi/Dataset/",
     os.environ["HOME"] + "/Dataset/",
     "/mnt/d/chLi/Dataset/",
-    os.environ["HOME"] + "/chLi/Dataset/",
-    # os.environ["HOME"] + "/Dataset/",
-    # "/mnt/data/jintian/chLi/Dataset/",
 ]
 
 MODEL_ROOT_PATH_LIST = [
+    os.environ["HOME"] + "/chLi/Model/",
     os.environ["HOME"] + "/Model/",
     "/mnt/d/chLi/Model/",
-    os.environ["HOME"] + "/chLi/Model/",
-    # os.environ["HOME"] + "/Dataset/",
-    # "/mnt/data/jintian/chLi/Dataset/",
 ]
 
 def toValidPath(path_list: list) -> Union[str, None]:
