@@ -178,6 +178,7 @@ def createDatasetJson(
                 if target_file_name.endswith('_tmp.npy'):
                     continue
 
+                '''
                 target_file_path = target_folder_path + target_file_name
 
                 try:
@@ -192,6 +193,7 @@ def createDatasetJson(
                     print('\t load target file failed!')
                     print('\t target_file_path:', target_file_path)
                     continue
+                '''
 
                 valid_rel_target_file_path_list.append(rel_base_path + '/' + target_file_name)
 
