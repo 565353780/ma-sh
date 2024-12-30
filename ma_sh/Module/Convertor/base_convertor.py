@@ -1,4 +1,5 @@
 import os
+from time import time
 from typing import Union
 from abc import ABC, abstractmethod
 
@@ -77,11 +78,12 @@ class BaseConvertor(ABC):
 
         return True
 
-    def convertAll(self, source_data_type: str, target_data_type: str) -> bool:
+    def convertAll(self, source_data_type: str, target_data_type: str, output_freq: float = 1.0) -> bool:
         print("[INFO][BaseConvertor::convertAll]")
         print("\t start convert all data...")
         solved_shape_num = 0
 
+        start = time()
         for root, dirs, files in os.walk(self.source_root_folder_path):
             if source_data_type == '/':
                 if dirs:
@@ -92,7 +94,11 @@ class BaseConvertor(ABC):
                 self.convertOneShape(rel_base_path, source_data_type, target_data_type)
 
                 solved_shape_num += 1
-                print("solved shape num:", solved_shape_num)
+
+                if time() - start >= output_freq:
+                    start = time()
+                    print("solved shape num:", solved_shape_num)
+
                 continue
 
             for file in files:
@@ -109,6 +115,9 @@ class BaseConvertor(ABC):
                 self.convertOneShape(rel_base_path, source_data_type, target_data_type)
 
                 solved_shape_num += 1
-                print("solved shape num:", solved_shape_num)
+
+                if time() - start >= output_freq:
+                    start = time()
+                    print("solved shape num:", solved_shape_num)
 
         return True

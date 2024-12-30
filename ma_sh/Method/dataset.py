@@ -1,17 +1,28 @@
 import os
 import pickle
 import numpy as np
+from time import time
 
 from ma_sh.Method.path import createFileFolder, renameFile, removeFile
 
 
-def clearTag(tag_folder_path: str, file_format: str, dry_run: bool = False) -> bool:
+def clearTag(
+    tag_folder_path: str,
+    file_format: str,
+    dry_run: bool = False,
+    output_freq: float = 1.0,
+) -> bool:
     solved_shape_num = 0
     cleared_tag_num = 0
 
+    start = time()
     for root, _, files in os.walk(tag_folder_path):
         for file in files:
             solved_shape_num += 1
+
+            if time() - start >= output_freq:
+                print('solved shape num:', solved_shape_num)
+                start = time()
 
             if file.endswith(file_format) and '_tmp' not in file:
                 continue
@@ -24,6 +35,40 @@ def clearTag(tag_folder_path: str, file_format: str, dry_run: bool = False) -> b
             print("cleared tag num:", cleared_tag_num)
 
     return True
+
+def removeInvalidNpy(
+    tag_folder_path: str,
+    dry_run: bool = False,
+    output_freq: float = 1.0,
+) -> bool:
+    solved_shape_num = 0
+    cleared_tag_num = 0
+
+    start = time()
+    for root, _, files in os.walk(tag_folder_path):
+        for file in files:
+            solved_shape_num += 1
+
+            if time() - start >= output_freq:
+                print('solved shape num:', solved_shape_num)
+                start = time()
+
+            if not file.endswith('.npy') or '_tmp' in file:
+                continue
+
+            try:
+                np.load(root + '/' + file, allow_pickle=True).item()
+            except:
+                if not dry_run:
+                    removeFile(root + "/" + file)
+
+                cleared_tag_num += 1
+                print(root + "/" + file)
+                print("cleared tag num:", cleared_tag_num)
+
+    return True
+
+
 
 def createDatasetJson(
     source_root_folder_path: str,
