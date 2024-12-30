@@ -2,6 +2,7 @@ import os
 import pickle
 import numpy as np
 from time import time
+from PIL import Image
 
 from ma_sh.Method.path import createFileFolder, renameFile, removeFile
 
@@ -36,7 +37,40 @@ def clearTag(
 
     return True
 
-def removeInvalidNpy(
+def removeInvalidPNG(
+    tag_folder_path: str,
+    dry_run: bool = False,
+    output_freq: float = 1.0,
+) -> bool:
+    solved_shape_num = 0
+    cleared_tag_num = 0
+
+    start = time()
+    for root, _, files in os.walk(tag_folder_path):
+        for file in files:
+            solved_shape_num += 1
+
+            if time() - start >= output_freq:
+                print('solved shape num:', solved_shape_num)
+                start = time()
+
+            if not file.endswith('.png') or '_tmp' in file:
+                continue
+
+            try:
+                with Image.open(root + '/' + file) as img:
+                    img.verify()
+            except:
+                if not dry_run:
+                    removeFile(root + "/" + file)
+
+                cleared_tag_num += 1
+                print(root + "/" + file)
+                print("cleared tag num:", cleared_tag_num)
+
+    return True
+
+def removeInvalidNPY(
     tag_folder_path: str,
     dry_run: bool = False,
     output_freq: float = 1.0,
@@ -67,8 +101,6 @@ def removeInvalidNpy(
                 print("cleared tag num:", cleared_tag_num)
 
     return True
-
-
 
 def createDatasetJson(
     source_root_folder_path: str,
