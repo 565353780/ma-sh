@@ -1,3 +1,5 @@
+import os
+
 from ma_sh.Config.custom_path import toDatasetRootPath
 from ma_sh.Method.dataset import clearTag, removeInvalidPNG, removeInvalidNPY
 
@@ -9,6 +11,7 @@ if __name__ == "__main__":
     remove_invalid_npy = True
     dry_run = False
     output_freq = 1.0
+    worker_num = os.cpu_count()
 
     if dataset_root_folder_path is None:
         print("[ERROR][clear_tag::__main__]")
@@ -26,5 +29,5 @@ if __name__ == "__main__":
         clearTag('manifold_sdf_0_25', dataset_root_folder_path + "Objaverse_82K/manifold_sdf_0_25/", '.npy', dry_run, output_freq)
 
     if remove_invalid_npy:
-        removeInvalidPNG('render_png_check', dataset_root_folder_path + "Objaverse_82K/render/", dry_run, output_freq)
-        removeInvalidNPY('render_dino_npy_check', dataset_root_folder_path + "Objaverse_82K/render_dino/", dry_run, output_freq)
+        removeInvalidPNG(dataset_root_folder_path + "Objaverse_82K/render/", dry_run, worker_num)
+        removeInvalidNPY(dataset_root_folder_path + "Objaverse_82K/render_dino/", dry_run, worker_num)

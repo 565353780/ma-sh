@@ -2,7 +2,9 @@ import os
 import pickle
 import numpy as np
 from time import time
+from tqdm import tqdm
 from PIL import Image
+from multiprocessing import Pool
 
 from ma_sh.Method.path import createFileFolder, renameFile, removeFile
 
@@ -38,78 +40,90 @@ def clearTag(
 
     return True
 
+def removeInvalidPNGWithPool(inputs: list) -> bool:
+    check_file_path, dry_run = inputs
+
+    try:
+        with Image.open(check_file_path) as img:
+            img.verify()
+    except KeyboardInterrupt:
+        print('[INFO][dataset::removeInvalidPNGWithPool]')
+        print('\t program interrupted by the user (Ctrl+C).')
+        exit()
+    except:
+        if dry_run:
+            print('invalid file:', check_file_path)
+        else:
+            removeFile(check_file_path)
+
+    return True
+
 def removeInvalidPNG(
-    task_id: str,
     tag_folder_path: str,
     dry_run: bool = False,
-    output_freq: float = 1.0,
+    worker_num: int = os.cpu_count(),
 ) -> bool:
-    solved_shape_num = 0
-    cleared_tag_num = 0
+    inputs_list = []
 
-    start = time()
     for root, _, files in os.walk(tag_folder_path):
         for file in files:
-            solved_shape_num += 1
-
-            if time() - start >= output_freq:
-                print('[' + task_id + '] solved shape num:', solved_shape_num)
-                start = time()
-
             if not file.endswith('.png') or '_tmp' in file:
                 continue
 
-            try:
-                with Image.open(root + '/' + file) as img:
-                    img.verify()
-            except KeyboardInterrupt:
-                print('[INFO][dataset::removeInvalidPNG]')
-                print('\t program interrupted by the user (Ctrl+C).')
-                exit()
-            except:
-                if not dry_run:
-                    removeFile(root + "/" + file)
+            inputs_list.append([root + '/' + file, dry_run])
 
-                cleared_tag_num += 1
-                print(root + "/" + file)
-                print('[' + task_id + "] cleared tag num:", cleared_tag_num)
+    print('[INFO][dataset::removeInvalidPNG]')
+    print('\t start remove invalid png files...')
+    try:
+        with Pool(worker_num) as pool:
+            results = list(tqdm(pool.imap(removeInvalidPNGWithPool, inputs_list), total=len(inputs_list)))
+    except RuntimeError as e:
+        print('[ERROR][dataset::removeInvalidPNG]')
+        print('\t main process caught an exception:', e)
+        exit()
+
+    return True
+
+def removeInvalidNPYWithPool(inputs: list) -> bool:
+    check_file_path, dry_run = inputs
+
+    try:
+        np.load(check_file_path, allow_pickle=True).item()
+    except KeyboardInterrupt:
+        print('[INFO][dataset::removeInvalidNPYWithPool]')
+        print('\t program interrupted by the user (Ctrl+C).')
+        exit()
+    except:
+        if dry_run:
+            print('invalid file:', check_file_path)
+        else:
+            removeFile(check_file_path)
 
     return True
 
 def removeInvalidNPY(
-    task_id: str,
     tag_folder_path: str,
     dry_run: bool = False,
-    output_freq: float = 1.0,
+    worker_num: int = os.cpu_count(),
 ) -> bool:
-    solved_shape_num = 0
-    cleared_tag_num = 0
+    inputs_list = []
 
-    start = time()
     for root, _, files in os.walk(tag_folder_path):
         for file in files:
-            solved_shape_num += 1
-
-            if time() - start >= output_freq:
-                print('[' + task_id + '] solved shape num:', solved_shape_num)
-                start = time()
-
             if not file.endswith('.npy') or '_tmp' in file:
                 continue
 
-            try:
-                np.load(root + '/' + file, allow_pickle=True).item()
-            except KeyboardInterrupt:
-                print('[INFO][dataset::removeInvalidNPY]')
-                print('\t program interrupted by the user (Ctrl+C).')
-                exit()
-            except:
-                if not dry_run:
-                    removeFile(root + "/" + file)
+            inputs_list.append([root + '/' + file, dry_run])
 
-                cleared_tag_num += 1
-                print(root + "/" + file)
-                print('[' + task_id + "] cleared tag num:", cleared_tag_num)
+    print('[INFO][dataset::removeInvalidNPY]')
+    print('\t start remove invalid npy files...')
+    try:
+        with Pool(worker_num) as pool:
+            results = list(tqdm(pool.imap(removeInvalidNPYWithPool, inputs_list), total=len(inputs_list)))
+    except RuntimeError as e:
+        print('[ERROR][dataset::removeInvalidNPY]')
+        print('\t main process caught an exception:', e)
+        exit()
 
     return True
 
