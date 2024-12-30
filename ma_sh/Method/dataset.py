@@ -8,6 +8,7 @@ from ma_sh.Method.path import createFileFolder, renameFile, removeFile
 
 
 def clearTag(
+    task_id: str,
     tag_folder_path: str,
     file_format: str,
     dry_run: bool = False,
@@ -22,7 +23,7 @@ def clearTag(
             solved_shape_num += 1
 
             if time() - start >= output_freq:
-                print('solved shape num:', solved_shape_num)
+                print(task_id + ' solved shape num:', solved_shape_num)
                 start = time()
 
             if file.endswith(file_format) and '_tmp' not in file:
@@ -33,11 +34,12 @@ def clearTag(
 
             cleared_tag_num += 1
             print(root + "/" + file)
-            print("cleared tag num:", cleared_tag_num)
+            print(task_id + " cleared tag num:", cleared_tag_num)
 
     return True
 
 def removeInvalidPNG(
+    task_id: str,
     tag_folder_path: str,
     dry_run: bool = False,
     output_freq: float = 1.0,
@@ -51,7 +53,7 @@ def removeInvalidPNG(
             solved_shape_num += 1
 
             if time() - start >= output_freq:
-                print('solved shape num:', solved_shape_num)
+                print(task_id + ' solved shape num:', solved_shape_num)
                 start = time()
 
             if not file.endswith('.png') or '_tmp' in file:
@@ -70,11 +72,12 @@ def removeInvalidPNG(
 
                 cleared_tag_num += 1
                 print(root + "/" + file)
-                print("cleared tag num:", cleared_tag_num)
+                print(task_id + " cleared tag num:", cleared_tag_num)
 
     return True
 
 def removeInvalidNPY(
+    task_id: str,
     tag_folder_path: str,
     dry_run: bool = False,
     output_freq: float = 1.0,
@@ -88,7 +91,7 @@ def removeInvalidNPY(
             solved_shape_num += 1
 
             if time() - start >= output_freq:
-                print('solved shape num:', solved_shape_num)
+                print(task_id + ' solved shape num:', solved_shape_num)
                 start = time()
 
             if not file.endswith('.npy') or '_tmp' in file:
@@ -106,15 +109,17 @@ def removeInvalidNPY(
 
                 cleared_tag_num += 1
                 print(root + "/" + file)
-                print("cleared tag num:", cleared_tag_num)
+                print(task_id + " cleared tag num:", cleared_tag_num)
 
     return True
 
 def createDatasetJson(
+    task_id: str,
     source_root_folder_path: str,
     target_root_folder_path: str,
     save_json_file_path: str,
     overwrite: bool = False,
+    output_freq: float = 1.0,
 ) -> bool:
     if not os.path.exists(source_root_folder_path):
         print('[ERROR][dataset::createDatasetJson]')
@@ -138,8 +143,15 @@ def createDatasetJson(
 
     paths_list = []
 
+    start = time()
     for root, _, files in os.walk(source_root_folder_path):
         for file in files:
+            solved_shape_num += 1
+
+            if time() - start >= output_freq:
+                print(task_id + " solved shape num:", solved_shape_num)
+                start = time()
+
             if not file.endswith('.npy'):
                 continue
 
@@ -190,9 +202,6 @@ def createDatasetJson(
 
             paths_list.append([rel_folder_path + '/' + file, valid_rel_target_file_path_list])
 
-            solved_shape_num += 1
-            print("solved shape num:", solved_shape_num)
-
     paths_list.sort(key=lambda x: x[0])
 
     createFileFolder(save_json_file_path)
@@ -204,6 +213,5 @@ def createDatasetJson(
 
     renameFile(tmp_save_json_file_path, save_json_file_path)
 
-    print(paths_list)
     print(len(paths_list))
     return True
