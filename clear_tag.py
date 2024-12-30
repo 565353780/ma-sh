@@ -1,34 +1,22 @@
-import os
-
 from ma_sh.Config.custom_path import toDatasetRootPath
-from ma_sh.Method.path import removeFile
+from ma_sh.Method.dataset import clearTag
 
-
-def clearTag(tag_folder_path: str) -> bool:
-    cleared_tag_num = 0
-
-    for root, _, files in os.walk(tag_folder_path):
-        for file in files:
-            if not file.endswith("start.txt"):
-                continue
-
-            removeFile(root + "/" + file)
-
-            cleared_tag_num += 1
-            print(root + "/" + file)
-            print("cleared tag num:", cleared_tag_num)
-
-    return True
 
 
 if __name__ == "__main__":
     dataset_root_folder_path = toDatasetRootPath()
+    dry_run = False
+
     if dataset_root_folder_path is None:
         print("[ERROR][clear_tag::__main__]")
         print("\t dataset not found!")
         exit()
 
-    clearTag(dataset_root_folder_path + "Objaverse_82K/manifold_mash/")
-    clearTag(dataset_root_folder_path + "Objaverse_82K/mesh/")
-    clearTag(dataset_root_folder_path + "Objaverse_82K/manifold/")
-    clearTag(dataset_root_folder_path + "Objaverse_82K/manifold_pcd/")
+    clearTag(dataset_root_folder_path + "Objaverse_82K/glbs/", '.glb', dry_run)
+    clearTag(dataset_root_folder_path + "Objaverse_82K/mesh/", '.obj', dry_run)
+    clearTag(dataset_root_folder_path + "Objaverse_82K/manifold/", '.obj', dry_run)
+    clearTag(dataset_root_folder_path + "Objaverse_82K/manifold_pcd/", '.npy', dry_run)
+    clearTag(dataset_root_folder_path + "Objaverse_82K/manifold_mash/", '.npy', dry_run)
+    clearTag(dataset_root_folder_path + "Objaverse_82K/render/", '.png', dry_run)
+    clearTag(dataset_root_folder_path + "Objaverse_82K/render_dino/", '.npy', dry_run)
+    clearTag(dataset_root_folder_path + "Objaverse_82K/manifold_sdf_0_25/", '.npy', dry_run)

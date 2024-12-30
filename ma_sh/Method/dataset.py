@@ -2,8 +2,28 @@ import os
 import pickle
 import numpy as np
 
-from ma_sh.Method.path import createFileFolder, renameFile
+from ma_sh.Method.path import createFileFolder, renameFile, removeFile
 
+
+def clearTag(tag_folder_path: str, file_format: str, dry_run: bool = False) -> bool:
+    solved_shape_num = 0
+    cleared_tag_num = 0
+
+    for root, _, files in os.walk(tag_folder_path):
+        for file in files:
+            solved_shape_num += 1
+
+            if file.endswith(file_format) and '_tmp' not in file:
+                continue
+
+            if not dry_run:
+                removeFile(root + "/" + file)
+
+            cleared_tag_num += 1
+            print(root + "/" + file)
+            print("cleared tag num:", cleared_tag_num)
+
+    return True
 
 def createDatasetJson(
     source_root_folder_path: str,
