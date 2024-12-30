@@ -52,7 +52,7 @@ def createDatasetJson(
 
             target_file_name_list = os.listdir(target_folder_path)
 
-            valid_target_file_path_list = []
+            valid_rel_target_file_path_list = []
 
             for target_file_name in target_file_name_list:
                 if not target_file_name.endswith('.npy'):
@@ -72,15 +72,19 @@ def createDatasetJson(
                     print('\t target_file_path:', target_file_path)
                     continue
 
-                valid_target_file_path_list.append(target_file_path)
+                valid_rel_target_file_path_list.append(rel_base_path + '/' + target_file_name)
 
-            if len(valid_target_file_path_list) == 0:
+            if len(valid_rel_target_file_path_list) == 0:
                 continue
 
-            paths_list.append([root + '/' + file, valid_target_file_path_list])
+            valid_rel_target_file_path_list.sort()
+
+            paths_list.append([rel_folder_path + '/' + file, valid_rel_target_file_path_list])
 
             solved_shape_num += 1
             print("solved shape num:", solved_shape_num)
+
+    paths_list.sort(key=lambda x: x[0])
 
     createFileFolder(save_json_file_path)
 
