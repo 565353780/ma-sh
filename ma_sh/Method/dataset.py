@@ -37,6 +37,7 @@ def clearTag(
 
     print('[INFO][dataset::clearTag]')
     print('\t start remove tag files...')
+    print('\t tag_folder_path:', tag_folder_path)
     try:
         with Pool(worker_num) as pool:
             results = list(tqdm(pool.imap(clearTagWithPool, inputs_list), total=len(inputs_list)))
