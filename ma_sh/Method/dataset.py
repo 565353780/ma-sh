@@ -23,7 +23,7 @@ def clearTag(
             solved_shape_num += 1
 
             if time() - start >= output_freq:
-                print(task_id + ' solved shape num:', solved_shape_num)
+                print('[' + task_id + '] solved shape num:', solved_shape_num)
                 start = time()
 
             if file.endswith(file_format) and '_tmp' not in file:
@@ -34,7 +34,7 @@ def clearTag(
 
             cleared_tag_num += 1
             print(root + "/" + file)
-            print(task_id + " cleared tag num:", cleared_tag_num)
+            print('[' + task_id + "] cleared tag num:", cleared_tag_num)
 
     return True
 
@@ -53,7 +53,7 @@ def removeInvalidPNG(
             solved_shape_num += 1
 
             if time() - start >= output_freq:
-                print(task_id + ' solved shape num:', solved_shape_num)
+                print('[' + task_id + '] solved shape num:', solved_shape_num)
                 start = time()
 
             if not file.endswith('.png') or '_tmp' in file:
@@ -72,7 +72,7 @@ def removeInvalidPNG(
 
                 cleared_tag_num += 1
                 print(root + "/" + file)
-                print(task_id + " cleared tag num:", cleared_tag_num)
+                print('[' + task_id + "] cleared tag num:", cleared_tag_num)
 
     return True
 
@@ -91,7 +91,7 @@ def removeInvalidNPY(
             solved_shape_num += 1
 
             if time() - start >= output_freq:
-                print(task_id + ' solved shape num:', solved_shape_num)
+                print('[' + task_id + '] solved shape num:', solved_shape_num)
                 start = time()
 
             if not file.endswith('.npy') or '_tmp' in file:
@@ -109,7 +109,7 @@ def removeInvalidNPY(
 
                 cleared_tag_num += 1
                 print(root + "/" + file)
-                print(task_id + " cleared tag num:", cleared_tag_num)
+                print('[' + task_id + "] cleared tag num:", cleared_tag_num)
 
     return True
 
@@ -149,7 +149,7 @@ def createDatasetJson(
             solved_shape_num += 1
 
             if time() - start >= output_freq:
-                print(task_id + " solved shape num:", solved_shape_num)
+                print('[' + task_id + "] solved shape num:", solved_shape_num)
                 start = time()
 
             if not file.endswith('.npy'):
