@@ -1,4 +1,5 @@
 import os
+from time import time
 
 
 class PipelineConvertor(object):
@@ -35,7 +36,10 @@ class PipelineConvertor(object):
 
         return True
 
-    def convertAll(self, data_type_list: list) -> bool:
+    def convertAll(self,
+                   data_type_list: list,
+                   output_freq: float = 1.0,
+                   ) -> bool:
         if len(self.convertor_list) == 0:
             return True
 
@@ -44,10 +48,13 @@ class PipelineConvertor(object):
             print('\t data type num not valid!')
             return False
 
+        task_id = 'pipeline'
+
         print("[INFO][PipelineConvertor::convertAll]")
         print("\t start convert all data...")
         solved_shape_num = 0
 
+        start = time()
         for root, dirs, files in os.walk(self.convertor_list[0].source_root_folder_path):
             if data_type_list[0] == '/':
                 if dirs:
@@ -58,7 +65,10 @@ class PipelineConvertor(object):
                 self.convertOneShape(rel_base_path, data_type_list)
 
                 solved_shape_num += 1
-                print("solved shape num:", solved_shape_num)
+                if time() - start >= output_freq:
+                    print('[' + task_id + "] solved shape num:", solved_shape_num)
+                    start = time()
+
                 continue
 
             for file in files:
@@ -75,6 +85,8 @@ class PipelineConvertor(object):
                 self.convertOneShape(rel_base_path, data_type_list)
 
                 solved_shape_num += 1
-                print("solved shape num:", solved_shape_num)
+                if time() - start >= output_freq:
+                    print('[' + task_id + "] solved shape num:", solved_shape_num)
+                    start = time()
 
         return True
