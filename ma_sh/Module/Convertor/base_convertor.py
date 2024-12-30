@@ -79,6 +79,8 @@ class BaseConvertor(ABC):
         return True
 
     def convertAll(self, source_data_type: str, target_data_type: str, output_freq: float = 1.0) -> bool:
+        task_id = self.target_root_folder_path.split('/')[-2]
+
         print("[INFO][BaseConvertor::convertAll]")
         print("\t start convert all data...")
         solved_shape_num = 0
@@ -97,7 +99,7 @@ class BaseConvertor(ABC):
 
                 if time() - start >= output_freq:
                     start = time()
-                    print("solved shape num:", solved_shape_num)
+                    print('[' + task_id + "] solved shape num:", solved_shape_num)
 
                 continue
 
@@ -118,6 +120,6 @@ class BaseConvertor(ABC):
 
                 if time() - start >= output_freq:
                     start = time()
-                    print("solved shape num:", solved_shape_num)
+                    print('[' + task_id + "] solved shape num:", solved_shape_num)
 
         return True
