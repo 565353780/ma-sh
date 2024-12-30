@@ -9,11 +9,11 @@ from multiprocessing import Pool
 from ma_sh.Method.path import createFileFolder, renameFile, removeFile
 
 
-def clearTagWithPool(inputs: list) -> bool:
+def removeFileWithPool(inputs: list) -> bool:
     file_path, dry_run = inputs
 
     if dry_run:
-        print('tag file:', file_path)
+        print('file to remove:', file_path)
     else:
         removeFile(file_path)
 
@@ -40,7 +40,7 @@ def clearTag(
     print('\t tag_folder_path:', tag_folder_path)
     try:
         with Pool(worker_num) as pool:
-            results = list(tqdm(pool.imap(clearTagWithPool, inputs_list), total=len(inputs_list)))
+            results = list(tqdm(pool.imap(removeFileWithPool, inputs_list), total=len(inputs_list)))
     except RuntimeError as e:
         print('[ERROR][dataset::clearTag]')
         print('\t main process caught an exception:', e)
