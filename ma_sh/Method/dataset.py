@@ -135,27 +135,27 @@ def removeInvalidNPY(
 
     return True
 
-def createDatasetJson(
+def createDatasetPickle(
     task_id: str,
     source_root_folder_path: str,
     target_root_folder_path: str,
-    save_json_file_path: str,
+    save_pickle_file_path: str,
     overwrite: bool = False,
     output_freq: float = 1.0,
 ) -> bool:
     if not os.path.exists(source_root_folder_path):
-        print('[ERROR][dataset::createDatasetJson]')
+        print('[ERROR][dataset::createDatasetPickle]')
         print('\t source root folder not found!')
         print('\t source_root_folder_path:', source_root_folder_path)
         return False
 
     if not os.path.exists(target_root_folder_path):
-        print('[ERROR][dataset::createDatasetJson]')
+        print('[ERROR][dataset::createDatasetPickle]')
         print('\t target root folder not found!')
         print('\t target_root_folder_path:', target_root_folder_path)
         return False
 
-    if os.path.exists(save_json_file_path):
+    if os.path.exists(save_pickle_file_path):
         if not overwrite:
             return True
 
@@ -211,7 +211,7 @@ def createDatasetJson(
                     print('\t program interrupted by the user (Ctrl+C).')
                     exit()
                 except:
-                    print('[ERROR][dataset::createDatasetJson]')
+                    print('[ERROR][dataset::createDatasetPickle]')
                     print('\t load target file failed!')
                     print('\t target_file_path:', target_file_path)
                     continue
@@ -228,14 +228,14 @@ def createDatasetJson(
 
     paths_list.sort(key=lambda x: x[0])
 
-    createFileFolder(save_json_file_path)
+    createFileFolder(save_pickle_file_path)
 
-    tmp_save_json_file_path = save_json_file_path[:-5] + '_tmp.json'
+    tmp_save_pickle_file_path = save_pickle_file_path[:-4] + '_tmp.pkl'
 
-    with open(tmp_save_json_file_path, 'wb') as f:
+    with open(tmp_save_pickle_file_path, 'wb') as f:
         pickle.dump(paths_list, f)
 
-    renameFile(tmp_save_json_file_path, save_json_file_path)
+    renameFile(tmp_save_pickle_file_path, save_pickle_file_path)
 
     print(len(paths_list))
     return True
