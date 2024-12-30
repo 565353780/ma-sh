@@ -13,6 +13,10 @@ def removeFile(file_path):
     while os.path.exists(file_path):
         try:
             os.remove(file_path)
+        except KeyboardInterrupt:
+            print('[INFO][path::removeFile]')
+            print('\t program interrupted by the user (Ctrl+C).')
+            exit()
         except:
             continue
     return True
@@ -21,6 +25,10 @@ def removeFolder(folder_path):
     while os.path.exists(folder_path):
         try:
             rmtree(folder_path)
+        except KeyboardInterrupt:
+            print('[INFO][path::removeFolder]')
+            print('\t program interrupted by the user (Ctrl+C).')
+            exit()
         except:
             pass
 
@@ -36,6 +44,10 @@ def renameFile(source_file_path, target_file_path, overwrite: bool = False):
     while os.path.exists(source_file_path):
         try:
             os.rename(source_file_path, target_file_path)
+        except KeyboardInterrupt:
+            print('[INFO][path::renameFile]')
+            print('\t program interrupted by the user (Ctrl+C).')
+            exit()
         except:
             pass
     return True
@@ -50,6 +62,10 @@ def renameFolder(source_folder_path: str, target_folder_path: str, overwrite: bo
     while os.path.exists(source_folder_path):
         try:
             os.rename(source_folder_path, target_folder_path)
+        except KeyboardInterrupt:
+            print('[INFO][path::renameFolder]')
+            print('\t program interrupted by the user (Ctrl+C).')
+            exit()
         except:
             pass
 

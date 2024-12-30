@@ -27,6 +27,10 @@ class Convertor(BaseConvertor):
 
         try:
             points = mesh.toSamplePoints(self.gt_points_num)
+        except KeyboardInterrupt:
+            print('[INFO][Convertor::convertData]')
+            print('\t program interrupted by the user (Ctrl+C).')
+            exit()
         except:
             print("[ERROR][Convertor::convertData]")
             print("\t toSamplePoints failed!")

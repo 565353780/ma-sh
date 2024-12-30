@@ -89,6 +89,10 @@ class Convertor(BaseConvertor):
                 print('[ERROR][Convertor::convertData]')
                 print('\t loadGTPointsFile failed!')
                 return False
+        except KeyboardInterrupt:
+            print('[INFO][Convertor::convertData]')
+            print('\t program interrupted by the user (Ctrl+C).')
+            exit()
         except:
             print('[ERROR][Convertor::convertData]')
             print('\t loadGTPointsFile raise Error!')

@@ -26,6 +26,10 @@ class Convertor(BaseConvertor):
                 self.gauss_noise,
                 True,
             )
+        except KeyboardInterrupt:
+            print('[INFO][Convertor::convertData]')
+            print('\t program interrupted by the user (Ctrl+C).')
+            exit()
         except:
             print("[ERROR][Convertor::convertData]")
             print("\t convertSDFNearSurface failed!")

@@ -26,6 +26,10 @@ def downSample(pcd, sample_point_num):
 
     try:
         down_sample_pcd = pcd.farthest_point_down_sample(sample_point_num)
+    except KeyboardInterrupt:
+        print('[INFO][pcd::downSample]')
+        print('\t program interrupted by the user (Ctrl+C).')
+        exit()
     except:
         every_k_points = ceil(np.asarray(pcd.points).shape[0] / sample_point_num)
         down_sample_pcd = pcd.uniform_down_sample(every_k_points)

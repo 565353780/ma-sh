@@ -59,6 +59,10 @@ class Convertor(BaseConvertor):
                 print("\t mode not valid!")
                 print("\t mode:", self.mode)
                 return False
+        except KeyboardInterrupt:
+            print('[INFO][Convertor::convertData]')
+            print('\t program interrupted by the user (Ctrl+C).')
+            exit()
         except:
             print("[ERROR][Convertor::convertData]")
             print("\t detectImageFile failed!")

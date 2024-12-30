@@ -201,6 +201,10 @@ class Trainer(object):
         if gt_points_file_type == 'npy':
             try:
                 gt_points = np.load(gt_points_file_path)
+            except KeyboardInterrupt:
+                print('[INFO][pcd::downSample]')
+                print('\t program interrupted by the user (Ctrl+C).')
+                exit()
             except (OSError, ValueError) as e:
                 print('[ERROR][Trainer::loadGTPointsFile]')
                 print('\t load gt points file failed!')

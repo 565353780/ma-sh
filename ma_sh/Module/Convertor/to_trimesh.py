@@ -24,6 +24,10 @@ class Convertor(BaseConvertor):
     def convertData(self, source_path: str, target_path: str) -> bool:
         try:
             mesh = trimesh.load(source_path)
+        except KeyboardInterrupt:
+            print('[INFO][Convertor::convertData]')
+            print('\t program interrupted by the user (Ctrl+C).')
+            exit()
         except:
             print('[ERROR][Convertor::convertData]')
             print('\t load mesh file failed!')

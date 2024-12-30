@@ -92,6 +92,10 @@ class Convertor(object):
             try:
                 np.load(encoded_mash_file_path)
                 break
+            except KeyboardInterrupt:
+                print('[INFO][Convertor::convertData]')
+                print('\t program interrupted by the user (Ctrl+C).')
+                exit()
             except:
                 print('[WARN][Convertor::convertOneShape]')
                 print('\t load encoded mash file failed! will re-calculate this one!')

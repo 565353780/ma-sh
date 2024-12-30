@@ -60,6 +60,10 @@ def removeInvalidPNG(
             try:
                 with Image.open(root + '/' + file) as img:
                     img.verify()
+            except KeyboardInterrupt:
+                print('[INFO][dataset::removeInvalidPNG]')
+                print('\t program interrupted by the user (Ctrl+C).')
+                exit()
             except:
                 if not dry_run:
                     removeFile(root + "/" + file)
@@ -92,6 +96,10 @@ def removeInvalidNPY(
 
             try:
                 np.load(root + '/' + file, allow_pickle=True).item()
+            except KeyboardInterrupt:
+                print('[INFO][dataset::removeInvalidNPY]')
+                print('\t program interrupted by the user (Ctrl+C).')
+                exit()
             except:
                 if not dry_run:
                     removeFile(root + "/" + file)
@@ -163,6 +171,10 @@ def createDatasetJson(
                 try:
                     data = np.load(target_file_path, allow_pickle=True).item()
                     assert 'dino' in data.keys()
+                except KeyboardInterrupt:
+                    print('[INFO][dataset::removeInvalidNPY]')
+                    print('\t program interrupted by the user (Ctrl+C).')
+                    exit()
                 except:
                     print('[ERROR][dataset::createDatasetJson]')
                     print('\t load target file failed!')

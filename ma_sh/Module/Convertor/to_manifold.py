@@ -18,6 +18,10 @@ class Convertor(BaseConvertor):
     def convertData(self, source_path: str, target_path: str) -> bool:
         try:
             toManifold(source_path, target_path, self.depth, False)
+        except KeyboardInterrupt:
+            print('[INFO][Convertor::convertData]')
+            print('\t program interrupted by the user (Ctrl+C).')
+            exit()
         except:
             print("[ERROR][Convertor::convertData]")
             print("\t toManifold failed!")
