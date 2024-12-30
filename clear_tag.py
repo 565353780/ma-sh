@@ -10,7 +10,6 @@ if __name__ == "__main__":
     clear_tag = True
     remove_invalid_npy = True
     dry_run = False
-    output_freq = 1.0
     worker_num = os.cpu_count()
 
     if dataset_root_folder_path is None:
@@ -19,14 +18,14 @@ if __name__ == "__main__":
         exit()
 
     if clear_tag:
-        clearTag('glbs', dataset_root_folder_path + "Objaverse_82K/glbs/", '.glb', dry_run, output_freq)
-        clearTag('mesh', dataset_root_folder_path + "Objaverse_82K/mesh/", '.obj', dry_run, output_freq)
-        clearTag('manifold', dataset_root_folder_path + "Objaverse_82K/manifold/", '.obj', dry_run, output_freq)
-        clearTag('manifold_pcd', dataset_root_folder_path + "Objaverse_82K/manifold_pcd/", '.npy', dry_run, output_freq)
-        clearTag('manifold_mash', dataset_root_folder_path + "Objaverse_82K/manifold_mash/", '.npy', dry_run, output_freq)
-        clearTag('render', dataset_root_folder_path + "Objaverse_82K/render/", '.png', dry_run, output_freq)
-        clearTag('render_dino', dataset_root_folder_path + "Objaverse_82K/render_dino/", '.npy', dry_run, output_freq)
-        clearTag('manifold_sdf_0_25', dataset_root_folder_path + "Objaverse_82K/manifold_sdf_0_25/", '.npy', dry_run, output_freq)
+        clearTag('glbs', dataset_root_folder_path + "Objaverse_82K/glbs/", '.glb', dry_run, worker_num)
+        clearTag('mesh', dataset_root_folder_path + "Objaverse_82K/mesh/", '.obj', dry_run, worker_num)
+        clearTag('manifold', dataset_root_folder_path + "Objaverse_82K/manifold/", '.obj', dry_run, worker_num)
+        clearTag('manifold_pcd', dataset_root_folder_path + "Objaverse_82K/manifold_pcd/", '.npy', dry_run, worker_num)
+        clearTag('manifold_mash', dataset_root_folder_path + "Objaverse_82K/manifold_mash/", '.npy', dry_run, worker_num)
+        clearTag('render', dataset_root_folder_path + "Objaverse_82K/render/", '.png', dry_run, worker_num)
+        clearTag('render_dino', dataset_root_folder_path + "Objaverse_82K/render_dino/", '.npy', dry_run, worker_num)
+        clearTag('manifold_sdf_0_25', dataset_root_folder_path + "Objaverse_82K/manifold_sdf_0_25/", '.npy', dry_run, worker_num)
 
     if remove_invalid_npy:
         removeInvalidPNG(dataset_root_folder_path + "Objaverse_82K/render/", dry_run, worker_num)

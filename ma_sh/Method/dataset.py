@@ -9,34 +9,41 @@ from multiprocessing import Pool
 from ma_sh.Method.path import createFileFolder, renameFile, removeFile
 
 
+def clearTagWithPool(inputs: list) -> bool:
+    file_path, dry_run = inputs
+
+    if dry_run:
+        print('tag file:', file_path)
+    else:
+        removeFile(file_path)
+
+    return True
+
 def clearTag(
-    task_id: str,
     tag_folder_path: str,
     file_format: str,
     dry_run: bool = False,
-    output_freq: float = 1.0,
+    worker_num: int = os.cpu_count(),
 ) -> bool:
-    solved_shape_num = 0
-    cleared_tag_num = 0
+    inputs_list = []
 
-    start = time()
     for root, _, files in os.walk(tag_folder_path):
         for file in files:
-            solved_shape_num += 1
-
-            if time() - start >= output_freq:
-                print('[' + task_id + '] solved shape num:', solved_shape_num)
-                start = time()
 
             if file.endswith(file_format) and '_tmp' not in file:
                 continue
 
-            if not dry_run:
-                removeFile(root + "/" + file)
+            inputs_list.append([root + '/' + file, dry_run])
 
-            cleared_tag_num += 1
-            print(root + "/" + file)
-            print('[' + task_id + "] cleared tag num:", cleared_tag_num)
+    print('[INFO][dataset::clearTag]')
+    print('\t start remove tag files...')
+    try:
+        with Pool(worker_num) as pool:
+            results = list(tqdm(pool.imap(clearTagWithPool, inputs_list), total=len(inputs_list)))
+    except RuntimeError as e:
+        print('[ERROR][dataset::clearTag]')
+        print('\t main process caught an exception:', e)
+        exit()
 
     return True
 
