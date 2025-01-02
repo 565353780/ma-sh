@@ -4,11 +4,11 @@ sync_code() {
 
 rsync -avP --checksum $HOME/chLi/Dataset/Transformers 4gpu:/home/jintian/chLi/Dataset/
 
+sync_code mash-diffusion
+sync_code base-trainer
+
 sync_code ma-sh
 sync_code distribution-manage
-sync_code base-trainer
-sync_code mash-diffusion
-
 sync_code sdf-generate
 sync_code open3d-manage
 sync_code param-gauss-recon
