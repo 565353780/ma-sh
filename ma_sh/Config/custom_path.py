@@ -43,12 +43,14 @@ asdf_folder_path_dict = {
 
 DATASET_ROOT_PATH_LIST = [
     "/mnt/d/chLi/Dataset/",
+    "/mnt/data/jintian/chLi/Dataset/",
     os.environ["HOME"] + "/Dataset/",
     os.environ["HOME"] + "/chLi/Dataset/",
 ]
 
 MODEL_ROOT_PATH_LIST = [
     "/mnt/d/chLi/Model/",
+    "/mnt/data/jintian/chLi/Model/",
     os.environ["HOME"] + "/Model/",
     os.environ["HOME"] + "/chLi/Model/",
 ]
