@@ -873,16 +873,15 @@ class Mash(object):
         return params_dict
 
     def saveParamsFile(
-        self, save_params_file_path: str, overwrite: bool = False
+        self,
+        save_params_file_path: str,
+        overwrite: bool = False,
     ) -> bool:
         if os.path.exists(save_params_file_path):
-            if overwrite:
-                removeFile(save_params_file_path)
-            else:
-                print("[WARN][Mash::saveParamsFile]")
-                print("\t save params dict file already exist!")
-                print("\t save_params_file_path:", save_params_file_path)
-                return False
+            if not overwrite:
+                return True
+
+            removeFile(save_params_file_path)
 
         params_dict = self.toParamsDict()
 
@@ -902,13 +901,10 @@ class Mash(object):
         print_progress: bool = False,
     ) -> bool:
         if os.path.exists(save_pcd_file_path):
-            if overwrite:
-                removeFile(save_pcd_file_path)
-            else:
-                print("[ERROR][Mash::saveAsPcdFile]")
-                print("\t save pcd file already exist!")
-                print("\t save_pcd_file_path:", save_pcd_file_path)
-                return False
+            if not overwrite:
+                return True
+
+            removeFile(save_pcd_file_path)
 
         createFileFolder(save_pcd_file_path)
 
@@ -922,7 +918,12 @@ class Mash(object):
         if print_progress:
             print("[INFO][Mash::saveAsPcdFile]")
             print("\t start save as pcd file...")
+
+        tmp_save_pcd_file_path = save_pcd_file_path[:-4] + "_tmp" + save_pcd_file_path[-4:]
+
         o3d.io.write_point_cloud(
-            save_pcd_file_path, pcd, write_ascii=True, print_progress=print_progress
+            tmp_save_pcd_file_path, pcd, write_ascii=True, print_progress=print_progress
         )
+
+        renameFile(tmp_save_pcd_file_path, save_pcd_file_path)
         return True
