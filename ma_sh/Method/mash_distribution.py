@@ -4,13 +4,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from time import time
 from tqdm import tqdm
+from collections import Counter
 from typing import Tuple, Union
 from multiprocessing import Pool
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
 
 from distribution_manage.Module.transformer import Transformer
 
 from ma_sh.Method.path import createFileFolder, removeFile
 from ma_sh.Method.rotate import toOrthoPosesFromRotateVectors
+from ma_sh.Method.transformer import getTransformer
 
 
 def loadMashFile(mash_file_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
@@ -25,7 +29,7 @@ def loadMashFile(mash_file_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarra
 def loadMashFolder(mash_folder_path: str,
                    keep_dim: bool = False) -> Union[Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], Tuple[None, None, None, None]]:
     if not os.path.exists(mash_folder_path):
-        print('[ERROR][mean_std::loadMashFolder]')
+        print('[ERROR][mash_distribution::loadMashFolder]')
         print('\t mash folder not exist!')
         print('\t mash_folder_path:', mash_folder_path)
 
@@ -39,7 +43,7 @@ def loadMashFolder(mash_folder_path: str,
 
             mash_file_path_list.append(root + '/' + file)
 
-    print('[INFO][mean_std::loadMashFolder]')
+    print('[INFO][mash_distribution::loadMashFolder]')
     print('\t start load mash files...')
     with Pool(os.cpu_count()) as pool:
         result_list = list(tqdm(pool.imap(loadMashFile, mash_file_path_list), total=len(mash_file_path_list)))
@@ -112,7 +116,7 @@ def getMashDistribution(
 
     rotate_vectors_array, positions_array, mask_params_array, sh_params_array = loadMashFolder(mash_folder_path, False)
     if rotate_vectors_array is None or positions_array is None or mask_params_array is None or sh_params_array is None:
-        print('[ERROR][mean_std::getMashDistribution]')
+        print('[ERROR][mash_distribution::getMashDistribution]')
         print('\t loadMashFolder failed!')
 
         return False
@@ -166,7 +170,7 @@ def getMashDistribution(
     sh_params_mean = np.mean(sh_params_array, axis=0)
     sh_params_std = np.std(sh_params_array, axis=0)
 
-    print('[INFO][mean_std::getMashMeanAndSTD]')
+    print('[INFO][mash_distribution::getMashMeanAndSTD]')
     outputArray('ROTATIONS_MEAN', rotations_mean)
     outputArray('ROTATIONS_STD', rotations_std)
     outputArray('POSITIONS_MEAN', positions_mean)
@@ -177,3 +181,88 @@ def getMashDistribution(
     outputArray('SH_PARAMS_STD', sh_params_std)
 
     return True
+
+def clusterAnchors(
+    mash_folder_path: str,
+    transformer_id: str = 'Objaverse_82K',
+) -> list:
+    transformer = getTransformer(transformer_id)
+    assert transformer is not None
+
+    rotate_vectors_array, positions_array, mask_params_array, sh_params_array = loadMashFolder(mash_folder_path, False)
+    if rotate_vectors_array is None or positions_array is None or mask_params_array is None or sh_params_array is None:
+        print('[ERROR][mash_distribution::clusterAnchors]')
+        print('\t loadMashFolder failed!')
+
+        return []
+
+    print('start toOrthoPosesFromRotateVectors...')
+    rotations_array = toOrthoPosesFromRotateVectors(torch.from_numpy(rotate_vectors_array).to(torch.float64)).numpy()
+
+    data = np.hstack([rotations_array, positions_array, mask_params_array, sh_params_array])
+
+    trans_data = transformer.transform(data)
+
+    anchors = trans_data[:, -9:]
+
+    print('anchors:', anchors.shape)
+
+    if True:
+        sse = []
+        silhouette_scores = []
+
+        k_values = range(2, 101)
+
+        for k in k_values:
+            print('start cluster at iter:', k)
+            kmeans = KMeans(n_clusters=k, random_state=42)
+            kmeans.fit(anchors)
+
+            sse.append(kmeans.inertia_)
+            print('sse: ', kmeans.inertia_)
+
+            '''
+            silhouette_avg = silhouette_score(anchors, kmeans.labels_)
+            silhouette_scores.append(silhouette_avg)
+            print('silhouette_avg:', silhouette_avg)
+            '''
+
+        plt.figure(figsize=(12, 6))
+        plt.subplot(1, 2, 1)
+        plt.plot(k_values, sse, 'bo-')
+        plt.title('Elbow Method For Optimal k')
+        plt.xlabel('Number of clusters (k)')
+        plt.ylabel('SSE')
+
+        '''
+        plt.subplot(1, 2, 2)
+        plt.plot(k_values, silhouette_scores, 'go-')
+        plt.title('Silhouette Method For Optimal k')
+        plt.xlabel('Number of clusters (k)')
+        plt.ylabel('Silhouette Score')
+        '''
+
+        plt.tight_layout()
+        plt.show()
+        exit()
+
+    kmeans = KMeans(n_clusters=4, random_state=0)
+    kmeans.fit(anchors)
+
+    labels = kmeans.labels_
+    centers = kmeans.cluster_centers_
+
+    cluster_counts = Counter(labels)
+
+    plt.bar(cluster_counts.keys(), cluster_counts.values(), color='skyblue')
+    plt.title('Cluster Size Distribution')
+    plt.xlabel('Cluster Label')
+    plt.ylabel('Number of Points')
+    plt.xticks(range(kmeans.n_clusters))
+    plt.show()
+
+    plt.pie(cluster_counts.values(), labels=cluster_counts.keys(), autopct='%1.1f%%', colors=plt.cm.tab10.colors)
+    plt.title('Cluster Size Proportion')
+    plt.show()
+
+    return []
