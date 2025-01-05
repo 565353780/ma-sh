@@ -17,8 +17,8 @@ if __name__ == "__main__":
     n_clusters = 8
     save_kmeans_center_npy_file_path = dataset_root_folder_path + 'KMeansCenter/ShapeNet_' + str(n_clusters) + '.npy'
     overwrite = False
-    plot_label = False
-    plot_error = True
+    plot_label = True
+    plot_error = False
 
     mash_folder_path = '/home/chli/Dataset_tmp/MashV4/'
 

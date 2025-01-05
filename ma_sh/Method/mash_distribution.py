@@ -203,14 +203,14 @@ def plotKMeansError(anchors: np.ndarray, n_clusters_list: list) -> bool:
 
     plt.figure(figsize=(12, 6))
     plt.subplot(1, 2, 1)
-    plt.plot(k_values, sse, 'bo-')
+    plt.plot(n_clusters_list, sse, 'bo-')
     plt.title('Elbow Method For Optimal k')
     plt.xlabel('Number of clusters (k)')
     plt.ylabel('SSE')
 
     '''
     plt.subplot(1, 2, 2)
-    plt.plot(k_values, silhouette_scores, 'go-')
+    plt.plot(n_clusters_list, silhouette_scores, 'go-')
     plt.title('Silhouette Method For Optimal k')
     plt.xlabel('Number of clusters (k)')
     plt.ylabel('Silhouette Score')
