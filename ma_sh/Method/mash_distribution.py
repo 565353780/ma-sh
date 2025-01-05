@@ -12,7 +12,7 @@ from sklearn.metrics import silhouette_score
 
 from distribution_manage.Module.transformer import Transformer
 
-from ma_sh.Method.path import createFileFolder, removeFile
+from ma_sh.Method.path import createFileFolder, removeFile, renameFile
 from ma_sh.Method.rotate import toOrthoPosesFromRotateVectors
 from ma_sh.Method.transformer import getTransformer
 
@@ -182,87 +182,100 @@ def getMashDistribution(
 
     return True
 
+def plotKMeansError(anchors: np.ndarray, n_clusters_list: list) -> bool:
+    sse = []
+    silhouette_scores = []
+
+    for k in n_clusters_list:
+        print('[INFO][mash_distribution::plotKMeansError]')
+        print('\t start cluster at n_clusters:', k)
+        kmeans = KMeans(n_clusters=k, random_state=42)
+        kmeans.fit(anchors)
+
+        sse.append(kmeans.inertia_)
+        print('\t\t sse: ', kmeans.inertia_)
+
+        '''
+        silhouette_avg = silhouette_score(anchors, kmeans.labels_)
+        silhouette_scores.append(silhouette_avg)
+        print('silhouette_avg:', silhouette_avg)
+        '''
+
+    plt.figure(figsize=(12, 6))
+    plt.subplot(1, 2, 1)
+    plt.plot(k_values, sse, 'bo-')
+    plt.title('Elbow Method For Optimal k')
+    plt.xlabel('Number of clusters (k)')
+    plt.ylabel('SSE')
+
+    '''
+    plt.subplot(1, 2, 2)
+    plt.plot(k_values, silhouette_scores, 'go-')
+    plt.title('Silhouette Method For Optimal k')
+    plt.xlabel('Number of clusters (k)')
+    plt.ylabel('Silhouette Score')
+    '''
+
+    plt.tight_layout()
+    plt.show()
+
+    return True
+
 def clusterAnchors(
     mash_folder_path: str,
-    transformer_id: str = 'Objaverse_82K',
-) -> list:
-    transformer = getTransformer(transformer_id)
-    assert transformer is not None
+    save_kmeans_center_npy_file_path: str,
+    n_clusters: int = 4,
+    overwrite: bool = False,
+    plot_label: bool = False,
+    plot_error: bool = False,
+) -> bool:
+    if os.path.exists(save_kmeans_center_npy_file_path):
+        if not overwrite:
+            if not plot_error:
+                return True
+
+        removeFile(save_kmeans_center_npy_file_path)
 
     rotate_vectors_array, positions_array, mask_params_array, sh_params_array = loadMashFolder(mash_folder_path, False)
     if rotate_vectors_array is None or positions_array is None or mask_params_array is None or sh_params_array is None:
         print('[ERROR][mash_distribution::clusterAnchors]')
         print('\t loadMashFolder failed!')
 
-        return []
+        return False
 
-    print('start toOrthoPosesFromRotateVectors...')
-    rotations_array = toOrthoPosesFromRotateVectors(torch.from_numpy(rotate_vectors_array).to(torch.float64)).numpy()
-
-    data = np.hstack([rotations_array, positions_array, mask_params_array, sh_params_array])
-
-    trans_data = transformer.transform(data)
-
-    anchors = trans_data[:, -9:]
-
+    anchors = sh_params_array
     print('anchors:', anchors.shape)
 
-    if True:
-        sse = []
-        silhouette_scores = []
+    if not os.path.exists(save_kmeans_center_npy_file_path):
+        kmeans = KMeans(n_clusters=n_clusters, random_state=0)
+        kmeans.fit(anchors)
 
-        k_values = range(2, 101)
+        labels = kmeans.labels_
+        centers = kmeans.cluster_centers_
 
-        for k in k_values:
-            print('start cluster at iter:', k)
-            kmeans = KMeans(n_clusters=k, random_state=42)
-            kmeans.fit(anchors)
+        createFileFolder(save_kmeans_center_npy_file_path)
 
-            sse.append(kmeans.inertia_)
-            print('sse: ', kmeans.inertia_)
+        tmp_save_kmeans_center_npy_file_path = save_kmeans_center_npy_file_path[:-4] + '_tmp.npy'
 
-            '''
-            silhouette_avg = silhouette_score(anchors, kmeans.labels_)
-            silhouette_scores.append(silhouette_avg)
-            print('silhouette_avg:', silhouette_avg)
-            '''
+        np.save(tmp_save_kmeans_center_npy_file_path, centers)
 
-        plt.figure(figsize=(12, 6))
-        plt.subplot(1, 2, 1)
-        plt.plot(k_values, sse, 'bo-')
-        plt.title('Elbow Method For Optimal k')
-        plt.xlabel('Number of clusters (k)')
-        plt.ylabel('SSE')
+        renameFile(tmp_save_kmeans_center_npy_file_path, save_kmeans_center_npy_file_path)
 
-        '''
-        plt.subplot(1, 2, 2)
-        plt.plot(k_values, silhouette_scores, 'go-')
-        plt.title('Silhouette Method For Optimal k')
-        plt.xlabel('Number of clusters (k)')
-        plt.ylabel('Silhouette Score')
-        '''
+        if plot_label:
+            cluster_counts = Counter(labels)
 
-        plt.tight_layout()
-        plt.show()
-        exit()
+            plt.bar(cluster_counts.keys(), cluster_counts.values(), color='skyblue')
+            plt.title('Cluster Size Distribution')
+            plt.xlabel('Cluster Label')
+            plt.ylabel('Number of Points')
+            plt.xticks(range(kmeans.n_clusters))
+            plt.show()
 
-    kmeans = KMeans(n_clusters=4, random_state=0)
-    kmeans.fit(anchors)
+            plt.pie(cluster_counts.values(), labels=cluster_counts.keys(), autopct='%1.1f%%', colors=plt.cm.tab10.colors)
+            plt.title('Cluster Size Proportion')
+            plt.show()
 
-    labels = kmeans.labels_
-    centers = kmeans.cluster_centers_
+    if plot_error:
+        plotKMeansError(anchors, list(range(2, 41)))
 
-    cluster_counts = Counter(labels)
-
-    plt.bar(cluster_counts.keys(), cluster_counts.values(), color='skyblue')
-    plt.title('Cluster Size Distribution')
-    plt.xlabel('Cluster Label')
-    plt.ylabel('Number of Points')
-    plt.xticks(range(kmeans.n_clusters))
-    plt.show()
-
-    plt.pie(cluster_counts.values(), labels=cluster_counts.keys(), autopct='%1.1f%%', colors=plt.cm.tab10.colors)
-    plt.title('Cluster Size Proportion')
-    plt.show()
-
-    return []
+    return True
