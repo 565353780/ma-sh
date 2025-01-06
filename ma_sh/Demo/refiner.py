@@ -13,22 +13,23 @@ def demo():
     use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float32
-    device = "cuda:0"
+    device = "cpu"
 
     lr = 2e-3
     min_lr = 1e-3
-    warm_step_num = 40
+    warmup_step_num = 40
     factor = 0.8
     patience = 2
 
     render = False
     render_freq = 1
     render_init_only = False
+    save_freq = 1
 
     save_result_folder_path = 'auto'
     save_log_folder_path = 'auto'
 
-    mash_file_path = "/home/chli/github/ASDF/conditional-flow-matching/output/sample/20241202_18:30:59/iter-9/category/03001627/mash/sample_2.npy"
+    mash_file_path = "/home/chli/github/ASDF/mash-diffusion/output/sample/20250104_17:29:23/iter_1/category/03001627/mash/sample_1_mash.npy"
     save_params_file_path = "./output/mash.npy"
     save_pcd_file_path = "./output/pcd.ply"
     overwrite = True
@@ -47,12 +48,13 @@ def demo():
         device,
         lr,
         min_lr,
-        warm_step_num,
+        warmup_step_num,
         factor,
         patience,
         render,
         render_freq,
         render_init_only,
+        save_freq,
         save_result_folder_path,
         save_log_folder_path,
     )

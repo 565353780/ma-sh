@@ -30,6 +30,7 @@ def demo(anchor_num: int = 400):
     render = False
     render_freq = 1
     render_init_only = False
+    save_freq = 1
 
     gt_points_num = 4000
 
@@ -78,6 +79,7 @@ def demo(anchor_num: int = 400):
         render,
         render_freq,
         render_init_only,
+        save_freq,
         save_result_folder_path,
         save_log_folder_path,
     )
