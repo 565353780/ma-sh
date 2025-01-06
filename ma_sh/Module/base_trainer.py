@@ -277,7 +277,7 @@ class BaseTrainer(ABC):
     ) -> Union[dict, None]:
         self.optimizer.zero_grad()
 
-        boundary_pts, inner_pts, inner_idxs = self.mash.toSamplePoints()
+        boundary_pts, inner_pts = self.mash.toSamplePoints()[:2]
 
         fit_loss = torch.tensor(0.0).type(gt_points.dtype).to(gt_points.device)
         coverage_loss = torch.zeros_like(fit_loss)
