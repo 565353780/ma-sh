@@ -15,7 +15,7 @@ if __name__ == "__main__":
         print(prof.key_averages().table(sort_by="cpu_time_total"))
         exit()
 
-    demo_train(400)
+    demo_train(40)
     exit()
 
     demo_train(200)

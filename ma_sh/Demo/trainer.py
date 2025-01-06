@@ -18,7 +18,7 @@ def demo(anchor_num: int = 400):
     use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float32
-    device = "cuda:0"
+    device = "cpu"
 
     lr = 2e-3
     min_lr = 1e-3
@@ -31,7 +31,7 @@ def demo(anchor_num: int = 400):
     render_freq = 1
     render_init_only = False
 
-    gt_points_num = 400000
+    gt_points_num = 4000
 
     save_result_folder_path = None
     save_log_folder_path = None
@@ -82,7 +82,7 @@ def demo(anchor_num: int = 400):
         save_log_folder_path,
     )
 
-    if True:
+    if False:
         trainer.loadMeshFile(mesh_file_path)
     else:
         gt_points_file_path = "/home/chli/chLi2/Dataset/SampledPcd_Manifold/ShapeNet/04090263/22d2782aa73ea40960abd8a115f9899.npy"
