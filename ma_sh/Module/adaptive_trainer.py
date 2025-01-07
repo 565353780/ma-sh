@@ -110,6 +110,7 @@ class AdaptiveTrainer(BaseTrainer):
         )
 
         self.coverage_percent = 0
+        self.coverage_all_surface = False
         self.coverage_dists2 = torch.empty([0], dtype=self.mash.dtype, device=self.mash.device)
         return
 
@@ -133,6 +134,10 @@ class AdaptiveTrainer(BaseTrainer):
         coveraged_num = (coverage_dists2 <= self.distance_thresh).sum().item()
         total_elements = coverage_dists2.numel()
         coverage_percent = 100.0 * coveraged_num / total_elements
+
+        if coverage_percent == 100:
+            self.coverage_all_surface = True
+
         return coverage_percent
 
     @torch.no_grad()
@@ -390,7 +395,7 @@ class AdaptiveTrainer(BaseTrainer):
             print('\t trainEpoch failed!')
             return False
 
-        while self.coverage_percent < 100:
+        while not self.coverage_all_surface:
             self.addAnchor()
 
             print("[INFO][AdaptiveTrainer::autoTrainMash]")
@@ -406,7 +411,7 @@ class AdaptiveTrainer(BaseTrainer):
                 print('\t trainEpoch failed!')
                 return False
 
-            if self.coverage_percent == 100:
+            if self.coverage_all_surface:
                 break
 
             if not self.refineMergedMash(
