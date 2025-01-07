@@ -1,7 +1,6 @@
 import torch
 import numpy as np
 import open3d as o3d
-from math import sqrt
 from typing import Union
 from torch.optim import AdamW
 
@@ -50,9 +49,9 @@ class AdaptiveTrainer(BaseTrainer):
         self.factor = factor
 
         self.max_fit_error2 = self.max_fit_error * self.max_fit_error
+        self.distance_thresh = max(self.max_fit_error2, 1e-6)
 
-        self.fit_loss_weight = 1.0
-        self.fit_loss_scale = 1.1
+        self.not_fit_loss_weight = 1000.0
 
         if mode == 'mash':
             self.mash = Mash(
@@ -102,9 +101,10 @@ class AdaptiveTrainer(BaseTrainer):
             save_log_folder_path,
         )
 
+        self.surface_dist = 0.001
         self.add_anchor_num = 20
-        self.add_anchor_freq = 20
         self.coverage_percent = 0
+        self.coverage_dists2 = torch.empty([0], dtype=self.mash.dtype, device=self.mash.device)
         return
 
     def updateOptimizer(self, lr: float) -> bool:
@@ -121,20 +121,14 @@ class AdaptiveTrainer(BaseTrainer):
 
     @torch.no_grad()
     def getCoveragePercent(self, coverage_dists2: torch.Tensor) -> float:
-        coveraged_num = (coverage_dists2 < 2.0 * self.max_fit_error2).sum().item()
+        coveraged_num = (coverage_dists2 < 2.0 * self.distance_thresh).sum().item()
         total_elements = coverage_dists2.numel()
         coverage_percent = 100.0 * coveraged_num / total_elements
         return coverage_percent
 
     @torch.no_grad()
-    def addAnchor(self, coverage_dists2: torch.Tensor) -> bool:
-        if (self.step + 1) % self.add_anchor_freq != 0:
-            return True
-        return True
-
-        surface_dist = 0.001
-
-        not_fitted_point_idxs = coverage_dists2.detach().clone().cpu().flatten() > 2.0 * self.max_fit_error2
+    def addAnchor(self) -> bool:
+        not_fitted_point_idxs = self.coverage_dists2.cpu().flatten() >= 2.0 * self.distance_thresh
 
         not_fitted_points = self.gt_points[not_fitted_point_idxs]
         not_fitted_normals = self.gt_normals[not_fitted_point_idxs]
@@ -162,10 +156,10 @@ class AdaptiveTrainer(BaseTrainer):
 
         new_sh_params = torch.ones([self.add_anchor_num, self.mash.sh_params.shape[1]],
                                    dtype=self.mash.dtype, device=self.mash.device) * EPSILON
-        new_sh_params[:, 0] = surface_dist / W0[0]
+        new_sh_params[:, 0] = self.surface_dist / W0[0]
         self.mash.sh_params.data[-self.add_anchor_num:, :] = new_sh_params
 
-        new_positions = sample_pts + surface_dist * sample_normals
+        new_positions = sample_pts + self.surface_dist * sample_normals
         self.mash.positions.data[-self.add_anchor_num:, :] = new_positions
 
         new_rotate_vectors = mash_cpp.toRotateVectorsByFaceForwardVectors(
@@ -196,6 +190,8 @@ class AdaptiveTrainer(BaseTrainer):
             torch.vstack([boundary_pts, inner_pts]).unsqueeze(0), gt_points
         )[:2]
 
+        self.coverage_dists2 = coverage_dists2.detach().clone()
+
         fit_dists = torch.sqrt(fit_dists2 + EPSILON)
         coverage_dists = torch.sqrt(coverage_dists2 + EPSILON)
 
@@ -208,21 +204,18 @@ class AdaptiveTrainer(BaseTrainer):
                 self.mash.anchor_num, boundary_pts, self.mash.mask_boundary_phi_idxs
             )
 
-        mean_fit_dist2 = torch.mean(fit_dists2)
-        if mean_fit_dist2 >= self.max_fit_error2:
-            self.fit_loss_weight *= self.fit_loss_scale
-        else:
-            self.fit_loss_weight /= self.fit_loss_scale
-            self.fit_loss_weight = max(self.fit_loss_weight, 1.0)
+        not_fit_dists2 = fit_dists2[fit_dists2 > self.max_fit_error2]
+        not_fit_loss = torch.mean(not_fit_dists2) - self.max_fit_error2
 
-        weighted_fit_loss = self.fit_loss_weight * fit_loss
+        weighted_not_fit_loss = self.not_fit_loss_weight * not_fit_loss
+        weighted_fit_loss = fit_loss_weight * fit_loss
         weighted_coverage_loss = coverage_loss_weight * coverage_loss
         weighted_boundary_connect_loss = (
             boundary_connect_loss_weight * boundary_connect_loss
         )
 
         loss = (
-            weighted_fit_loss + weighted_coverage_loss + weighted_boundary_connect_loss
+            weighted_not_fit_loss + weighted_fit_loss + weighted_coverage_loss + weighted_boundary_connect_loss
         )
 
         if torch.isnan(loss).any():
@@ -236,17 +229,17 @@ class AdaptiveTrainer(BaseTrainer):
 
         self.coverage_percent = self.getCoveragePercent(coverage_dists2)
 
-        self.addAnchor(coverage_dists2)
-
         loss_dict = {
             "State/boundary_pts": boundary_pts.shape[0],
             "State/inner_pts": inner_pts.shape[0],
             "Train/epoch": self.epoch,
+            "Train/not_fit_loss": toNumpy(not_fit_loss),
             "Train/fit_loss": toNumpy(fit_loss),
             "Train/coverage_loss": toNumpy(coverage_loss),
             "Train/boundary_connect_loss": toNumpy(
                 boundary_connect_loss
             ),
+            "Train/weighted_not_fit_loss": toNumpy(weighted_not_fit_loss),
             "Train/weighted_fit_loss": toNumpy(weighted_fit_loss),
             "Train/weighted_coverage_loss": toNumpy(weighted_coverage_loss),
             "Train/weighted_boundary_connect_loss": toNumpy(
@@ -255,7 +248,6 @@ class AdaptiveTrainer(BaseTrainer):
             "Train/loss": toNumpy(loss),
             "Metric/chamfer_distance": toNumpy(fit_loss) + toNumpy(coverage_loss),
             "Metric/anchor_num": self.mash.anchor_num,
-            "Metric/fit_loss_weight": self.fit_loss_weight,
             "Metric/coverage_percent": self.coverage_percent,
         }
 
@@ -303,13 +295,14 @@ class AdaptiveTrainer(BaseTrainer):
                 self.lr,
                 gt_points,
                 1.0,
-                0.5,
-                0.0,
-                self.warmup_step_num,
+                0.1,
+                0.1,
             ):
                 print('[ERROR][AdaptiveTrainer::autoTrainMash]')
                 print('\t trainEpoch failed!')
                 return False
+
+            self.addAnchor()
 
         print("[INFO][AdaptiveTrainer::autoTrainMash]")
         print("\t start trainEpoch with adaptive loss...")

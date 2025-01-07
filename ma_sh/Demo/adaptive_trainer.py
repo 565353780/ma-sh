@@ -21,14 +21,14 @@ def demo():
     idx_dtype = torch.int64
     dtype = torch.float32
     device = "cuda:0"
-    max_fit_error = 1e-3
+    max_fit_error = 1e-4
 
     lr = 2e-3
     min_lr = 1e-3
     warmup_step_num = 80
     warmup_epoch = 4
     factor = 0.8
-    patience = 2
+    patience = 20
 
     render = False
     render_freq = 1

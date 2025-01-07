@@ -69,6 +69,7 @@ class BaseTrainer(ABC):
         # tmp
         self.translate = None
         self.scale = None
+        self.surface_dist = 0.001
         return
 
     def initRecords(self) -> bool:
@@ -117,8 +118,6 @@ class BaseTrainer(ABC):
 
         self.gt_normals = np.asarray(sample_gt_pcd.normals)
 
-        surface_dist = 0.001
-
         anchor_pcd = downSample(sample_gt_pcd, self.mash.anchor_num)
 
         if anchor_pcd is None:
@@ -130,11 +129,11 @@ class BaseTrainer(ABC):
         sample_normals = np.asarray(anchor_pcd.normals)
 
         sh_params = torch.ones_like(self.mash.sh_params) * EPSILON
-        sh_params[:, 0] = surface_dist / W0[0]
+        sh_params[:, 0] = self.surface_dist / W0[0]
 
         self.mash.loadParams(
             sh_params=sh_params,
-            positions=sample_pts + surface_dist * sample_normals,
+            positions=sample_pts + self.surface_dist * sample_normals,
             face_forward_vectors=-sample_normals,
         )
         return True
@@ -193,19 +192,17 @@ class BaseTrainer(ABC):
 
         self.mesh.vertices = (self.mesh.vertices - self.translate) * self.scale
 
-        surface_dist = 0.001
-
         self.mesh.samplePoints(self.mash.anchor_num)
 
         assert self.mesh.sample_normals is not None
         assert self.mesh.sample_pts is not None
 
         sh_params = torch.zeros_like(self.mash.sh_params)
-        sh_params[:, 0] = surface_dist / W0[0]
+        sh_params[:, 0] = self.surface_dist / W0[0]
 
         self.mash.loadParams(
             sh_params=sh_params,
-            positions=self.mesh.sample_pts + surface_dist * self.mesh.sample_normals,
+            positions=self.mesh.sample_pts + self.surface_dist * self.mesh.sample_normals,
             face_forward_vectors=-self.mesh.sample_normals,
         )
         return True
