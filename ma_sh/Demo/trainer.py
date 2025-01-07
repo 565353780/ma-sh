@@ -32,7 +32,7 @@ def demo(anchor_num: int = 400):
     render_init_only = False
     save_freq = 1
 
-    gt_points_num = 4000
+    gt_points_num = 400000
 
     save_result_folder_path = None
     save_log_folder_path = None

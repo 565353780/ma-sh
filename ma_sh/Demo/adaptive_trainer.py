@@ -12,6 +12,7 @@ from ma_sh.Module.timer import Timer
 
 def demo():
     init_anchor_num = 100
+    add_anchor_num = 50
     mask_degree_max = 3
     sh_degree_max = 2
     mask_boundary_sample_num = 90
@@ -21,14 +22,14 @@ def demo():
     idx_dtype = torch.int64
     dtype = torch.float32
     device = "cuda:0"
-    max_fit_error = 1e-4
+    max_fit_error = 1e-3
 
     lr = 2e-3
     min_lr = 1e-3
     warmup_step_num = 80
     warmup_epoch = 4
     factor = 0.8
-    patience = 20
+    patience = 40
 
     render = False
     render_freq = 1
@@ -63,6 +64,7 @@ def demo():
 
     adaptive_trainer = AdaptiveTrainer(
         init_anchor_num,
+        add_anchor_num,
         mask_degree_max,
         sh_degree_max,
         mask_boundary_sample_num,

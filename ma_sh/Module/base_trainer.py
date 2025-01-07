@@ -4,7 +4,6 @@ import numpy as np
 import open3d as o3d
 from tqdm import tqdm
 from typing import Union
-from copy import deepcopy
 from abc import ABC, abstractmethod
 
 import mash_cpp
@@ -515,7 +514,7 @@ class BaseTrainer(ABC):
         pass
 
     def toSamplePointsWithTransform(self) -> torch.Tensor:
-        sample_mash = deepcopy(self.mash)
+        sample_mash = self.mash.clone()
 
         if self.translate is not None:
             sample_mash.scale(1.0 / self.scale, False)
@@ -528,7 +527,7 @@ class BaseTrainer(ABC):
     def saveMashFile(self, save_mash_file_path: str, overwrite: bool = False) -> bool:
         createFileFolder(save_mash_file_path)
 
-        sample_mash = deepcopy(self.mash)
+        sample_mash = self.mash.clone()
 
         if self.translate is not None:
             sample_mash.scale(1.0 / self.scale, False)
@@ -574,7 +573,7 @@ class BaseTrainer(ABC):
 
             removeFile(save_pcd_file_path)
 
-        save_mash = deepcopy(self.mash)
+        save_mash = self.mash.clone()
 
         if self.translate is not None:
             save_mash.scale(1.0 / self.scale, False)

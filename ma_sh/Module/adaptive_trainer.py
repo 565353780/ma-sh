@@ -1,3 +1,4 @@
+import os
 import torch
 import numpy as np
 import open3d as o3d
@@ -6,12 +7,13 @@ from torch.optim import AdamW
 
 from ma_sh.Config.weights import W0
 from ma_sh.Config.constant import EPSILON
-from ma_sh.Method.pcd import downSample
+from ma_sh.Method.pcd import downSample, toMergedPcd
 import mash_cpp
 
 from ma_sh.Model.mash import Mash
 from ma_sh.Model.simple_mash import SimpleMash
 from ma_sh.Method.data import toNumpy
+from ma_sh.Method.path import createFileFolder, removeFile, renameFile
 from ma_sh.Module.base_trainer import BaseTrainer
 
 mode = 'mash'
@@ -19,7 +21,8 @@ mode = 'mash'
 class AdaptiveTrainer(BaseTrainer):
     def __init__(
         self,
-        init_anchor_num: int = 40,
+        init_anchor_num: int = 100,
+        add_anchor_num: int = 50,
         mask_degree_max: int = 3,
         sh_degree_max: int = 2,
         mask_boundary_sample_num: int = 90,
@@ -43,13 +46,14 @@ class AdaptiveTrainer(BaseTrainer):
         save_result_folder_path: Union[str, None] = None,
         save_log_folder_path: Union[str, None] = None,
     ) -> None:
+        self.add_anchor_num = add_anchor_num
         self.max_fit_error = max_fit_error
         self.warmup_step_num = warmup_step_num
         self.warmup_epoch = warmup_epoch
         self.factor = factor
 
         self.max_fit_error2 = self.max_fit_error * self.max_fit_error
-        self.distance_thresh = max(self.max_fit_error2, 1e-6)
+        self.distance_thresh = 100.0 * max(self.max_fit_error2, 1e-6)
 
         self.not_fit_loss_weight = 1000.0
 
@@ -79,6 +83,8 @@ class AdaptiveTrainer(BaseTrainer):
                 device,
             )
 
+        self.merged_mash = None
+
         self.optimizer = AdamW(
             [
                 self.mash.mask_params,
@@ -101,8 +107,6 @@ class AdaptiveTrainer(BaseTrainer):
             save_log_folder_path,
         )
 
-        self.surface_dist = 0.001
-        self.add_anchor_num = 20
         self.coverage_percent = 0
         self.coverage_dists2 = torch.empty([0], dtype=self.mash.dtype, device=self.mash.device)
         return
@@ -121,14 +125,14 @@ class AdaptiveTrainer(BaseTrainer):
 
     @torch.no_grad()
     def getCoveragePercent(self, coverage_dists2: torch.Tensor) -> float:
-        coveraged_num = (coverage_dists2 < 2.0 * self.distance_thresh).sum().item()
+        coveraged_num = (coverage_dists2 <= self.distance_thresh).sum().item()
         total_elements = coverage_dists2.numel()
         coverage_percent = 100.0 * coveraged_num / total_elements
         return coverage_percent
 
     @torch.no_grad()
     def addAnchor(self) -> bool:
-        not_fitted_point_idxs = self.coverage_dists2.cpu().flatten() >= 2.0 * self.distance_thresh
+        not_fitted_point_idxs = self.coverage_dists2.cpu().flatten() > self.distance_thresh
 
         not_fitted_points = self.gt_points[not_fitted_point_idxs]
         not_fitted_normals = self.gt_normals[not_fitted_point_idxs]
@@ -150,26 +154,28 @@ class AdaptiveTrainer(BaseTrainer):
         sample_pts = torch.from_numpy(sample_pts).to(self.mash.device, dtype=self.mash.dtype)
         sample_normals = torch.from_numpy(sample_normals).to(self.mash.device, dtype=self.mash.dtype)
 
-        self.mash.setGradState(False)
+        if self.merged_mash is None:
+            self.merged_mash = self.mash.clone()
+        else:
+            self.merged_mash.mergeMash(self.mash)
 
-        self.mash.updateAnchorNum(self.mash.anchor_num + self.add_anchor_num)
+            self.merged_mash.clearGrads()
+            self.merged_mash.setGradState(False)
 
-        new_sh_params = torch.ones([self.add_anchor_num, self.mash.sh_params.shape[1]],
+        self.mash = Mash.fromMash(self.merged_mash, anchor_num=sample_pts.shape[0])
+
+        new_sh_params = torch.ones([sample_pts.shape[0], self.mash.sh_params.shape[1]],
                                    dtype=self.mash.dtype, device=self.mash.device) * EPSILON
         new_sh_params[:, 0] = self.surface_dist / W0[0]
-        self.mash.sh_params.data[-self.add_anchor_num:, :] = new_sh_params
 
-        new_positions = sample_pts + self.surface_dist * sample_normals
-        self.mash.positions.data[-self.add_anchor_num:, :] = new_positions
-
-        new_rotate_vectors = mash_cpp.toRotateVectorsByFaceForwardVectors(
-            -sample_normals
+        self.mash.loadParams(
+            sh_params=new_sh_params,
+            positions=sample_pts + self.surface_dist * sample_normals,
+            face_forward_vectors=-sample_normals
         )
-        self.mash.rotate_vectors.data[-self.add_anchor_num:, :] = new_rotate_vectors
-
-        self.mash.regularRotateVectors()
 
         self.mash.setGradState(True)
+        self.mash.clearGrads()
 
         self.updateOptimizer(self.getLr())
 
@@ -186,14 +192,25 @@ class AdaptiveTrainer(BaseTrainer):
 
         boundary_pts, inner_pts = self.mash.toSamplePoints()[:2]
 
-        fit_dists2, coverage_dists2 = mash_cpp.toChamferDistance(
-            torch.vstack([boundary_pts, inner_pts]).unsqueeze(0), gt_points
-        )[:2]
+        if self.merged_mash is None:
+            sample_pts = torch.vstack([boundary_pts, inner_pts])
+        else:
+            merged_boundary_pts, merged_inner_pts = self.merged_mash.toSamplePoints()[:2]
+            sample_pts = torch.vstack([boundary_pts, inner_pts, merged_boundary_pts, merged_inner_pts])
+
+        fit_dists2, coverage_dists2, _, coverage_idxs = mash_cpp.toChamferDistance(
+            sample_pts.unsqueeze(0), gt_points
+        )
+
+        valid_idx_max = boundary_pts.shape[0] + inner_pts.shape[0]
+
+        valid_fit_dists2 = fit_dists2[:, :valid_idx_max]
+        valid_coverage_dists2 = coverage_dists2[coverage_idxs < valid_idx_max]
 
         self.coverage_dists2 = coverage_dists2.detach().clone()
 
-        fit_dists = torch.sqrt(fit_dists2 + EPSILON)
-        coverage_dists = torch.sqrt(coverage_dists2 + EPSILON)
+        fit_dists = torch.sqrt(valid_fit_dists2 + EPSILON)
+        coverage_dists = torch.sqrt(valid_coverage_dists2 + EPSILON)
 
         fit_loss = torch.mean(fit_dists)
         coverage_loss = torch.mean(coverage_dists)
@@ -204,7 +221,7 @@ class AdaptiveTrainer(BaseTrainer):
                 self.mash.anchor_num, boundary_pts, self.mash.mask_boundary_phi_idxs
             )
 
-        not_fit_dists2 = fit_dists2[fit_dists2 > self.max_fit_error2]
+        not_fit_dists2 = valid_fit_dists2[valid_fit_dists2 > self.max_fit_error2]
         not_fit_loss = torch.mean(not_fit_dists2) - self.max_fit_error2
 
         weighted_not_fit_loss = self.not_fit_loss_weight * not_fit_loss
@@ -247,7 +264,7 @@ class AdaptiveTrainer(BaseTrainer):
             ),
             "Train/loss": toNumpy(loss),
             "Metric/chamfer_distance": toNumpy(fit_loss) + toNumpy(coverage_loss),
-            "Metric/anchor_num": self.mash.anchor_num,
+            "Metric/anchor_num": self.mash.anchor_num + self.merged_mash.anchor_num if self.merged_mash is not None else self.mash.anchor_num,
             "Metric/coverage_percent": self.coverage_percent,
         }
 
@@ -290,19 +307,36 @@ class AdaptiveTrainer(BaseTrainer):
 
         while True:
             print("[INFO][AdaptiveTrainer::autoTrainMash]")
-            print("\t start trainEpoch...")
+            print("\t start trainEpoch to coverage full shape...")
             if not self.trainEpoch(
                 self.lr,
                 gt_points,
                 1.0,
-                0.1,
-                0.1,
+                0.5,
+                0.0,
             ):
                 print('[ERROR][AdaptiveTrainer::autoTrainMash]')
                 print('\t trainEpoch failed!')
                 return False
 
+            if self.merged_mash is not None:
+                break
+
+            if self.coverage_percent == 100:
+                break
+
             self.addAnchor()
+
+        if self.merged_mash is not None:
+            self.mash.mergeMash(self.merged_mash)
+            self.merged_mash = None
+
+        self.mash.setGradState(True)
+        self.mash.clearGrads()
+
+        self.updateOptimizer(self.getLr())
+
+        self.patience = 2
 
         print("[INFO][AdaptiveTrainer::autoTrainMash]")
         print("\t start trainEpoch with adaptive loss...")
@@ -362,32 +396,45 @@ class AdaptiveTrainer(BaseTrainer):
         self.autoSavePcd('final', add_idx=False)
         self.autoSaveMash('final')
 
-        """
-            if self.upperSHDegree():
-                print("[INFO][AdaptiveTrainer::autoTrainMash]")
-                print("\t upperSHDegree success!")
-                print("\t start auto train Mash...")
-                print(
-                    "\t degree: mask:",
-                    self.mash.mask_degree_max,
-                    "sh:",
-                    self.mash.sh_degree_max,
-                )
-                continue
+        return True
 
-            if self.upperMaskDegree():
-                print("[INFO][AdaptiveTrainer::autoTrainMash]")
-                print("\t upperMaskDegree success!")
-                print("\t start auto train Mash...")
-                print(
-                    "\t degree: mask:",
-                    self.mash.mask_degree_max,
-                    "sh:",
-                    self.mash.sh_degree_max,
-                )
-                continue
 
-            break
-        """
+    def saveAsPcdFile(self, save_pcd_file_path: str, overwrite: bool = False) -> bool:
+        print_progress = False
+
+        if os.path.exists(save_pcd_file_path):
+            if not overwrite:
+                return True
+
+            removeFile(save_pcd_file_path)
+
+        save_mash = self.mash.clone()
+
+        if self.translate is not None:
+            save_mash.scale(1.0 / self.scale, False)
+            save_mash.translate(self.translate)
+
+        save_pcd = save_mash.toSamplePcd()
+
+        if self.merged_mash is not None:
+            save_merged_mash = self.merged_mash.clone()
+
+            if self.translate is not None:
+                save_merged_mash.scale(1.0 / self.scale, False)
+                save_merged_mash.translate(self.translate)
+
+            save_merged_pcd = save_merged_mash.toSamplePcd()
+
+            save_pcd = toMergedPcd(save_pcd, save_merged_pcd)
+
+        createFileFolder(save_pcd_file_path)
+
+        tmp_save_pcd_file_path = save_pcd_file_path[:-4] + "_tmp" + save_pcd_file_path[-4:]
+
+        o3d.io.write_point_cloud(
+            tmp_save_pcd_file_path, save_pcd, write_ascii=True, print_progress=print_progress
+        )
+
+        renameFile(tmp_save_pcd_file_path, save_pcd_file_path)
 
         return True

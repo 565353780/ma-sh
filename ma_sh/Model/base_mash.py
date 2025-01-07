@@ -134,22 +134,43 @@ class BaseMash(ABC):
         self.updatePreLoadDatas()
         return True
 
-    def setGradState(self, need_grad: bool) -> bool:
-        self.mask_params.requires_grad_(need_grad)
-        self.sh_params.requires_grad_(need_grad)
-        self.rotate_vectors.requires_grad_(need_grad)
-        self.positions.requires_grad_(need_grad)
+    def clone(self):
+        return deepcopy(self)
+
+    def setGradState(self, need_grad: bool, anchor_mask: Union[torch.Tensor, None] = None) -> bool:
+        if anchor_mask is None:
+            self.mask_params.requires_grad_(need_grad)
+            self.sh_params.requires_grad_(need_grad)
+            self.rotate_vectors.requires_grad_(need_grad)
+            self.positions.requires_grad_(need_grad)
+            return True
+
+        self.mask_params[anchor_mask].requires_grad_(need_grad)
+        self.sh_params[anchor_mask].requires_grad_(need_grad)
+        self.rotate_vectors[anchor_mask].requires_grad_(need_grad)
+        self.positions[anchor_mask].requires_grad_(need_grad)
         return True
 
-    def clearGrads(self) -> bool:
-        if self.mask_params.grad is not None:
-            self.mask_params.grad = None
-        if self.sh_params.grad is not None:
-            self.sh_params.grad = None
-        if self.rotate_vectors.grad is not None:
-            self.rotate_vectors.grad = None
-        if self.positions.grad is not None:
-            self.positions.grad = None
+    def clearGrads(self, anchor_mask: Union[torch.Tensor, None] = None) -> bool:
+        if anchor_mask is not None:
+            if self.mask_params.grad is not None:
+                self.mask_params.grad = None
+            if self.sh_params.grad is not None:
+                self.sh_params.grad = None
+            if self.rotate_vectors.grad is not None:
+                self.rotate_vectors.grad = None
+            if self.positions.grad is not None:
+                self.positions.grad = None
+            return True
+
+        if self.mask_params[anchor_mask].grad is not None:
+            self.mask_params[anchor_mask].grad = None
+        if self.sh_params[anchor_mask].grad is not None:
+            self.sh_params[anchor_mask].grad = None
+        if self.rotate_vectors[anchor_mask].grad is not None:
+            self.rotate_vectors[anchor_mask].grad = None
+        if self.positions[anchor_mask].grad is not None:
+            self.positions[anchor_mask].grad = None
         return True
 
     def initParams(self) -> bool:
@@ -333,6 +354,31 @@ class BaseMash(ABC):
             print("[ERROR][Mash::loadParamsFile]")
             print("\t loadParamsDict failed!")
             return False
+
+        return True
+
+    def mergeMash(self, mash) -> bool:
+        if self.mask_degree_max != mash.mask_degree_max:
+            print('[ERROR][BaseMash::mergeMash]')
+            print('\t mask degree max not matched!')
+            print('\t ', self.mask_degree_max, '!=', mash.mask_degree_max)
+            return False
+
+        if self.sh_degree_max != mash.sh_degree_max:
+            print('[ERROR][BaseMash::mergeMash]')
+            print('\t sh degree max not matched!')
+            print('\t ', self.sh_degree_max, '!=', mash.sh_degree_max)
+            return False
+
+        self.setGradState(False)
+
+        self.anchor_num += mash.anchor_num
+        self.mask_params = torch.vstack([self.mask_params, mash.mask_params])
+        self.sh_params = torch.vstack([self.sh_params, mash.sh_params])
+        self.positions = torch.vstack([self.positions, mash.positions])
+        self.rotate_vectors = torch.vstack([self.rotate_vectors, mash.rotate_vectors])
+
+        self.updatePreLoadDatas()
 
         return True
 
@@ -737,12 +783,7 @@ class BaseMash(ABC):
 
         createFileFolder(save_pcd_file_path)
 
-        boundary_pts, inner_pts = self.toSamplePoints()[:2]
-        sample_pts = torch.vstack([boundary_pts, inner_pts])
-        sample_points = toNumpy(sample_pts)
-
-        pcd = o3d.geometry.PointCloud()
-        pcd.points = o3d.utility.Vector3dVector(sample_points)
+        pcd = self.toSamplePcd()
 
         if print_progress:
             print("[INFO][Mash::saveAsPcdFile]")

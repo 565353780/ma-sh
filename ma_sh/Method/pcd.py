@@ -42,3 +42,15 @@ def getCropPointCloud(
 ) -> o3d.geometry.PointCloud:
     o3d_abb = abb.toOpen3DABB()
     return pcd.crop(o3d_abb)
+
+def toMergedPcd(
+    pcd_1: o3d.geometry.PointCloud,
+    pcd_2: o3d.geometry.PointCloud,
+) -> o3d.geometry.PointCloud:
+    points_1 = np.asarray(pcd_1.points)
+    points_2 = np.asarray(pcd_2.points)
+
+    merged_points = np.vstack([points_1, points_2])
+    merged_pcd = getPointCloud(merged_points)
+
+    return merged_pcd
