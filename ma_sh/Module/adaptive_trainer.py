@@ -39,6 +39,7 @@ class AdaptiveTrainer(BaseTrainer):
         warmup_epoch: int = 4,
         factor: float = 0.8,
         patience: int = 2,
+        refine_step_num: int = 20,
         render: bool = False,
         render_freq: int = 1,
         render_init_only: bool = False,
@@ -51,6 +52,7 @@ class AdaptiveTrainer(BaseTrainer):
         self.warmup_step_num = warmup_step_num
         self.warmup_epoch = warmup_epoch
         self.factor = factor
+        self.refine_step_num = refine_step_num
 
         self.max_fit_error2 = self.max_fit_error * self.max_fit_error
         self.distance_thresh = 100.0 * max(self.max_fit_error2, 1e-6)
@@ -272,12 +274,80 @@ class AdaptiveTrainer(BaseTrainer):
 
         return loss_dict
 
+    def refineMergedMash(self,
+                         gt_points: torch.Tensor,
+                         refine_step_num: Union[int, None] = None) -> bool:
+        boundary_connect_loss_weight_max = 0.1
+
+        if self.merged_mash is not None:
+            self.mash.mergeMash(self.merged_mash)
+            self.merged_mash = None
+
+        self.updateOptimizer(self.getLr())
+
+        print("[INFO][AdaptiveTrainer::refineMergedMash]")
+        print("\t start trainEpoch with adaptive loss...")
+        for i in range(self.warmup_epoch):
+            fit_loss_weight = 1.0
+
+            manifold_loss_weight = i / (self.warmup_epoch - 1)
+
+            coverage_loss_weight = 0.5 + 0.5 * manifold_loss_weight
+            boundary_connect_loss_weight = (
+                0.1 + 0.9 * manifold_loss_weight
+            ) * boundary_connect_loss_weight_max
+
+            if not self.trainEpoch(
+                self.lr,
+                gt_points,
+                fit_loss_weight,
+                coverage_loss_weight,
+                boundary_connect_loss_weight,
+                refine_step_num,
+            ):
+                print('[ERROR][AdaptiveTrainer::refineMergedMash]')
+                print('\t trainEpoch failed!')
+                return False
+
+        print("[INFO][AdaptiveTrainer::refineMergedMash]")
+        print("\t start trainEpoch with adaptive lr...")
+        current_lr = self.lr
+        current_finetune_epoch = 1
+
+        while current_lr > self.min_lr:
+            current_lr *= self.factor
+            if current_lr < self.min_lr:
+                current_lr = self.min_lr
+
+            current_finetune_epoch += 1
+
+            fit_loss_weight = 1.0
+            coverage_loss_weight = 1.0
+
+            manifold_loss_weight = 1.0 / current_finetune_epoch
+
+            boundary_connect_loss_weight = (
+                0.0 + 1.0 * manifold_loss_weight
+            ) * boundary_connect_loss_weight_max
+
+            self.trainEpoch(
+                current_lr,
+                gt_points,
+                fit_loss_weight,
+                coverage_loss_weight,
+                boundary_connect_loss_weight,
+                refine_step_num,
+            )
+
+            if current_lr == self.min_lr:
+                break
+
+        return True
+
     def autoTrainMash(
         self,
         gt_points_num: int = 400000,
     ) -> bool:
-        boundary_connect_loss_weight_max = 0.1
-
         print("[INFO][AdaptiveTrainer::autoTrainMash]")
         print("\t start auto train Mash...")
         print(
@@ -336,66 +406,21 @@ class AdaptiveTrainer(BaseTrainer):
                 print('\t trainEpoch failed!')
                 return False
 
-            if self.merged_mash is not None:
-                self.mash.mergeMash(self.merged_mash)
-                self.merged_mash = None
+            if self.coverage_percent == 100:
+                break
 
-            self.updateOptimizer(self.getLr())
+            if not self.refineMergedMash(
+                gt_points,
+                self.refine_step_num,
+            ):
+                print('[ERROR][AdaptiveTrainer::autoTrainMash]')
+                print('\t refineMergedMash failed!')
+                return False
 
-            print("[INFO][AdaptiveTrainer::autoTrainMash]")
-            print("\t start trainEpoch with adaptive loss...")
-            for i in range(self.warmup_epoch):
-                fit_loss_weight = 1.0
-
-                manifold_loss_weight = i / (self.warmup_epoch - 1)
-
-                coverage_loss_weight = 0.5 + 0.5 * manifold_loss_weight
-                boundary_connect_loss_weight = (
-                    0.1 + 0.9 * manifold_loss_weight
-                ) * boundary_connect_loss_weight_max
-
-                if not self.trainEpoch(
-                    self.lr,
-                    gt_points,
-                    fit_loss_weight,
-                    coverage_loss_weight,
-                    boundary_connect_loss_weight,
-                ):
-                    print('[ERROR][AdaptiveTrainer::autoTrainMash]')
-                    print('\t trainEpoch failed!')
-                    return False
-
-            print("[INFO][AdaptiveTrainer::autoTrainMash]")
-            print("\t start trainEpoch with adaptive lr...")
-            current_lr = self.lr
-            current_finetune_epoch = 1
-
-            while current_lr > self.min_lr:
-                current_lr *= self.factor
-                if current_lr < self.min_lr:
-                    current_lr = self.min_lr
-
-                current_finetune_epoch += 1
-
-                fit_loss_weight = 1.0
-                coverage_loss_weight = 1.0
-
-                manifold_loss_weight = 1.0 / current_finetune_epoch
-
-                boundary_connect_loss_weight = (
-                    0.0 + 1.0 * manifold_loss_weight
-                ) * boundary_connect_loss_weight_max
-
-                self.trainEpoch(
-                    current_lr,
-                    gt_points,
-                    fit_loss_weight,
-                    coverage_loss_weight,
-                    boundary_connect_loss_weight,
-                )
-
-                if current_lr == self.min_lr:
-                    break
+        if not self.refineMergedMash(gt_points):
+            print('[ERROR][AdaptiveTrainer::autoTrainMash]')
+            print('\t refineMergedMash failed for the last call!')
+            return False
 
         self.autoSavePcd('final', add_idx=False)
         self.autoSaveMash('final')

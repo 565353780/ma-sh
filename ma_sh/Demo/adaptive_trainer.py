@@ -30,6 +30,7 @@ def demo():
     warmup_epoch = 4
     factor = 0.8
     patience = 40
+    refine_step_num = 20
 
     render = False
     render_freq = 1
@@ -81,6 +82,7 @@ def demo():
         warmup_epoch,
         factor,
         patience,
+        refine_step_num,
         render,
         render_freq,
         render_init_only,
