@@ -221,8 +221,10 @@ class AdaptiveTrainer(BaseTrainer):
                 self.mash.anchor_num, boundary_pts, self.mash.mask_boundary_phi_idxs
             )
 
-        not_fit_dists2 = valid_fit_dists2[valid_fit_dists2 > self.max_fit_error2]
-        not_fit_loss = torch.mean(not_fit_dists2) - self.max_fit_error2
+        not_fit_loss = torch.zeros_like(fit_loss)
+        if self.not_fit_loss_weight > 0:
+            not_fit_dists2 = valid_fit_dists2[valid_fit_dists2 > self.max_fit_error2]
+            not_fit_loss = torch.mean(not_fit_dists2) - self.max_fit_error2
 
         weighted_not_fit_loss = self.not_fit_loss_weight * not_fit_loss
         weighted_fit_loss = fit_loss_weight * fit_loss
@@ -319,9 +321,6 @@ class AdaptiveTrainer(BaseTrainer):
                 print('\t trainEpoch failed!')
                 return False
 
-            if self.merged_mash is not None:
-                break
-
             if self.coverage_percent == 100:
                 break
 
@@ -333,7 +332,7 @@ class AdaptiveTrainer(BaseTrainer):
 
         self.updateOptimizer(self.getLr())
 
-        self.patience = 2
+        self.not_fit_loss_weight = 0
 
         print("[INFO][AdaptiveTrainer::autoTrainMash]")
         print("\t start trainEpoch with adaptive loss...")
