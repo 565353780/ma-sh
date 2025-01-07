@@ -152,7 +152,7 @@ class BaseMash(ABC):
         return True
 
     def clearGrads(self, anchor_mask: Union[torch.Tensor, None] = None) -> bool:
-        if anchor_mask is not None:
+        if anchor_mask is None:
             if self.mask_params.grad is not None:
                 self.mask_params.grad = None
             if self.sh_params.grad is not None:
