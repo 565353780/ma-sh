@@ -11,7 +11,7 @@ from ma_sh.Module.timer import Timer
 
 
 def demo():
-    init_anchor_num = 40
+    init_anchor_num = 100
     mask_degree_max = 3
     sh_degree_max = 2
     mask_boundary_sample_num = 90
@@ -21,7 +21,7 @@ def demo():
     idx_dtype = torch.int64
     dtype = torch.float32
     device = "cuda:0"
-    max_fit_error = 1e-4
+    max_fit_error = 1e-3
 
     lr = 2e-3
     min_lr = 1e-3
@@ -33,7 +33,7 @@ def demo():
     render = False
     render_freq = 1
     render_init_only = False
-    save_freq = 1
+    save_freq = 10
 
     gt_points_num = 400000
 
@@ -60,7 +60,6 @@ def demo():
     save_params_file_path = "./output/" + mesh_name + "_Anc-" + str(init_anchor_num) + ".npy"
     save_pcd_file_path = "./output/" + mesh_name + "_Anc-" + str(init_anchor_num) + ".ply"
     overwrite = True
-    print_progress = True
 
     adaptive_trainer = AdaptiveTrainer(
         init_anchor_num,

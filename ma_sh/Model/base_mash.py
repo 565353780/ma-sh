@@ -336,6 +336,44 @@ class BaseMash(ABC):
 
         return True
 
+    def updateAnchorNum(self, anchor_num: int) -> bool:
+        if anchor_num == self.anchor_num:
+            return True
+
+        if anchor_num < 1:
+            print("[ERROR][Mash::updateAnchorNum]")
+            print("\t anchor num < 1!")
+            print("\t anchor_num:", anchor_num)
+            return False
+
+        copy_dim = min(anchor_num, self.anchor_num)
+
+        self.anchor_num = anchor_num
+
+        new_mask_params, new_sh_params, new_rotate_vectors, new_positions = (
+            toParams(
+                self.anchor_num,
+                self.mask_degree_max,
+                self.sh_degree_max,
+                self.dtype,
+                self.device,
+            )
+        )
+
+        new_mask_params[:copy_dim, :] = self.mask_params
+        new_sh_params[:copy_dim, :] = self.sh_params
+        new_positions[:copy_dim, :] = self.positions
+        new_rotate_vectors[:copy_dim, :] = self.rotate_vectors
+
+        self.mask_params = new_mask_params
+        self.sh_params = new_sh_params
+        self.positions = new_positions
+        self.rotate_vectors = new_rotate_vectors
+
+        self.updatePreLoadDatas()
+
+        return True
+
     def updateMaskDegree(self, mask_degree_max: int) -> bool:
         if mask_degree_max == self.mask_degree_max:
             return True
@@ -351,7 +389,7 @@ class BaseMash(ABC):
         new_dim = 2 * self.mask_degree_max + 1
 
         new_mask_params = torch.zeros(
-            [self.mask_params.shape[0], new_dim], dtype=self.dtype
+            [self.anchor_num, new_dim], dtype=self.dtype
         ).to(self.device)
 
         copy_dim = min(new_dim, self.mask_params.shape[1])
@@ -378,7 +416,7 @@ class BaseMash(ABC):
         new_dim = (self.sh_degree_max + 1) ** 2
 
         new_sh_params = torch.zeros(
-            [self.sh_params.shape[0], new_dim], dtype=self.dtype
+            [self.anchor_num, new_dim], dtype=self.dtype
         ).to(self.device)
 
         copy_dim = min(new_dim, self.sh_params.shape[1])

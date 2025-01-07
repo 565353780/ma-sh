@@ -115,6 +115,8 @@ class BaseTrainer(ABC):
         sample_gt_pcd.estimate_normals()
         #sample_gt_pcd.orient_normals_consistent_tangent_plane(4)
 
+        self.gt_normals = np.asarray(sample_gt_pcd.normals)
+
         surface_dist = 0.001
 
         anchor_pcd = downSample(sample_gt_pcd, self.mash.anchor_num)
@@ -263,6 +265,9 @@ class BaseTrainer(ABC):
             return False
         return True
 
+    def getLr(self) -> bool:
+        return self.optimizer.param_groups[0]['lr']
+
     def updateLr(self, lr: float) -> bool:
         for param_group in self.optimizer.param_groups:
             param_group["lr"] = lr
@@ -398,7 +403,7 @@ class BaseTrainer(ABC):
             if train_step_max is not None:
                 self.logger.addScalar("Train/patience", self.patience, self.step)
 
-                if start_step + self.step >= train_step_max:
+                if self.step >= start_step + train_step_max:
                     break
             else:
                 if loss < min_loss:
@@ -484,7 +489,7 @@ class BaseTrainer(ABC):
             if train_step_max is not None:
                 self.logger.addScalar("Train/patience", self.patience, self.step)
 
-                if start_step + self.step >= train_step_max:
+                if self.step >= start_step + train_step_max:
                     break
             else:
                 if loss < min_loss:
