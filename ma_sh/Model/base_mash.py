@@ -373,10 +373,10 @@ class BaseMash(ABC):
         self.setGradState(False)
 
         self.anchor_num += mash.anchor_num
-        self.mask_params = torch.vstack([self.mask_params, mash.mask_params])
-        self.sh_params = torch.vstack([self.sh_params, mash.sh_params])
-        self.positions = torch.vstack([self.positions, mash.positions])
-        self.rotate_vectors = torch.vstack([self.rotate_vectors, mash.rotate_vectors])
+        self.mask_params = torch.vstack([self.mask_params, mash.mask_params.detach().clone()])
+        self.sh_params = torch.vstack([self.sh_params, mash.sh_params.detach().clone()])
+        self.positions = torch.vstack([self.positions, mash.positions.detach().clone()])
+        self.rotate_vectors = torch.vstack([self.rotate_vectors, mash.rotate_vectors.detach().clone()])
 
         self.updatePreLoadDatas()
 

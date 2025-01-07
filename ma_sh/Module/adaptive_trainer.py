@@ -112,6 +112,9 @@ class AdaptiveTrainer(BaseTrainer):
         return
 
     def updateOptimizer(self, lr: float) -> bool:
+        self.mash.setGradState(True)
+        self.mash.clearGrads()
+
         self.optimizer = AdamW(
             [
                 self.mash.mask_params,
@@ -173,9 +176,6 @@ class AdaptiveTrainer(BaseTrainer):
             positions=sample_pts + self.surface_dist * sample_normals,
             face_forward_vectors=-sample_normals
         )
-
-        self.mash.setGradState(True)
-        self.mash.clearGrads()
 
         self.updateOptimizer(self.getLr())
 
@@ -330,9 +330,6 @@ class AdaptiveTrainer(BaseTrainer):
         if self.merged_mash is not None:
             self.mash.mergeMash(self.merged_mash)
             self.merged_mash = None
-
-        self.mash.setGradState(True)
-        self.mash.clearGrads()
 
         self.updateOptimizer(self.getLr())
 
