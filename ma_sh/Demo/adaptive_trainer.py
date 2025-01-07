@@ -34,7 +34,7 @@ def demo():
     render = False
     render_freq = 1
     render_init_only = False
-    save_freq = 10
+    save_freq = 100
 
     gt_points_num = 400000
 

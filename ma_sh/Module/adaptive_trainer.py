@@ -276,7 +276,7 @@ class AdaptiveTrainer(BaseTrainer):
         self,
         gt_points_num: int = 400000,
     ) -> bool:
-        boundary_connect_loss_weight_max = 0.0
+        boundary_connect_loss_weight_max = 0.1
 
         print("[INFO][AdaptiveTrainer::autoTrainMash]")
         print("\t start auto train Mash...")
@@ -307,7 +307,22 @@ class AdaptiveTrainer(BaseTrainer):
             .reshape(1, -1, 3)
         )
 
-        while True:
+        print("[INFO][AdaptiveTrainer::autoTrainMash]")
+        print("\t start trainEpoch to coverage full shape...")
+        if not self.trainEpoch(
+            self.lr,
+            gt_points,
+            1.0,
+            0.5,
+            0.0,
+        ):
+            print('[ERROR][AdaptiveTrainer::autoTrainMash]')
+            print('\t trainEpoch failed!')
+            return False
+
+        while self.coverage_percent < 100:
+            self.addAnchor()
+
             print("[INFO][AdaptiveTrainer::autoTrainMash]")
             print("\t start trainEpoch to coverage full shape...")
             if not self.trainEpoch(
@@ -321,73 +336,66 @@ class AdaptiveTrainer(BaseTrainer):
                 print('\t trainEpoch failed!')
                 return False
 
-            if self.coverage_percent == 100:
-                break
+            if self.merged_mash is not None:
+                self.mash.mergeMash(self.merged_mash)
+                self.merged_mash = None
 
-            self.addAnchor()
+            self.updateOptimizer(self.getLr())
 
-        if self.merged_mash is not None:
-            self.mash.mergeMash(self.merged_mash)
-            self.merged_mash = None
+            print("[INFO][AdaptiveTrainer::autoTrainMash]")
+            print("\t start trainEpoch with adaptive loss...")
+            for i in range(self.warmup_epoch):
+                fit_loss_weight = 1.0
 
-        self.updateOptimizer(self.getLr())
+                manifold_loss_weight = i / (self.warmup_epoch - 1)
 
-        self.not_fit_loss_weight = 0
+                coverage_loss_weight = 0.5 + 0.5 * manifold_loss_weight
+                boundary_connect_loss_weight = (
+                    0.1 + 0.9 * manifold_loss_weight
+                ) * boundary_connect_loss_weight_max
 
-        print("[INFO][AdaptiveTrainer::autoTrainMash]")
-        print("\t start trainEpoch with adaptive loss...")
-        for i in range(self.warmup_epoch):
-            fit_loss_weight = 1.0
+                if not self.trainEpoch(
+                    self.lr,
+                    gt_points,
+                    fit_loss_weight,
+                    coverage_loss_weight,
+                    boundary_connect_loss_weight,
+                ):
+                    print('[ERROR][AdaptiveTrainer::autoTrainMash]')
+                    print('\t trainEpoch failed!')
+                    return False
 
-            manifold_loss_weight = i / (self.warmup_epoch - 1)
+            print("[INFO][AdaptiveTrainer::autoTrainMash]")
+            print("\t start trainEpoch with adaptive lr...")
+            current_lr = self.lr
+            current_finetune_epoch = 1
 
-            coverage_loss_weight = 0.5 + 0.5 * manifold_loss_weight
-            boundary_connect_loss_weight = (
-                0.1 + 0.9 * manifold_loss_weight
-            ) * boundary_connect_loss_weight_max
+            while current_lr > self.min_lr:
+                current_lr *= self.factor
+                if current_lr < self.min_lr:
+                    current_lr = self.min_lr
 
-            if not self.trainEpoch(
-                self.lr,
-                gt_points,
-                fit_loss_weight,
-                coverage_loss_weight,
-                boundary_connect_loss_weight,
-            ):
-                print('[ERROR][AdaptiveTrainer::autoTrainMash]')
-                print('\t trainEpoch failed!')
-                return False
+                current_finetune_epoch += 1
 
-        print("[INFO][AdaptiveTrainer::autoTrainMash]")
-        print("\t start trainEpoch with adaptive lr...")
-        current_lr = self.lr
-        current_finetune_epoch = 1
+                fit_loss_weight = 1.0
+                coverage_loss_weight = 1.0
 
-        while current_lr > self.min_lr:
-            current_lr *= self.factor
-            if current_lr < self.min_lr:
-                current_lr = self.min_lr
+                manifold_loss_weight = 1.0 / current_finetune_epoch
 
-            current_finetune_epoch += 1
+                boundary_connect_loss_weight = (
+                    0.0 + 1.0 * manifold_loss_weight
+                ) * boundary_connect_loss_weight_max
 
-            fit_loss_weight = 1.0
-            coverage_loss_weight = 1.0
+                self.trainEpoch(
+                    current_lr,
+                    gt_points,
+                    fit_loss_weight,
+                    coverage_loss_weight,
+                    boundary_connect_loss_weight,
+                )
 
-            manifold_loss_weight = 1.0 / current_finetune_epoch
-
-            boundary_connect_loss_weight = (
-                0.0 + 1.0 * manifold_loss_weight
-            ) * boundary_connect_loss_weight_max
-
-            self.trainEpoch(
-                current_lr,
-                gt_points,
-                fit_loss_weight,
-                coverage_loss_weight,
-                boundary_connect_loss_weight,
-            )
-
-            if current_lr == self.min_lr:
-                break
+                if current_lr == self.min_lr:
+                    break
 
         self.autoSavePcd('final', add_idx=False)
         self.autoSaveMash('final')
