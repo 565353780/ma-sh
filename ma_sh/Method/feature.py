@@ -2,6 +2,8 @@ import os
 import torch
 import numpy as np
 from tqdm import tqdm
+from typing import Union
+from multiprocessing import Pool
 
 from pointnet_pp.Module.detector import Detector
 
@@ -111,3 +113,41 @@ def toFeatureFiles(
     pbar.close()
 
     return True
+
+def loadFeatures(
+    mash_folder_path: str,
+    save_feature_folder_path: str,
+    batch_size: int = 800,
+    save_freq: int = 100,
+    worker_num: int = 1,
+    overwrite: bool = False,
+) -> Union[np.ndarray, None]:
+    if not toFeatureFiles(
+        mash_folder_path,
+        save_feature_folder_path,
+        batch_size,
+        save_freq,
+        overwrite,
+    ):
+        print('[ERROR][feature::loadFeatures]')
+        print('\t toFeatureFiles failed!')
+        return None
+
+    feature_filename_list = os.listdir(save_feature_folder_path)
+
+    valid_feature_file_path_list = []
+
+    for feature_filename in feature_filename_list:
+        if not feature_filename.endswith('.npy'):
+            continue
+
+        valid_feature_file_path_list.append(save_feature_folder_path + feature_filename)
+
+    print('[INFO][feature::loadFeatures]')
+    print('\t start load featrue files...')
+    with Pool(worker_num) as pool:
+        features = list(tqdm(pool.imap(np.load, valid_feature_file_path_list), total=len(valid_feature_file_path_list)))
+
+    features_array = np.vstack(features)
+
+    return features_array

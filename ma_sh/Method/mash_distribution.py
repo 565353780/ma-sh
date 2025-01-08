@@ -3,15 +3,14 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from time import time
-from collections import Counter
 from typing import Union
+from collections import Counter
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
 
 from distribution_manage.Module.transformer import Transformer
 
 from ma_sh.Method.io import loadMashFolder
-from ma_sh.Method.feature import toFeatureFiles
+from ma_sh.Method.feature import loadFeatures
 from ma_sh.Method.path import createFileFolder, removeFile, renameFile
 from ma_sh.Method.rotate import toOrthoPosesFromRotateVectors
 
@@ -139,7 +138,6 @@ def getMashDistribution(
 
 def plotKMeansError(anchors: np.ndarray, n_clusters_list: list) -> bool:
     sse = []
-    silhouette_scores = []
 
     for k in n_clusters_list:
         print('[INFO][mash_distribution::plotKMeansError]')
@@ -150,26 +148,11 @@ def plotKMeansError(anchors: np.ndarray, n_clusters_list: list) -> bool:
         sse.append(kmeans.inertia_)
         print('\t\t sse: ', kmeans.inertia_)
 
-        '''
-        silhouette_avg = silhouette_score(anchors, kmeans.labels_)
-        silhouette_scores.append(silhouette_avg)
-        print('silhouette_avg:', silhouette_avg)
-        '''
-
     plt.figure(figsize=(12, 6))
-    plt.subplot(1, 2, 1)
     plt.plot(n_clusters_list, sse, 'bo-')
     plt.title('Elbow Method For Optimal k')
     plt.xlabel('Number of clusters (k)')
     plt.ylabel('SSE')
-
-    '''
-    plt.subplot(1, 2, 2)
-    plt.plot(n_clusters_list, silhouette_scores, 'go-')
-    plt.title('Silhouette Method For Optimal k')
-    plt.xlabel('Number of clusters (k)')
-    plt.ylabel('Silhouette Score')
-    '''
 
     plt.tight_layout()
     plt.show()
@@ -192,28 +175,20 @@ def clusterAnchors(
 
         removeFile(save_kmeans_center_npy_file_path)
 
-    anchors = toFeatureFiles(
+    anchors = loadFeatures(
         mash_folder_path,
         save_feature_folder_path,
         800,
         100,
+        4,
         overwrite,
     )
 
     print('anchors:', anchors.shape)
 
-    '''
-    tsne = TSNE(n_components=2, n_jobs=32)
-
-    anchors = tsne.fit_transform(anchors)
-
-    plt.scatter(anchors[:, 0], anchors[:, 1], c='blue', s=10)
-    plt.title("t-SNE Visualization")
-    plt.show()
-    '''
-
     if not os.path.exists(save_kmeans_center_npy_file_path):
         kmeans = KMeans(n_clusters=n_clusters, random_state=0)
+
         kmeans.fit(anchors)
 
         labels = kmeans.labels_

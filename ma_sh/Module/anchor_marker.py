@@ -19,7 +19,7 @@ class AnchorMarker(object):
             self.loadKMeansCenters(kmeans_center_npy_file_path)
 
         model_file_path = "../pointnet-pp/pretrained/cls_ssg/best_model.pth"
-        self.device = "cuda:0"
+        self.device = "cpu"
         self.detector = Detector(model_file_path, self.device)
         return
 
