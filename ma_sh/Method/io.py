@@ -85,6 +85,8 @@ def loadMashFolder(mash_folder_path: str,
 
             mash_file_path_list.append(root + '/' + file)
 
+    mash_file_path_list.sort()
+
     print('[INFO][io::loadMashFolder]')
     print('\t start load mash files...')
     with Pool(os.cpu_count()) as pool:

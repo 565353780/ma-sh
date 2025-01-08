@@ -202,6 +202,10 @@ def clusterAnchors(
 
         renameFile(tmp_save_kmeans_center_npy_file_path, save_kmeans_center_npy_file_path)
 
+        save_inertia_txt_file_path = save_kmeans_center_npy_file_path[:-4] + '_inertia.txt'
+        with open(save_inertia_txt_file_path, 'w') as f:
+            f.write(str(kmeans.inertia_))
+
         if plot_label:
             cluster_counts = Counter(labels)
 
