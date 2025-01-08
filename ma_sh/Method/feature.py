@@ -27,6 +27,9 @@ def toFeatureFiles(
 
         return False
 
+    rotate_vectors_array = np.zeros_like(rotate_vectors_array)
+    positions_array = np.zeros_like(positions_array)
+
     model_file_path = "../pointnet-pp/pretrained/cls_ssg/best_model.pth"
     device = "cuda:0"
     detector = Detector(model_file_path, device)
@@ -39,8 +42,8 @@ def toFeatureFiles(
 
     mash = SimpleMash(
         batch_size,
-        sample_phi_num=10,
-        sample_theta_num=10,
+        sample_phi_num=20,
+        sample_theta_num=20,
         device='cuda:0')
 
     pbar = tqdm(total=rotate_vectors_array.shape[0])

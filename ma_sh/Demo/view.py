@@ -27,8 +27,8 @@ def demo():
     # view single mash
     if True:
         mash_file_path_list = [
-            "/home/chli/Dataset/MashV4/ShapeNet/03001627/1006be65e7bc937e9141f9b58470d646.npy",
-            "/home/chli/Dataset/MashV4/ShapeNet/03001627/1007e20d5e811b308351982a6e40cf41.npy",
+            "/home/chli/chLi/Dataset/MashV4/ShapeNet/03001627/1006be65e7bc937e9141f9b58470d646.npy",
+            "/home/chli/chLi/Dataset/MashV4/ShapeNet/03001627/1007e20d5e811b308351982a6e40cf41.npy",
             "./output/combined_mash.npy",
         ]
 
