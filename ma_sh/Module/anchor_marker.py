@@ -3,8 +3,10 @@ import numpy as np
 import open3d as o3d
 from typing import Union
 
+from pointnet_pp.Module.detector import Detector
+
 from ma_sh.Method.pcd import getPointCloud
-from ma_sh.Model.mash import Mash
+from ma_sh.Model.simple_mash import SimpleMash
 
 class AnchorMarker(object):
     def __init__(self,
@@ -15,6 +17,10 @@ class AnchorMarker(object):
 
         if kmeans_center_npy_file_path is not None:
             self.loadKMeansCenters(kmeans_center_npy_file_path)
+
+        model_file_path = "../pointnet-pp/pretrained/cls_ssg/best_model.pth"
+        self.device = "cuda:0"
+        self.detector = Detector(model_file_path, self.device)
         return
 
     def loadKMeansCenters(self, kmeans_center_npy_file_path: str) -> bool:
@@ -29,10 +35,14 @@ class AnchorMarker(object):
         self.kmeans_colors = np.random.rand(self.kmeans_centers.shape[0], 3)
         return True
 
-    def markMash(self, mash: Mash) -> np.ndarray:
-        anchors = mash.sh_params.cpu().numpy()
+    def markMash(self, mash: SimpleMash) -> np.ndarray:
+        inner_pts = mash.toSamplePoints()[1]
+        inner_pts = inner_pts.reshape(mash.anchor_num, -1, 3).permute(0, 2, 1)
 
-        distances = np.linalg.norm(anchors[:, np.newaxis, :] - self.kmeans_centers, axis=2)
+        _, feature = self.detector.detect(inner_pts)
+        feature = feature.squeeze(-1).cpu().numpy()
+
+        distances = np.linalg.norm(feature[:, np.newaxis, :] - self.kmeans_centers, axis=2)
 
         closest_indices = np.argmin(distances, axis=1)
 
@@ -45,7 +55,7 @@ class AnchorMarker(object):
             print('\t mash_file_path:', mash_file_path)
             return None
 
-        mash = Mash.fromParamsFile(mash_file_path)
+        mash = SimpleMash.fromParamsFile(mash_file_path, device=self.device)
 
         anchor_label = self.markMash(mash)
 
@@ -58,7 +68,7 @@ class AnchorMarker(object):
             print('\t mash_file_path:', mash_file_path)
             return False
 
-        mash = Mash.fromParamsFile(mash_file_path)
+        mash = SimpleMash.fromParamsFile(mash_file_path, device=self.device)
 
         anchor_label = self.markMash(mash)
 

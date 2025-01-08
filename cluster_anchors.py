@@ -1,5 +1,6 @@
 import sys
 sys.path.append('../distribution-manage/')
+sys.path.append('../pointnet-pp/')
 
 from ma_sh.Config.custom_path import toDatasetRootPath
 from ma_sh.Method.mash_distribution import clusterAnchors
@@ -14,9 +15,10 @@ if __name__ == "__main__":
         exit()
 
     mash_folder_path = dataset_root_folder_path + 'MashV4/'
+    save_feature_folder_path = dataset_root_folder_path + 'MashV4_features/'
     n_clusters = 8
     save_kmeans_center_npy_file_path = dataset_root_folder_path + 'KMeansCenter/ShapeNet_' + str(n_clusters) + '.npy'
-    overwrite = False
+    overwrite = True
     plot_label = True
     plot_error = False
 
@@ -24,6 +26,7 @@ if __name__ == "__main__":
 
     clusterAnchors(
         mash_folder_path,
+        save_feature_folder_path,
         save_kmeans_center_npy_file_path,
         n_clusters,
         overwrite,
@@ -34,6 +37,7 @@ if __name__ == "__main__":
     mash_file_path = '/home/chli/chLi/Dataset/MashV4/ShapeNet/03001627/1006be65e7bc937e9141f9b58470d646.npy'
 
     anchor_marker = AnchorMarker(
+        save_feature_folder_path,
         save_kmeans_center_npy_file_path,
     )
 

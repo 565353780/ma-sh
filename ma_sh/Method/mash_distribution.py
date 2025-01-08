@@ -3,63 +3,18 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from time import time
-from tqdm import tqdm
 from collections import Counter
-from typing import Tuple, Union
-from multiprocessing import Pool
+from typing import Union
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
 from distribution_manage.Module.transformer import Transformer
 
+from ma_sh.Method.io import loadMashFolder
+from ma_sh.Method.feature import toFeatureFiles
 from ma_sh.Method.path import createFileFolder, removeFile, renameFile
 from ma_sh.Method.rotate import toOrthoPosesFromRotateVectors
-from ma_sh.Method.transformer import getTransformer
 
-
-def loadMashFile(mash_file_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    params_dict = np.load(mash_file_path, allow_pickle=True).item()
-    rotate_vectors = params_dict["rotate_vectors"]
-    positions = params_dict["positions"]
-    mask_params = params_dict["mask_params"]
-    sh_params = params_dict["sh_params"]
-
-    return rotate_vectors, positions, mask_params, sh_params
-
-def loadMashFolder(mash_folder_path: str,
-                   keep_dim: bool = False) -> Union[Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], Tuple[None, None, None, None]]:
-    if not os.path.exists(mash_folder_path):
-        print('[ERROR][mash_distribution::loadMashFolder]')
-        print('\t mash folder not exist!')
-        print('\t mash_folder_path:', mash_folder_path)
-
-        return None, None, None, None
-
-    mash_file_path_list = []
-    for root, _, files in os.walk(mash_folder_path):
-        for file in files:
-            if not file.endswith('.npy'):
-                continue
-
-            mash_file_path_list.append(root + '/' + file)
-
-    print('[INFO][mash_distribution::loadMashFolder]')
-    print('\t start load mash files...')
-    with Pool(os.cpu_count()) as pool:
-        result_list = list(tqdm(pool.imap(loadMashFile, mash_file_path_list), total=len(mash_file_path_list)))
-
-    if keep_dim:
-        rotate_vectors_array = np.stack([result[0] for result in result_list], axis=0)
-        positions_array = np.stack([result[1] for result in result_list], axis=0)
-        mask_params_array = np.stack([result[2] for result in result_list], axis=0)
-        sh_params_array = np.stack([result[3] for result in result_list], axis=0)
-    else:
-        rotate_vectors_array = np.vstack([result[0] for result in result_list])
-        positions_array = np.vstack([result[1] for result in result_list])
-        mask_params_array = np.vstack([result[2] for result in result_list])
-        sh_params_array = np.vstack([result[3] for result in result_list])
-
-    return rotate_vectors_array, positions_array, mask_params_array, sh_params_array
 
 def outputArray(array_name: str, array_value: np.ndarray) -> bool:
     print(array_name, '= [', end='')
@@ -223,6 +178,7 @@ def plotKMeansError(anchors: np.ndarray, n_clusters_list: list) -> bool:
 
 def clusterAnchors(
     mash_folder_path: str,
+    save_feature_folder_path: str,
     save_kmeans_center_npy_file_path: str,
     n_clusters: int = 4,
     overwrite: bool = False,
@@ -236,15 +192,25 @@ def clusterAnchors(
 
         removeFile(save_kmeans_center_npy_file_path)
 
-    rotate_vectors_array, positions_array, mask_params_array, sh_params_array = loadMashFolder(mash_folder_path, False)
-    if rotate_vectors_array is None or positions_array is None or mask_params_array is None or sh_params_array is None:
-        print('[ERROR][mash_distribution::clusterAnchors]')
-        print('\t loadMashFolder failed!')
+    anchors = toFeatureFiles(
+        mash_folder_path,
+        save_feature_folder_path,
+        800,
+        100,
+        overwrite,
+    )
 
-        return False
-
-    anchors = sh_params_array
     print('anchors:', anchors.shape)
+
+    '''
+    tsne = TSNE(n_components=2, n_jobs=32)
+
+    anchors = tsne.fit_transform(anchors)
+
+    plt.scatter(anchors[:, 0], anchors[:, 1], c='blue', s=10)
+    plt.title("t-SNE Visualization")
+    plt.show()
+    '''
 
     if not os.path.exists(save_kmeans_center_npy_file_path):
         kmeans = KMeans(n_clusters=n_clusters, random_state=0)
