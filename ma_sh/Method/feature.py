@@ -18,6 +18,8 @@ def toFeatureFiles(
     save_freq: int = 100,
     overwrite: bool = False,
 ) -> bool:
+    os.makedirs(save_feature_folder_path, exist_ok=True)
+
     rotate_vectors_array, positions_array, mask_params_array, sh_params_array = loadMashFolder(mash_folder_path, False)
     if rotate_vectors_array is None or positions_array is None or mask_params_array is None or sh_params_array is None:
         print('[ERROR][feature::toFeatureFiles]')

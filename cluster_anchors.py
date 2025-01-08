@@ -14,15 +14,32 @@ if __name__ == "__main__":
         print('\t dataset not found!')
         exit()
 
-    mash_folder_path = dataset_root_folder_path + 'MashV4/'
-    save_feature_folder_path = '/home/chli/Dataset_tmp/' + 'MashV4_features/'
+    mash_folder_path = dataset_root_folder_path + 'Objaverse_82K/manifold_mash/'
+    save_feature_folder_path = '/home/chli/Dataset_tmp/' + 'Objaverse_82K/anchor_feature/'
     n_clusters = 9
-    save_kmeans_center_npy_file_path = dataset_root_folder_path + 'KMeansCenter/ShapeNet_' + str(n_clusters) + '.npy'
+    save_kmeans_center_npy_file_path = dataset_root_folder_path + 'Objaverse_82K/kmeans/' + str(n_clusters) + '.npy'
     overwrite = False
     plot_label = False
     plot_error = False
 
+    mash_folder_path = '/home/chli/Dataset_tmp/Objaverse_82K/manifold_mash/'
+    save_feature_folder_path = '/home/chli/Dataset_tmp/' + 'Objaverse_82K/anchor_feature/'
+
+    for n_clusters in range(2, 41):
+        save_kmeans_center_npy_file_path = dataset_root_folder_path + 'Objaverse_82K/kmeans/' + \
+            str(n_clusters) + '.npy'
+        clusterAnchors(
+            mash_folder_path,
+            save_feature_folder_path,
+            save_kmeans_center_npy_file_path,
+            n_clusters,
+            overwrite,
+            plot_label,
+            plot_error,
+        )
+
     mash_folder_path = '/home/chli/Dataset_tmp/MashV4/'
+    save_feature_folder_path = '/home/chli/Dataset_tmp/' + 'MashV4_features/'
 
     for n_clusters in range(2, 41):
         save_kmeans_center_npy_file_path = dataset_root_folder_path + 'KMeansCenter/ShapeNet_' + \
