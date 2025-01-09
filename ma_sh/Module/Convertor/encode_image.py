@@ -2,7 +2,7 @@ import numpy as np
 
 from open_clip_detect.Module.detector import Detector as CLIPDetector
 from dino_v2_detect.Module.detector import Detector as DINODetector
-# from ulip_manage.Module.detector import Detector as ULIPDetector
+from ulip_manage.Module.detector import Detector as ULIPDetector
 
 from ma_sh.Module.Convertor.base_convertor import BaseConvertor
 
@@ -22,12 +22,18 @@ class Convertor(BaseConvertor):
         self.mode = mode
         self.device = device
 
-        assert mode in ["clip", "dino", "ulip"]
+        assert mode in ["clip", "dino_s", "dino_b", "dino_l", "dino_g", "ulip"]
 
         if self.mode == "clip":
             self.clip_detector = CLIPDetector(model_file_path, self.device, False)
-        if self.mode == "dino":
+        if self.mode == "dino_s":
+            self.dino_detector = DINODetector("small", model_file_path, self.device)
+        if self.mode == "dino_b":
+            self.dino_detector = DINODetector("base", model_file_path, self.device)
+        if self.mode == "dino_l":
             self.dino_detector = DINODetector("large", model_file_path, self.device)
+        if self.mode == "dino_g":
+            self.dino_detector = DINODetector("giant2", model_file_path, self.device)
         elif self.mode == "ulip":
             open_clip_model_file_path = "/home/chli/Model/CLIP-ViT-bigG-14-laion2B-39B-b160k/open_clip_pytorch_model.bin"
             self.ulip_detector = ULIPDetector(
@@ -43,7 +49,7 @@ class Convertor(BaseConvertor):
                 image_embedding = (
                     self.clip_detector.detectImageFile(source_path).cpu().numpy()
                 )
-            elif self.mode == "dino":
+            elif 'dino' in self.mode:
                 image_embedding = (
                     self.dino_detector.detectFile(source_path).cpu().numpy()
                 )
