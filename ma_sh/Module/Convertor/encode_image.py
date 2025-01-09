@@ -26,13 +26,13 @@ class Convertor(BaseConvertor):
 
         if self.mode == "clip":
             self.clip_detector = CLIPDetector(model_file_path, self.device, False)
-        if self.mode == "dino_s":
+        elif self.mode == "dino_s":
             self.dino_detector = DINODetector("small", model_file_path, self.device)
-        if self.mode == "dino_b":
+        elif self.mode == "dino_b":
             self.dino_detector = DINODetector("base", model_file_path, self.device)
-        if self.mode == "dino_l":
+        elif self.mode == "dino_l":
             self.dino_detector = DINODetector("large", model_file_path, self.device)
-        if self.mode == "dino_g":
+        elif self.mode == "dino_g":
             self.dino_detector = DINODetector("giant2", model_file_path, self.device)
         elif self.mode == "ulip":
             open_clip_model_file_path = "/home/chli/Model/CLIP-ViT-bigG-14-laion2B-39B-b160k/open_clip_pytorch_model.bin"
@@ -76,6 +76,12 @@ class Convertor(BaseConvertor):
 
         image_embedding_dict[self.mode] = image_embedding
 
-        np.save(target_path, image_embedding_dict)
+        try:
+            np.save(target_path, image_embedding_dict)
+        except:
+            print('[ERROR][Convertor::convertData]')
+            print('\t np.save failed!')
+            print('\t target_path:', target_path)
+            return False
 
         return True

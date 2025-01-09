@@ -1,7 +1,9 @@
 import sys
 sys.path.append('../open-clip-detect/')
 sys.path.append('../dino-v2-detect/')
-# sys.path.append('../ulip-manage/')
+sys.path.append('../ulip-manage/')
+
+import os
 
 from ma_sh.Config.custom_path import toDatasetRootPath, toModelRootPath
 from ma_sh.Module.Convertor.encode_image import Convertor
@@ -10,6 +12,7 @@ from ma_sh.Module.Convertor.encode_image import Convertor
 def demo():
     dataset_root_folder_path = toDatasetRootPath()
     assert dataset_root_folder_path is not None
+    dataset_root_folder_path = os.environ['HOME'] + '/chLi/Dataset/'
 
     model_root_folder_path = toModelRootPath()
     assert model_root_folder_path is not None
