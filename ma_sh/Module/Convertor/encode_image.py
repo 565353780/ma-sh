@@ -1,3 +1,4 @@
+import torch
 import numpy as np
 
 from open_clip_detect.Module.detector import Detector as CLIPDetector
@@ -22,18 +23,20 @@ class Convertor(BaseConvertor):
         self.mode = mode
         self.device = device
 
+        dtype = torch.float16
+
         assert mode in ["clip", "dino_s", "dino_b", "dino_l", "dino_g", "ulip"]
 
         if self.mode == "clip":
             self.clip_detector = CLIPDetector(model_file_path, self.device, False)
         elif self.mode == "dino_s":
-            self.dino_detector = DINODetector("small", model_file_path, self.device)
+            self.dino_detector = DINODetector("small", model_file_path, dtype, self.device)
         elif self.mode == "dino_b":
-            self.dino_detector = DINODetector("base", model_file_path, self.device)
+            self.dino_detector = DINODetector("base", model_file_path, dtype, self.device)
         elif self.mode == "dino_l":
-            self.dino_detector = DINODetector("large", model_file_path, self.device)
+            self.dino_detector = DINODetector("large", model_file_path, dtype, self.device)
         elif self.mode == "dino_g":
-            self.dino_detector = DINODetector("giant2", model_file_path, self.device)
+            self.dino_detector = DINODetector("giant2", model_file_path, dtype, self.device)
         elif self.mode == "ulip":
             open_clip_model_file_path = "/home/chli/Model/CLIP-ViT-bigG-14-laion2B-39B-b160k/open_clip_pytorch_model.bin"
             self.ulip_detector = ULIPDetector(
@@ -51,8 +54,12 @@ class Convertor(BaseConvertor):
                 )
             elif 'dino' in self.mode:
                 image_embedding = (
-                    self.dino_detector.detectFile(source_path).cpu().numpy()
+                    self.dino_detector.detectFile(source_path)
                 )
+                if self.dino_detector.dtype == torch.bfloat16:
+                    image_embedding = image_embedding.view(torch.uint16).cpu().numpy()
+                else:
+                    image_embedding = image_embedding.cpu().numpy()
             elif self.mode == "ulip":
                 image_embedding = (
                     self.ulip_detector.encodeImageFile(source_path)

@@ -12,7 +12,7 @@ from ma_sh.Module.Convertor.encode_image import Convertor
 def demo():
     dataset_root_folder_path = toDatasetRootPath()
     assert dataset_root_folder_path is not None
-    dataset_root_folder_path = os.environ['HOME'] + '/chLi/Dataset/'
+    # dataset_root_folder_path = os.environ['HOME'] + '/chLi/Dataset/'
 
     model_root_folder_path = toModelRootPath()
     assert model_root_folder_path is not None
@@ -25,7 +25,7 @@ def demo():
         'dino_g': model_root_folder_path + 'DINOv2/dinov2_vitg14_reg4_pretrain.pth',
         'ulip': model_root_folder_path + 'ULIP2/pretrained_models_ckpt_zero-sho_classification_pointbert_ULIP-2.pt',
     }
-    mode = 'dino_s'
+    mode = 'dino_b'
     device = "cuda:0"
     source_data_type = '.png'
     target_data_type = '.npy'
