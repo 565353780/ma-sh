@@ -3,7 +3,7 @@ sys.path.append('../distribution-manage/')
 sys.path.append('../pointnet-pp/')
 
 from ma_sh.Config.custom_path import toDatasetRootPath
-from ma_sh.Method.mash_distribution import clusterAnchors, plotKMeansError
+from ma_sh.Method.mash_distribution import clusterAnchors
 from ma_sh.Module.anchor_marker import AnchorMarker
 
 if __name__ == "__main__":
