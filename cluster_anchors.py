@@ -15,43 +15,24 @@ if __name__ == "__main__":
         exit()
 
     mash_folder_path = dataset_root_folder_path + 'Objaverse_82K/manifold_mash/'
+    mash_folder_path = '/home/chli/Dataset_tmp/' + 'Objaverse_82K/manifold_mash/'
+    save_feature_folder_path = dataset_root_folder_path + 'Objaverse_82K/anchor_feature/'
     save_feature_folder_path = '/home/chli/Dataset_tmp/' + 'Objaverse_82K/anchor_feature/'
-    n_clusters = 9
-    save_kmeans_center_npy_file_path = dataset_root_folder_path + 'Objaverse_82K/kmeans/' + str(n_clusters) + '.npy'
+    n_clusters_list = list(range(2, 41))
+    save_kmeans_center_npy_folder_path = dataset_root_folder_path + 'Objaverse_82K/kmeans/'
     overwrite = False
     plot_label = False
     plot_error = False
 
-    for n_clusters in range(2, 41):
-        mash_folder_path = '/home/chli/Dataset_tmp/Objaverse_82K/manifold_mash/'
-        save_feature_folder_path = '/home/chli/Dataset_tmp/' + 'Objaverse_82K/anchor_feature/'
-        save_kmeans_center_npy_file_path = dataset_root_folder_path + 'Objaverse_82K/kmeans/' + \
-            str(n_clusters) + '.npy'
-
-        clusterAnchors(
-            mash_folder_path,
-            save_feature_folder_path,
-            save_kmeans_center_npy_file_path,
-            n_clusters,
-            overwrite,
-            plot_label,
-            plot_error,
-        )
-
-        mash_folder_path = '/home/chli/Dataset_tmp/MashV4/'
-        save_feature_folder_path = '/home/chli/Dataset_tmp/' + 'MashV4_features/'
-        save_kmeans_center_npy_file_path = dataset_root_folder_path + 'KMeansCenter/ShapeNet_' + \
-            str(n_clusters) + '.npy'
-
-        clusterAnchors(
-            mash_folder_path,
-            save_feature_folder_path,
-            save_kmeans_center_npy_file_path,
-            n_clusters,
-            overwrite,
-            plot_label,
-            plot_error,
-        )
+    clusterAnchors(
+        mash_folder_path,
+        save_feature_folder_path,
+        save_kmeans_center_npy_folder_path,
+        n_clusters_list,
+        overwrite,
+        plot_label,
+        plot_error,
+    )
 
     exit()
 

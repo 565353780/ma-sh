@@ -32,7 +32,7 @@ def toFeatureFiles(
 
     model_file_path = "../pointnet-pp/pretrained/cls_ssg/best_model.pth"
     device = "cuda:0"
-    detector = Detector(model_file_path, device)
+    detector = None
 
     chunk_num = int(rotate_vectors_array.shape[0] / batch_size)
 
@@ -67,6 +67,9 @@ def toFeatureFiles(
         inner_pts = mash.toSamplePoints()[1]
         inner_pts = inner_pts.reshape(batch_size, -1, 3).permute(0, 2, 1)
 
+        if detector is None:
+            detector = Detector(model_file_path, device)
+
         _, feature = detector.detect(inner_pts)
         features.append(feature)
 
@@ -79,11 +82,11 @@ def toFeatureFiles(
 
         pbar.update(batch_size)
 
+    current_id = int(chunk_num / save_freq)
+
+    current_save_npy_file_path = save_feature_folder_path + str(current_id) + '.npy'
+
     if last_batch_size > 0:
-        current_id = int(chunk_num / save_freq)
-
-        current_save_npy_file_path = save_feature_folder_path + str(current_id) + '.npy'
-
         if not overwrite:
             if os.path.exists(current_save_npy_file_path):
                 pbar.update(last_batch_size)
@@ -106,14 +109,18 @@ def toFeatureFiles(
         inner_pts = mash.toSamplePoints()[1]
         inner_pts = inner_pts.reshape(last_batch_size, -1, 3).permute(0, 2, 1)
 
+        if detector is None:
+            detector = Detector(model_file_path, device)
+
         _, feature = detector.detect(inner_pts)
         features.append(feature)
 
+        pbar.update(last_batch_size)
+
+    if len(features) > 0:
         features_array = torch.vstack(features).squeeze(-1).cpu().numpy()
 
         np.save(current_save_npy_file_path, features_array)
-
-        pbar.update(last_batch_size)
 
     pbar.close()
 
@@ -126,7 +133,8 @@ def loadFeatures(
     save_freq: int = 100,
     worker_num: int = 1,
     overwrite: bool = False,
-) -> Union[np.ndarray, None]:
+    return_file_path_list_only: bool = False,
+) -> Union[np.ndarray, list, None]:
     if not toFeatureFiles(
         mash_folder_path,
         save_feature_folder_path,
@@ -147,6 +155,9 @@ def loadFeatures(
             continue
 
         valid_feature_file_path_list.append(save_feature_folder_path + feature_filename)
+
+    if return_file_path_list_only:
+        return valid_feature_file_path_list
 
     print('[INFO][feature::loadFeatures]')
     print('\t start load featrue files...')

@@ -3,9 +3,10 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from time import time
+from tqdm import tqdm
 from typing import Union
 from collections import Counter
-from sklearn.cluster import KMeans
+from sklearn.cluster import MiniBatchKMeans
 
 from distribution_manage.Module.transformer import Transformer
 
@@ -159,68 +160,107 @@ def plotKMeansError(anchors: np.ndarray, n_clusters_list: list) -> bool:
 
     return True
 
-def clusterAnchors(
-    mash_folder_path: str,
-    save_feature_folder_path: str,
+def clusterAnchorsStep(
+    feature_file_path_list: list,
     save_kmeans_center_npy_file_path: str,
     n_clusters: int = 4,
     overwrite: bool = False,
     plot_label: bool = False,
-    plot_error: bool = False,
 ) -> bool:
-    if os.path.exists(save_kmeans_center_npy_file_path):
-        if not overwrite:
-            if not plot_error:
-                return True
+    if not overwrite:
+        if os.path.exists(save_kmeans_center_npy_file_path):
+            return True
 
         removeFile(save_kmeans_center_npy_file_path)
 
-    anchors = loadFeatures(
+    kmeans = MiniBatchKMeans(
+        n_clusters=n_clusters,
+        max_iter=300,
+        batch_size=1000,
+        max_no_improvement=20,
+        random_state=0,
+    )
+
+    print('[INFO][mash_distribution::clusterAnchorsStep]')
+    print('\t start partial fitting features with n_clusters =', n_clusters, '...')
+    for feature_file_path in tqdm(feature_file_path_list):
+        features = np.load(feature_file_path)
+        kmeans.partial_fit(features)
+
+    labels = kmeans.labels_
+    centers = kmeans.cluster_centers_
+
+    createFileFolder(save_kmeans_center_npy_file_path)
+
+    tmp_save_kmeans_center_npy_file_path = save_kmeans_center_npy_file_path[:-4] + '_tmp.npy'
+
+    np.save(tmp_save_kmeans_center_npy_file_path, centers)
+
+    renameFile(tmp_save_kmeans_center_npy_file_path, save_kmeans_center_npy_file_path)
+
+    save_inertia_txt_file_path = save_kmeans_center_npy_file_path[:-4] + '_inertia.txt'
+    with open(save_inertia_txt_file_path, 'w') as f:
+        f.write(str(kmeans.inertia_))
+
+    if plot_label:
+        cluster_counts = Counter(labels)
+
+        plt.bar(cluster_counts.keys(), cluster_counts.values(), color='skyblue')
+        plt.title('Cluster Size Distribution')
+        plt.xlabel('Cluster Label')
+        plt.ylabel('Number of Points')
+        plt.xticks(range(kmeans.n_clusters))
+        plt.show()
+
+        plt.pie(cluster_counts.values(), labels=cluster_counts.keys(), autopct='%1.1f%%', colors=plt.cm.tab10.colors)
+        plt.title('Cluster Size Proportion')
+        plt.show()
+
+    return True
+
+def clusterAnchors(
+    mash_folder_path: str,
+    save_feature_folder_path: str,
+    save_kmeans_center_npy_folder_path: str,
+    n_clusters_list: list = list(range(2, 41)),
+    overwrite: bool = False,
+    plot_label: bool = False,
+    plot_error: bool = False,
+) -> bool:
+    os.makedirs(save_kmeans_center_npy_folder_path, exist_ok=True)
+
+    feature_file_path_list = loadFeatures(
         mash_folder_path,
         save_feature_folder_path,
         800,
         100,
         4,
         overwrite,
+        True,
     )
+    assert isinstance(feature_file_path_list, list)
 
-    print('anchors:', anchors.shape)
+    if len(feature_file_path_list) == 0:
+        print('[ERROR][mash_distribution::clusterAnchors]')
+        print('\t feature file not found!')
+        return False
 
-    if not os.path.exists(save_kmeans_center_npy_file_path):
-        kmeans = KMeans(n_clusters=n_clusters, random_state=0)
+    for n_clusters in n_clusters_list:
+        save_kmeans_center_npy_file_path = save_kmeans_center_npy_folder_path + str(n_clusters) + '.npy'
 
-        kmeans.fit(anchors)
-
-        labels = kmeans.labels_
-        centers = kmeans.cluster_centers_
-
-        createFileFolder(save_kmeans_center_npy_file_path)
-
-        tmp_save_kmeans_center_npy_file_path = save_kmeans_center_npy_file_path[:-4] + '_tmp.npy'
-
-        np.save(tmp_save_kmeans_center_npy_file_path, centers)
-
-        renameFile(tmp_save_kmeans_center_npy_file_path, save_kmeans_center_npy_file_path)
-
-        save_inertia_txt_file_path = save_kmeans_center_npy_file_path[:-4] + '_inertia.txt'
-        with open(save_inertia_txt_file_path, 'w') as f:
-            f.write(str(kmeans.inertia_))
-
-        if plot_label:
-            cluster_counts = Counter(labels)
-
-            plt.bar(cluster_counts.keys(), cluster_counts.values(), color='skyblue')
-            plt.title('Cluster Size Distribution')
-            plt.xlabel('Cluster Label')
-            plt.ylabel('Number of Points')
-            plt.xticks(range(kmeans.n_clusters))
-            plt.show()
-
-            plt.pie(cluster_counts.values(), labels=cluster_counts.keys(), autopct='%1.1f%%', colors=plt.cm.tab10.colors)
-            plt.title('Cluster Size Proportion')
-            plt.show()
+        if not clusterAnchorsStep(
+            feature_file_path_list,
+            save_kmeans_center_npy_file_path,
+            n_clusters,
+            overwrite,
+            plot_label
+        ):
+            print('[WARN][mash_distribution::clusterAnchors]')
+            print('\t clusterAnchorsStep failed!')
+            print('\t n_clusters:', n_clusters)
+            continue
 
     if plot_error:
-        plotKMeansError(anchors, list(range(2, 41)))
+        plotKMeansError(feature_file_path_list, list(range(2, 41)))
 
     return True
