@@ -137,20 +137,23 @@ def getMashDistribution(
 
     return True
 
-def plotKMeansError(anchors: np.ndarray, n_clusters_list: list) -> bool:
-    sse = []
+def plotKMeansError(save_kmeans_center_npy_folder_path: str, n_clusters_list: list) -> bool:
+    k_list = []
+    inertia_list = []
 
     for k in n_clusters_list:
-        print('[INFO][mash_distribution::plotKMeansError]')
-        print('\t start cluster at n_clusters:', k)
-        kmeans = KMeans(n_clusters=k, random_state=42)
-        kmeans.fit(anchors)
+        save_inertia_txt_file_path = save_kmeans_center_npy_folder_path + str(k) + '_inertia.txt'
+        if not os.path.exists(save_inertia_txt_file_path):
+            continue
 
-        sse.append(kmeans.inertia_)
-        print('\t\t sse: ', kmeans.inertia_)
+        with open(save_inertia_txt_file_path, 'r') as f:
+            inertia = float(f.readline())
+
+        k_list.append(k)
+        inertia_list.append(inertia)
 
     plt.figure(figsize=(12, 6))
-    plt.plot(n_clusters_list, sse, 'bo-')
+    plt.plot(k_list, inertia_list, 'bo-')
     plt.title('Elbow Method For Optimal k')
     plt.xlabel('Number of clusters (k)')
     plt.ylabel('SSE')
@@ -261,6 +264,6 @@ def clusterAnchors(
             continue
 
     if plot_error:
-        plotKMeansError(feature_file_path_list, list(range(2, 41)))
+        plotKMeansError(save_kmeans_center_npy_folder_path, list(range(2, 41)))
 
     return True

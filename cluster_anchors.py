@@ -3,7 +3,7 @@ sys.path.append('../distribution-manage/')
 sys.path.append('../pointnet-pp/')
 
 from ma_sh.Config.custom_path import toDatasetRootPath
-from ma_sh.Method.mash_distribution import clusterAnchors
+from ma_sh.Method.mash_distribution import clusterAnchors, plotKMeansError
 from ma_sh.Module.anchor_marker import AnchorMarker
 
 if __name__ == "__main__":
@@ -24,22 +24,26 @@ if __name__ == "__main__":
     plot_label = False
     plot_error = False
 
-    clusterAnchors(
-        mash_folder_path,
-        save_feature_folder_path,
-        save_kmeans_center_npy_folder_path,
-        n_clusters_list,
-        overwrite,
-        plot_label,
-        plot_error,
-    )
-
-    exit()
+    if plot_error:
+        clusterAnchors(
+            mash_folder_path,
+            save_feature_folder_path,
+            save_kmeans_center_npy_folder_path,
+            n_clusters_list,
+            overwrite,
+            plot_label,
+            plot_error,
+        )
 
     mash_file_path = '/home/chli/chLi/Dataset/MashV4/ShapeNet/03001627/1006be65e7bc937e9141f9b58470d646.npy'
+    device = 'cuda:0'
 
     anchor_marker = AnchorMarker(
-        save_kmeans_center_npy_file_path,
+        save_kmeans_center_npy_folder_path + str(9) + '.npy',
+        device,
     )
 
-    anchor_marker.markAndRenderMashFile(mash_file_path)
+    # anchor_marker.markAndRenderMashFile(mash_file_path)
+    # anchor_marker.markAndRenderAnchorClusters(mash_file_path)
+    # anchor_marker.markAndRenderAverageAnchors(mash_file_path)
+    anchor_marker.markAndRenderMashReplacedByAverageAnchors(mash_file_path)

@@ -50,7 +50,16 @@ def toMergedPcd(
     points_1 = np.asarray(pcd_1.points)
     points_2 = np.asarray(pcd_2.points)
 
+    normals_1 = np.asarray(pcd_1.normals)
+    normals_2 = np.asarray(pcd_2.normals)
+
+    colors_1 = np.asarray(pcd_1.colors)
+    colors_2 = np.asarray(pcd_2.colors)
+
     merged_points = np.vstack([points_1, points_2])
-    merged_pcd = getPointCloud(merged_points)
+    merged_normals = np.vstack([normals_1, normals_2])
+    merged_colors = np.vstack([colors_1, colors_2])
+
+    merged_pcd = getPointCloud(merged_points, merged_normals, merged_colors)
 
     return merged_pcd
