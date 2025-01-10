@@ -7,18 +7,22 @@ from math import ceil, sqrt
 
 from pointnet_pp.Module.detector import Detector
 
+from ma_sh.Config.color import COLOR_MAP
 from ma_sh.Method.pcd import getPointCloud, toMergedPcd
 from ma_sh.Model.simple_mash import SimpleMash
 
 class AnchorMarker(object):
     def __init__(self,
                  kmeans_center_npy_file_path: Union[str, None] = None,
+                 color_map: str = 'mkl',
                  device: str = 'cpu',
                  ) -> None:
+        assert color_map in COLOR_MAP.keys()
+
         self.device = device
 
         self.kmeans_centers = np.ndarray([0])
-        self.kmeans_colors = np.ndarray([0])
+        self.kmeans_colors = COLOR_MAP[color_map].astype(float) / 255.0
 
         if kmeans_center_npy_file_path is not None:
             self.loadKMeansCenters(kmeans_center_npy_file_path)
@@ -35,8 +39,6 @@ class AnchorMarker(object):
             return False
 
         self.kmeans_centers = np.load(kmeans_center_npy_file_path)
-
-        self.kmeans_colors = np.random.rand(self.kmeans_centers.shape[0], 3)
         return True
 
     def markMash(self, mash: SimpleMash) -> np.ndarray:
