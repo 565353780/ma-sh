@@ -1,3 +1,4 @@
+import copy
 import os
 import torch
 import numpy as np
@@ -406,10 +407,10 @@ class BaseMash(ABC):
             )
         )
 
-        new_mask_params[:copy_dim, :] = self.mask_params
-        new_sh_params[:copy_dim, :] = self.sh_params
-        new_positions[:copy_dim, :] = self.positions
-        new_rotate_vectors[:copy_dim, :] = self.rotate_vectors
+        new_mask_params[:copy_dim, :] = self.mask_params[:copy_dim, :]
+        new_sh_params[:copy_dim, :] = self.sh_params[:copy_dim, :]
+        new_positions[:copy_dim, :] = self.positions[:copy_dim, :]
+        new_rotate_vectors[:copy_dim, :] = self.rotate_vectors[:copy_dim, :]
 
         self.mask_params = new_mask_params
         self.sh_params = new_sh_params

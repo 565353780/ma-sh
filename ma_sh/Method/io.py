@@ -48,14 +48,16 @@ def loadMashFileParamsTensor(
     mask_params = mash_params["mask_params"]
     sh_params = mash_params["sh_params"]
 
-    rotate_vectors_tensor = torch.tensor(rotate_vectors).to(device, dtype=dtype)
-    positions_tensor = torch.tensor(positions).to(device, dtype=dtype)
-    mask_params_tesnor = torch.tensor(mask_params).to(device, dtype=dtype)
-    sh_params_tensor = torch.tensor(sh_params).to(device, dtype=dtype)
+    rotate_vectors_tensor = torch.tensor(rotate_vectors).to(device, dtype=torch.float64)
+    positions_tensor = torch.tensor(positions).to(device, dtype=torch.float64)
+    mask_params_tesnor = torch.tensor(mask_params).to(device, dtype=torch.float64)
+    sh_params_tensor = torch.tensor(sh_params).to(device, dtype=torch.float64)
 
     ortho_poses_tensor = toOrthoPosesFromRotateVectors(rotate_vectors_tensor)
 
     mash_params = torch.cat((ortho_poses_tensor, positions_tensor, mask_params_tesnor, sh_params_tensor), dim=1)
+
+    mash_params = mash_params.to(dtype)
 
     return mash_params
 
