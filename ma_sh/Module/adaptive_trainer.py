@@ -255,9 +255,17 @@ class AdaptiveTrainer(BaseTrainer):
 
         self.coverage_percent = self.getCoveragePercent(coverage_dists2)
 
+        boundary_pts_num = boundary_pts.shape[0]
+        inner_pts_num = inner_pts.shape[0]
+        anchor_num = self.mash.anchor_num
+        if self.merged_mash is not None:
+            boundary_pts_num += merged_boundary_pts.shape[0]
+            inner_pts_num += merged_inner_pts.shape[0]
+            anchor_num += self.merged_mash.anchor_num
+
         loss_dict = {
-            "State/boundary_pts": boundary_pts.shape[0],
-            "State/inner_pts": inner_pts.shape[0],
+            "State/boundary_pts": boundary_pts_num,
+            "State/inner_pts": inner_pts_num,
             "Train/epoch": self.epoch,
             "Train/not_fit_loss": toNumpy(not_fit_loss),
             "Train/fit_loss": toNumpy(fit_loss),
@@ -273,7 +281,7 @@ class AdaptiveTrainer(BaseTrainer):
             ),
             "Train/loss": toNumpy(loss),
             "Metric/chamfer_distance": toNumpy(fit_loss) + toNumpy(coverage_loss),
-            "Metric/anchor_num": self.mash.anchor_num + self.merged_mash.anchor_num if self.merged_mash is not None else self.mash.anchor_num,
+            "Metric/anchor_num": anchor_num,
             "Metric/coverage_percent": self.coverage_percent,
         }
 
