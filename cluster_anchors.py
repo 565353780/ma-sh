@@ -20,8 +20,9 @@ if __name__ == "__main__":
     mash_folder_path = '/home/chli/Dataset_tmp/' + 'Objaverse_82K/manifold_mash/'
     save_feature_folder_path = dataset_root_folder_path + 'Objaverse_82K/anchor_feature/'
     save_feature_folder_path = '/home/chli/Dataset_tmp/' + 'Objaverse_82K/anchor_feature/'
-    n_clusters_list = list(range(2, 41))
-    save_kmeans_center_npy_folder_path = dataset_root_folder_path + 'Objaverse_82K/kmeans/'
+    n_clusters_list = list(range(2, 21))
+    batch_size = 1000000
+    save_kmeans_center_npy_folder_path = dataset_root_folder_path + 'Objaverse_82K/kmeans/b_' + str(batch_size) + '/'
     overwrite = False
     plot_label = False
     plot_error = False
@@ -32,6 +33,7 @@ if __name__ == "__main__":
             save_feature_folder_path,
             save_kmeans_center_npy_folder_path,
             n_clusters_list,
+            batch_size,
             overwrite,
             plot_label,
             plot_error,
@@ -42,15 +44,19 @@ if __name__ == "__main__":
     device = 'cuda:0'
 
     anchor_marker = AnchorMarker(
-        save_kmeans_center_npy_folder_path + str(9) + '.npy',
+        save_kmeans_center_npy_folder_path + str(5) + '.npy',
         color_map,
         device,
     )
 
     # anchor_marker.markAndRenderMashFile(mash_file_path)
-    # anchor_marker.markAndRenderAnchorClusters(mash_file_path)
+    anchor_marker.markAndRenderAnchorClusters(mash_file_path, cluster_dist=0)
+    exit()
     # anchor_marker.markAndRenderAverageAnchors(mash_file_path)
     # anchor_marker.markAndRenderMashReplacedByAverageAnchors(mash_file_path)
+
+    # anchor_marker.markAndRenderMashFile(
+    # '/home/chli/chLi/Dataset/Objaverse_82K/manifold_mash/000-091/6fee90b9a77c482c9928771f03287733.npy')
 
     mash_folder_path = dataset_root_folder_path + 'Objaverse_82K/manifold_mash/'
 
@@ -63,3 +69,4 @@ if __name__ == "__main__":
 
             print('mash:', mash_file_path)
             anchor_marker.markAndRenderMashFile(mash_file_path)
+            anchor_marker.markAndRenderAnchorClusters(mash_file_path)

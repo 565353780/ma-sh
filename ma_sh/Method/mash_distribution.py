@@ -167,6 +167,7 @@ def clusterAnchorsStep(
     feature_file_path_list: list,
     save_kmeans_center_npy_file_path: str,
     n_clusters: int = 4,
+    batch_size: int = 1000,
     overwrite: bool = False,
     plot_label: bool = False,
 ) -> bool:
@@ -179,7 +180,7 @@ def clusterAnchorsStep(
     kmeans = MiniBatchKMeans(
         n_clusters=n_clusters,
         max_iter=300,
-        batch_size=1000,
+        batch_size=batch_size,
         max_no_improvement=20,
         random_state=0,
     )
@@ -226,6 +227,7 @@ def clusterAnchors(
     save_feature_folder_path: str,
     save_kmeans_center_npy_folder_path: str,
     n_clusters_list: list = list(range(2, 41)),
+    batch_size: int = 1000,
     overwrite: bool = False,
     plot_label: bool = False,
     plot_error: bool = False,
@@ -255,6 +257,7 @@ def clusterAnchors(
             feature_file_path_list,
             save_kmeans_center_npy_file_path,
             n_clusters,
+            batch_size,
             overwrite,
             plot_label
         ):
