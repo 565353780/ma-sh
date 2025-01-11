@@ -55,7 +55,7 @@ class AdaptiveTrainer(BaseTrainer):
         self.refine_step_num = refine_step_num
 
         self.max_fit_error2 = self.max_fit_error * self.max_fit_error
-        self.distance_thresh = 100.0 * max(self.max_fit_error2, 1e-6)
+        self.distance_thresh = max(self.max_fit_error2, 1e-4)
 
         self.not_fit_loss_weight = 1000.0
 
@@ -231,7 +231,8 @@ class AdaptiveTrainer(BaseTrainer):
         not_fit_loss = torch.zeros_like(fit_loss)
         if self.not_fit_loss_weight > 0:
             not_fit_dists2 = valid_fit_dists2[valid_fit_dists2 > self.max_fit_error2]
-            not_fit_loss = torch.mean(not_fit_dists2) - self.max_fit_error2
+            if not_fit_dists2.shape[0] > 0:
+                not_fit_loss = torch.mean(not_fit_dists2) - self.max_fit_error2
 
         weighted_not_fit_loss = self.not_fit_loss_weight * not_fit_loss
         weighted_fit_loss = fit_loss_weight * fit_loss
@@ -437,6 +438,9 @@ class AdaptiveTrainer(BaseTrainer):
 
         self.autoSavePcd('final', add_idx=False)
         self.autoSaveMash('final')
+
+        if self.o3d_viewer is not None:
+            self.o3d_viewer.run()
 
         return True
 

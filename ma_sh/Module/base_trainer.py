@@ -135,6 +135,7 @@ class BaseTrainer(ABC):
             positions=sample_pts + self.surface_dist * sample_normals,
             face_forward_vectors=-sample_normals,
         )
+
         return True
 
     def loadGTPointsFile(self, gt_points_file_path: str, sample_point_num: Union[int, None] = None) -> bool:
@@ -554,7 +555,7 @@ class BaseTrainer(ABC):
             + str(self.save_file_idx)
             + "_"
             + state_info
-            + ".npy"
+            + "_mash.npy"
         )
 
         if not self.saveMashFile(save_file_path, True):
@@ -600,7 +601,7 @@ class BaseTrainer(ABC):
             + str(self.save_file_idx)
             + "_"
             + state_info
-            + ".ply"
+            + "_pcd.ply"
         )
 
         if not self.saveAsPcdFile(save_pcd_file_path, True):
