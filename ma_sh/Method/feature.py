@@ -133,17 +133,19 @@ def loadFeatures(
     batch_size: int = 800,
     save_freq: int = 100,
     worker_num: int = 1,
-    chunk_size: int = 1000,
     overwrite: bool = False,
+    save_as_single_npy_file: bool = False,
+    chunk_size: int = 1000,
 ) -> Union[np.ndarray, None]:
-    merged_feature_file_path = save_feature_folder_path + 'merged_features.npy'
+    if save_as_single_npy_file:
+        merged_feature_file_path = save_feature_folder_path + 'merged_features.npy'
 
-    if not overwrite:
-        if os.path.exists(merged_feature_file_path):
-            features = loadLargeNPY(merged_feature_file_path, chunk_size)
-            return features
+        if not overwrite:
+            if os.path.exists(merged_feature_file_path):
+                features = loadLargeNPY(merged_feature_file_path, chunk_size)
+                return features
 
-        removeFile(merged_feature_file_path)
+            removeFile(merged_feature_file_path)
 
     if not toFeatureFiles(
         mash_folder_path,
@@ -173,9 +175,10 @@ def loadFeatures(
 
     features_array = np.vstack(features)
 
-    if not saveLargeNPY(features_array, merged_feature_file_path, chunk_size, overwrite):
-        print('[ERROR][feature::loadFeatures]')
-        print('\t saveLargeNPY failed!')
-        return None
+    if save_as_single_npy_file:
+        if not saveLargeNPY(features_array, merged_feature_file_path, chunk_size, overwrite):
+            print('[ERROR][feature::loadFeatures]')
+            print('\t saveLargeNPY failed!')
+            return None
 
     return features_array
