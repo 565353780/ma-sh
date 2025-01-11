@@ -3,7 +3,6 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from time import time
-from tqdm import tqdm
 from typing import Union
 from collections import Counter
 from sklearn.cluster import MiniBatchKMeans
@@ -164,7 +163,7 @@ def plotKMeansError(save_kmeans_center_npy_folder_path: str, n_clusters_list: li
     return True
 
 def clusterAnchorsStep(
-    feature_file_path_list: list,
+    features: np.ndarray,
     save_kmeans_center_npy_file_path: str,
     n_clusters: int = 4,
     batch_size: int = 1000,
@@ -181,15 +180,14 @@ def clusterAnchorsStep(
         n_clusters=n_clusters,
         max_iter=300,
         batch_size=batch_size,
+        verbose=True,
         max_no_improvement=20,
         random_state=0,
     )
 
     print('[INFO][mash_distribution::clusterAnchorsStep]')
     print('\t start partial fitting features with n_clusters =', n_clusters, '...')
-    for feature_file_path in tqdm(feature_file_path_list):
-        features = np.load(feature_file_path)
-        kmeans.partial_fit(features)
+    kmeans.fit(features)
 
     labels = kmeans.labels_
     centers = kmeans.cluster_centers_
@@ -234,27 +232,26 @@ def clusterAnchors(
 ) -> bool:
     os.makedirs(save_kmeans_center_npy_folder_path, exist_ok=True)
 
-    feature_file_path_list = loadFeatures(
+    features = loadFeatures(
         mash_folder_path,
         save_feature_folder_path,
         800,
         100,
         4,
-        overwrite,
-        True,
-    )
-    assert isinstance(feature_file_path_list, list)
+        1000,
+        overwrite)
+    assert isinstance(features, np.ndarray)
 
-    if len(feature_file_path_list) == 0:
+    if features.shape[0] == 0:
         print('[ERROR][mash_distribution::clusterAnchors]')
-        print('\t feature file not found!')
+        print('\t features not found!')
         return False
 
     for n_clusters in n_clusters_list:
         save_kmeans_center_npy_file_path = save_kmeans_center_npy_folder_path + str(n_clusters) + '.npy'
 
         if not clusterAnchorsStep(
-            feature_file_path_list,
+            features,
             save_kmeans_center_npy_file_path,
             n_clusters,
             batch_size,

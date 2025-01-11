@@ -8,7 +8,8 @@ from multiprocessing import Pool
 from pointnet_pp.Module.detector import Detector
 
 from ma_sh.Model.simple_mash import SimpleMash
-from ma_sh.Method.io import loadMashFolder
+from ma_sh.Method.path import removeFile
+from ma_sh.Method.io import loadMashFolder, saveLargeNPY, loadLargeNPY
 
 
 def toFeatureFiles(
@@ -132,9 +133,18 @@ def loadFeatures(
     batch_size: int = 800,
     save_freq: int = 100,
     worker_num: int = 1,
+    chunk_size: int = 1000,
     overwrite: bool = False,
-    return_file_path_list_only: bool = False,
-) -> Union[np.ndarray, list, None]:
+) -> Union[np.ndarray, None]:
+    merged_feature_file_path = save_feature_folder_path + 'merged_features.npy'
+
+    if not overwrite:
+        if os.path.exists(merged_feature_file_path):
+            features = loadLargeNPY(merged_feature_file_path, chunk_size)
+            return features
+
+        removeFile(merged_feature_file_path)
+
     if not toFeatureFiles(
         mash_folder_path,
         save_feature_folder_path,
@@ -156,14 +166,16 @@ def loadFeatures(
 
         valid_feature_file_path_list.append(save_feature_folder_path + feature_filename)
 
-    if return_file_path_list_only:
-        return valid_feature_file_path_list
-
     print('[INFO][feature::loadFeatures]')
     print('\t start load featrue files...')
     with Pool(worker_num) as pool:
         features = list(tqdm(pool.imap(np.load, valid_feature_file_path_list), total=len(valid_feature_file_path_list)))
 
     features_array = np.vstack(features)
+
+    if not saveLargeNPY(features_array, merged_feature_file_path, chunk_size, overwrite):
+        print('[ERROR][feature::loadFeatures]')
+        print('\t saveLargeNPY failed!')
+        return None
 
     return features_array

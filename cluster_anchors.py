@@ -20,12 +20,12 @@ if __name__ == "__main__":
     mash_folder_path = '/home/chli/Dataset_tmp/' + 'Objaverse_82K/manifold_mash/'
     save_feature_folder_path = dataset_root_folder_path + 'Objaverse_82K/anchor_feature/'
     save_feature_folder_path = '/home/chli/Dataset_tmp/' + 'Objaverse_82K/anchor_feature/'
-    n_clusters_list = list(range(2, 21))
-    batch_size = 1000000
+    n_clusters_list = list(range(2, 41))
+    batch_size = 1000
     save_kmeans_center_npy_folder_path = dataset_root_folder_path + 'Objaverse_82K/kmeans/b_' + str(batch_size) + '/'
     overwrite = False
     plot_label = False
-    plot_error = False
+    plot_error = True
 
     if plot_error:
         clusterAnchors(
@@ -50,8 +50,7 @@ if __name__ == "__main__":
     )
 
     # anchor_marker.markAndRenderMashFile(mash_file_path)
-    anchor_marker.markAndRenderAnchorClusters(mash_file_path, cluster_dist=0)
-    exit()
+    # anchor_marker.markAndRenderAnchorClusters(mash_file_path, cluster_dist=0.1)
     # anchor_marker.markAndRenderAverageAnchors(mash_file_path)
     # anchor_marker.markAndRenderMashReplacedByAverageAnchors(mash_file_path)
 
@@ -69,4 +68,4 @@ if __name__ == "__main__":
 
             print('mash:', mash_file_path)
             anchor_marker.markAndRenderMashFile(mash_file_path)
-            anchor_marker.markAndRenderAnchorClusters(mash_file_path)
+            anchor_marker.markAndRenderAnchorClusters(mash_file_path, cluster_dist=0.1)

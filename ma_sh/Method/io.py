@@ -6,8 +6,60 @@ from tqdm import tqdm
 from typing import Union, Tuple
 from multiprocessing import Pool
 
+from ma_sh.Method.path import createFileFolder, removeFile, renameFile
 from ma_sh.Method.rotate import toOrthoPosesFromRotateVectors
 
+
+def saveLargeNPY(data: np.ndarray, save_npy_file_path: str, chunk_size: int=1000, overwrite: bool=False) -> bool:
+    if not overwrite:
+        if os.path.exists(save_npy_file_path):
+            return True
+
+        removeFile(save_npy_file_path)
+
+    total_size = data.shape[0]
+    num_chunks = (total_size + chunk_size - 1) // chunk_size
+
+    createFileFolder(save_npy_file_path)
+
+    tmp_save_npy_file_path = save_npy_file_path[:-4] + '_tmp.npy'
+
+    print('[INFO][io::saveLargeNPY]')
+    print('\t start save npy file:', save_npy_file_path)
+    with open(tmp_save_npy_file_path, 'wb') as f:
+        np.save(f, np.empty((0,) + data.shape[1:], dtype=data.dtype))
+        for i in tqdm(range(num_chunks), desc="Saving progress"):
+            start = i * chunk_size
+            end = min((i + 1) * chunk_size, total_size)
+            chunk = data[start:end]
+            np.lib.format.write_array(f, chunk, allow_pickle=False)
+
+    renameFile(tmp_save_npy_file_path, save_npy_file_path)
+
+    return True
+
+def loadLargeNPY(npy_file_path: str, chunk_size: int=1000) -> Union[np.ndarray, None]:
+    if not os.path.exists(npy_file_path):
+        print('[ERROR][io::loadLargeNPY]')
+        print('\t npy file not exist!')
+        return None
+
+    print('[INFO][io::loadLargeNPY]')
+    print('\t start load npy file:', npy_file_path)
+    with open(npy_file_path, 'rb') as f:
+        header = np.lib.format.read_array_header_1_0(f)
+        dtype = header[2]
+        shape = header[0]
+        total_size = shape[0]
+        num_chunks = (total_size + chunk_size - 1) // chunk_size
+        array = np.empty(shape, dtype=dtype)
+
+        for i in tqdm(range(num_chunks), desc="Loading progress"):
+            start = i * chunk_size
+            end = min((i + 1) * chunk_size, total_size)
+            array[start:end] = np.lib.format.read_array(f)
+
+    return array
 
 def loadPcdFile(pcd_file_path):
     if not os.path.exists(pcd_file_path):
