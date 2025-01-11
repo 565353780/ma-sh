@@ -6,7 +6,8 @@ from ma_sh.Module.adaptive_trainer import AdaptiveTrainer
 from ma_sh.Module.timer import Timer
 
 
-def demo(init_anchor_num: int = 50,
+def demo(gt_points_file_path: str,
+         init_anchor_num: int = 50,
          max_fit_error: float = 1e-3,
          save_freq: int = 1,
          save_log_folder_path: str = 'auto',
@@ -74,6 +75,7 @@ def demo(init_anchor_num: int = 50,
     if False:
         adaptive_trainer.loadMeshFile(mesh_file_path)
     else:
+        '''
         mesh_id = 0
         mesh_name_list = [
             '03001627/1016f4debe988507589aae130c1f06fb',
@@ -84,6 +86,7 @@ def demo(init_anchor_num: int = 50,
             "03001627/e71d05f223d527a5f91663a74ccd2338",
         ]
         gt_points_file_path = '/home/chli/chLi2/Dataset/SampledPcd_Manifold/ShapeNet/' + mesh_name_list[mesh_id] + '.npy'
+        '''
 
         adaptive_trainer.loadGTPointsFile(gt_points_file_path, gt_points_num)
 
