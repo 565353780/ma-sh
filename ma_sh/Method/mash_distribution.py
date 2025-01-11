@@ -238,8 +238,10 @@ def clusterAnchors(
         800,
         100,
         4,
+        overwrite,
+        False,
         1000,
-        overwrite)
+    )
     assert isinstance(features, np.ndarray)
 
     if features.shape[0] == 0:
