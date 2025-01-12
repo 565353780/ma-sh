@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import open3d as o3d
+from shutil import rmtree
 # from torch import profiler
 
 from ma_sh.Demo.trainer import demo as demo_train
@@ -63,6 +64,14 @@ if __name__ == "__main__":
         for anchor_num in anchor_num_list:
             save_log_folder_path = '/home/chli/chLi/Results/ma-sh/logs/fixed/' + shape_id + '/anchor-' + str(anchor_num) + '/'
             save_result_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit/fixed/' + shape_id + '/anchor-' + str(anchor_num) + '/'
+
+            if os.path.exists(save_result_folder_path + 'mash/'):
+                continue
+
+            if os.path.exists(save_log_folder_path):
+                rmtree(save_log_folder_path)
+            if os.path.exists(save_result_folder_path):
+                rmtree(save_result_folder_path)
 
             demo_train(gt_points_file_path,
                        anchor_num,

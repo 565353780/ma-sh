@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import open3d as o3d
+from shutil import rmtree
 
 from ma_sh.Demo.adaptive_trainer import demo as demo_train_adaptive
 from ma_sh.Method.pcd import getPointCloud
@@ -51,6 +52,14 @@ if __name__ == "__main__":
             for max_fit_error in max_fit_error_list:
                 save_log_folder_path = '/home/chli/chLi/Results/ma-sh/logs/adaptive/' + shape_id + '/anchor-' + str(init_anchor_num) + '_err-' + str(max_fit_error) + '/'
                 save_result_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit/adaptive/' + shape_id + '/anchor-' + str(init_anchor_num) + '_err-' + str(max_fit_error) + '/'
+
+                if os.path.exists(save_result_folder_path + 'mash/'):
+                    continue
+
+                if os.path.exists(save_log_folder_path):
+                    rmtree(save_log_folder_path)
+                if os.path.exists(save_result_folder_path):
+                    rmtree(save_result_folder_path)
 
                 demo_train_adaptive(gt_points_file_path,
                                     init_anchor_num,
