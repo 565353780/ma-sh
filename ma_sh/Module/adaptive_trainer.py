@@ -135,7 +135,7 @@ class AdaptiveTrainer(BaseTrainer):
         total_elements = coverage_dists2.numel()
         coverage_percent = 100.0 * coveraged_num / total_elements
 
-        if coverage_percent == 100:
+        if coverage_percent >= 99.8:
             self.coverage_all_surface = True
 
         return coverage_percent
@@ -430,6 +430,9 @@ class AdaptiveTrainer(BaseTrainer):
                 print('[ERROR][AdaptiveTrainer::autoTrainMash]')
                 print('\t refineMergedMash failed!')
                 return False
+
+            if self.coverage_all_surface:
+                break
 
         if not self.refineMergedMash(gt_points):
             print('[ERROR][AdaptiveTrainer::autoTrainMash]')

@@ -555,6 +555,7 @@ class BaseTrainer(ABC):
             + str(self.save_file_idx)
             + "_"
             + state_info
+            + "_anc-" + str(self.mash.anchor_num)
             + "_mash.npy"
         )
 

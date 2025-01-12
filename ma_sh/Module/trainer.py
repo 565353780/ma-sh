@@ -215,4 +215,7 @@ class Trainer(BaseTrainer):
             break
         """
 
+        if self.o3d_viewer is not None:
+            self.o3d_viewer.run()
+
         return True

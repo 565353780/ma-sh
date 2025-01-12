@@ -5,6 +5,7 @@ import numpy as np
 import open3d as o3d
 from copy import deepcopy
 
+from ma_sh.Config.custom_path import toDatasetRootPath
 from ma_sh.Data.mesh import Mesh
 from ma_sh.Method.data import toNumpy
 from ma_sh.Method.pcd import getPointCloud
@@ -25,7 +26,7 @@ def compare(str_a: str, str_b: str) -> int:
 
 def demo():
     # view single mash
-    if True:
+    if False:
         mash_file_path_list = [
             "/home/chli/chLi/Dataset/MashV4/ShapeNet/03001627/1006be65e7bc937e9141f9b58470d646.npy",
             "/home/chli/chLi/Dataset/MashV4/ShapeNet/03001627/1007e20d5e811b308351982a6e40cf41.npy",
@@ -41,24 +42,23 @@ def demo():
             o3d.visualization.draw_geometries([mash_pcd])
 
     # view mash dataset
-    if False:
-        mash_params_folder_path = "./output/dataset/"
+    if True:
+        dataset_root_folder_path = toDatasetRootPath()
+        assert dataset_root_folder_path is not None
 
-        class_name_list = os.listdir(mash_params_folder_path)
+        mash_dataset_folder_path = dataset_root_folder_path + 'Objaverse_82K/manifold_mash/'
 
-        for class_name in class_name_list:
-            mash_params_file_path = (
-                mash_params_folder_path
-                + class_name
-                + "/models/model_normalized_obj.npy"
-            )
+        for root, _, files in os.walk(mash_dataset_folder_path):
+            for file in files:
+                if not file.endswith('.npy') or file.endswith('_tmp.npy'):
+                    continue
 
-            if not os.path.exists(mash_params_file_path):
-                continue
+                mash_file_path = root + '/' + file
 
-            mash = Mash.fromParamsFile(mash_params_file_path, device="cpu")
+                mash = Mash.fromParamsFile(mash_file_path, device="cuda:0")
 
-            mash.renderSamplePoints()
+                print('mash:', mash_file_path)
+                mash.renderSamplePoints()
 
     # view mash folder
     if False:

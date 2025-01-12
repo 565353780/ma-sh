@@ -1,18 +1,17 @@
 import torch
-import numpy as np
-import open3d as o3d
 
 from ma_sh.Module.adaptive_trainer import AdaptiveTrainer
 from ma_sh.Module.timer import Timer
 
 
-def demo(gt_points_file_path: str,
-         init_anchor_num: int = 50,
-         max_fit_error: float = 1e-3,
-         save_freq: int = 1,
-         save_log_folder_path: str = 'auto',
-         save_result_folder_path: str = 'auto',
-         ):
+def demo(
+    gt_points_file_path: str,
+    init_anchor_num: int = 50,
+    max_fit_error: float = 1e-3,
+    save_freq: int = 1,
+    save_log_folder_path: str = 'auto',
+    save_result_folder_path: str = 'auto',
+):
     # init_anchor_num = 100
     add_anchor_num = 50
     mask_degree_max = 3
@@ -31,7 +30,7 @@ def demo(gt_points_file_path: str,
     warmup_step_num = 80
     warmup_epoch = 4
     factor = 0.8
-    patience = 40
+    patience = 2
     refine_step_num = 20
 
     render = False
@@ -89,11 +88,6 @@ def demo(gt_points_file_path: str,
         '''
 
         adaptive_trainer.loadGTPointsFile(gt_points_file_path, gt_points_num)
-
-    gt_points = np.load(gt_points_file_path)
-    gt_pcd = o3d.geometry.PointCloud()
-    gt_pcd.points = o3d.utility.Vector3dVector(gt_points)
-    o3d.io.write_point_cloud('./output/gt_points.ply', gt_pcd)
 
     timer = Timer()
     adaptive_trainer.autoTrainMash(gt_points_num)
