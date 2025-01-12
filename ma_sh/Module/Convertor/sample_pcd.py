@@ -17,6 +17,28 @@ class Convertor(BaseConvertor):
         return
 
     def convertData(self, source_path: str, target_path: str) -> bool:
+        '''
+        if '000-091' not in source_path:
+            return True
+
+        objaverse_shape_id_list = [
+            '000-091/bf193e241b2f48f0bd2208f89e38fae8',
+            '000-091/91979ad79916460d92c7697464f2b5f4',
+            '000-091/d4efa3e396274421b07b2fa4314c60bb',
+            '000-091/97c493d5c7a443b89229e5f7edb3ae4a',
+            '000-091/01fcb4e4c36548ca86624b63dfc6b255',
+            '000-091/9df219962230449caa4c95a60feb0c9e',
+        ]
+        valid_shape = False
+        for shape_id in objaverse_shape_id_list:
+            if shape_id in source_path:
+                valid_shape = True
+                break
+
+        if not valid_shape:
+            return True
+        '''
+
         mesh = Mesh(source_path)
 
         if not mesh.isValid():
