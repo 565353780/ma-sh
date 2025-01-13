@@ -293,6 +293,10 @@ class AdaptiveTrainer(BaseTrainer):
                          refine_step_num: Union[int, None] = None) -> bool:
         boundary_connect_loss_weight_max = 0.1
 
+        source_patience = self.patience
+
+        self.patience = 2
+
         if self.merged_mash is not None:
             self.mash.mergeMash(self.merged_mash)
             self.merged_mash = None
@@ -355,6 +359,8 @@ class AdaptiveTrainer(BaseTrainer):
 
             if current_lr == self.min_lr:
                 break
+
+        self.patience = source_patience
 
         return True
 

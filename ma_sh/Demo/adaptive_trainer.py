@@ -30,7 +30,7 @@ def demo(
     warmup_step_num = 80
     warmup_epoch = 4
     factor = 0.8
-    patience = 2
+    patience = 40
     refine_step_num = 20
 
     render = False

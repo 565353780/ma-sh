@@ -18,8 +18,8 @@ def demo():
         return False
 
     convertor = Convertor(
-        './output/fit_render/',
-        './output/fit_video/',
+        '/home/chli/chLi/Results/ma-sh/output/fit_render/',
+        '/home/chli/chLi/Results/ma-sh/output/fit_video/',
         video_width,
         video_height,
         video_fps,

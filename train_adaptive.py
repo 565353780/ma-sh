@@ -12,15 +12,15 @@ if __name__ == "__main__":
         '03001627/e71d05f223d527a5f91663a74ccd2338',
     ]
     objaverse_shape_id_list = [
-        '000-091/bf193e241b2f48f0bd2208f89e38fae8',
-        '000-091/91979ad79916460d92c7697464f2b5f4',
-        '000-091/d4efa3e396274421b07b2fa4314c60bb',
-        '000-091/97c493d5c7a443b89229e5f7edb3ae4a',
+        # '000-091/bf193e241b2f48f0bd2208f89e38fae8',
+        # '000-091/91979ad79916460d92c7697464f2b5f4',
+        # '000-091/d4efa3e396274421b07b2fa4314c60bb',
+        # '000-091/97c493d5c7a443b89229e5f7edb3ae4a',
         '000-091/01fcb4e4c36548ca86624b63dfc6b255',
         '000-091/9df219962230449caa4c95a60feb0c9e',
     ]
     init_anchor_num_list = [50]
-    max_fit_error_list = [1e-1, 1e-2, 1e-3]
+    max_fit_error_list = [1e-1, 1e-2, 4e-3]
     save_freq = 1
     render_only = False
 
