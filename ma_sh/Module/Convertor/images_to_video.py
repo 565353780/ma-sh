@@ -13,7 +13,6 @@ class Convertor(BaseConvertor):
         video_height: int = 540,
         video_fps: int = 24,
         background_color: list = [255, 255, 255],
-        overwrite: bool = False,
     ) -> None:
         super().__init__(source_root_folder_path, target_root_folder_path)
 
@@ -21,7 +20,6 @@ class Convertor(BaseConvertor):
         self.video_height = video_height
         self.video_fps = video_fps
         self.background_color = background_color
-        self.overwrite = overwrite
         return
 
     def convertData(self, source_path: str, target_path: str) -> bool:
@@ -49,7 +47,7 @@ class Convertor(BaseConvertor):
             self.video_height,
             self.video_fps,
             self.background_color,
-            self.overwrite):
+            False):
             print("[ERROR][Convertor::convertData]")
             print("\t imagesToVideo failed!")
             print("\t source_path:", source_path)

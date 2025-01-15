@@ -8,7 +8,6 @@ def demo():
     video_height = 540
     video_fps = 24
     background_color = [255, 255, 255]
-    overwrite = True
     source_data_type = '/'
     target_data_type = '.mp4'
 
@@ -23,8 +22,7 @@ def demo():
         video_width,
         video_height,
         video_fps,
-        background_color,
-        overwrite)
+        background_color)
 
     convertor.convertAll(source_data_type, target_data_type)
     return True
