@@ -15,7 +15,7 @@ def demo(
     mask_degree_max = 3
     sh_degree_max = 2
     mask_boundary_sample_num = 90
-    sample_polar_num = 1000
+    sample_point_num = 1000
     sample_point_scale = 0.8
     use_inv = True
     idx_dtype = torch.int64
@@ -47,7 +47,7 @@ def demo(
         mask_degree_max,
         sh_degree_max,
         mask_boundary_sample_num,
-        sample_polar_num,
+        sample_point_num,
         sample_point_scale,
         use_inv,
         idx_dtype,

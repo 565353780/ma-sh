@@ -9,10 +9,10 @@ from ma_sh.Module.Convertor.sample_sdf import Convertor as SampleSDFConvertor
 from ma_sh.Module.Convertor.pipeline_convertor import PipelineConvertor
 
 
-def demoGLB2PCD():
+def demoGLB2PCDObjaverse():
     dataset_root_folder_path = toDatasetRootPath()
     if dataset_root_folder_path is None:
-        print('[ERROR][pipeline_convertor::demoGLB2PCD]')
+        print('[ERROR][pipeline_convertor::demoGLB2PCDObjaverse]')
         print('\t toDatasetRootPath failed!')
         return False
 
@@ -38,6 +38,45 @@ def demoGLB2PCD():
 
     data_type_list = [
         '.glb',
+        '.obj',
+        '.obj',
+        '.npy',
+    ]
+
+    pipeline_convertor = PipelineConvertor(convertor_list)
+
+    pipeline_convertor.convertAll(data_type_list)
+    return True
+
+def demoGLB2PCDShapeNet():
+    dataset_root_folder_path = toDatasetRootPath()
+    if dataset_root_folder_path is None:
+        print('[ERROR][pipeline_convertor::demoGLB2PCDShapeNet]')
+        print('\t toDatasetRootPath failed!')
+        return False
+
+    convertor_list = [
+        ToTriMeshConvertor(
+            dataset_root_folder_path + "ShapeNet/ShapeNetCore.v2/",
+            dataset_root_folder_path + "ShapeNet/mesh/",
+            include_texture=False,
+            remove_source=False,
+            need_normalize=True,
+        ),
+        ToManifoldConvertor(
+            dataset_root_folder_path + "ShapeNet/mesh/",
+            dataset_root_folder_path + "ShapeNet/manifold/",
+            depth=8,
+        ),
+        SamplePcdConvertor(
+            dataset_root_folder_path + 'ShapeNet/manifold/',
+            dataset_root_folder_path + 'ShapeNet/manifold_pcd/',
+            gt_points_num=400000,
+        ),
+    ]
+
+    data_type_list = [
+        '.obj',
         '.obj',
         '.obj',
         '.npy',
