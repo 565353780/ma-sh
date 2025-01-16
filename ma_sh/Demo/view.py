@@ -42,11 +42,12 @@ def demo():
             o3d.visualization.draw_geometries([mash_pcd])
 
     # view mash dataset
-    if True:
+    if False:
         dataset_root_folder_path = toDatasetRootPath()
         assert dataset_root_folder_path is not None
 
         mash_dataset_folder_path = dataset_root_folder_path + 'Objaverse_82K/manifold_mash/'
+        mash_dataset_folder_path = dataset_root_folder_path + 'MashV4/ShapeNet/02691156/'
 
         for root, _, files in os.walk(mash_dataset_folder_path):
             for file in files:
@@ -60,34 +61,31 @@ def demo():
                 print('mash:', mash_file_path)
                 mash.renderSamplePoints()
 
-    # view mash folder
-    if False:
-        mash_folder_path = "/home/chli/chLi/Dataset/Objaverse_82K/mash/000-001/"
-        if os.path.exists(mash_folder_path):
-            mash_filename_list = os.listdir(mash_folder_path)
+    # view part mash folder
+    if True:
+        mash_folder_path = "/home/chli/chLi/Results/ma-sh/output/part_mash/"
+        dataset_folder_path = '/home/chli/chLi/Dataset/MashV4/ShapeNet/'
 
-            for mash_filename in mash_filename_list:
-                if ".npy" not in mash_filename:
+        for root, _, files in os.walk(mash_folder_path):
+            for file in files:
+                if not file.endswith('.npy'):
                     continue
 
-                mash_file_path = mash_folder_path + mash_filename
+                mash_rel_file_path = os.path.relpath(root, mash_folder_path)
 
-                if True:
-                    mesh_file_path = "/home/chli/chLi/Dataset/Objaverse_82K/manifold/000-001/" + mash_filename[:-4] + '.obj'
-                    if not os.path.exists(mesh_file_path):
-                        continue
+                part_mash_file_path = root + '/' + file
+                mash_file_path = dataset_folder_path + mash_rel_file_path + '.npy'
 
-                    mesh = o3d.io.read_triangle_mesh(mesh_file_path)
-
-                    mesh.compute_vertex_normals()
-                    mesh.compute_triangle_normals()
-
+                part_mash = Mash.fromParamsFile(part_mash_file_path, 90, 1000, 0.8, device="cuda")
                 mash = Mash.fromParamsFile(mash_file_path, 90, 1000, 0.8, device="cuda")
 
+                part_mash_pcd = part_mash.toSamplePcd()
                 mash_pcd = mash.toSamplePcd()
 
-                print("start show mash:", mash_filename)
-                o3d.visualization.draw_geometries([mesh, mash_pcd])
+                part_mash_pcd.translate([-1, 0, 0])
+
+                print("start show mash:", mash_file_path)
+                o3d.visualization.draw_geometries([part_mash_pcd, mash_pcd])
 
     if False:
         mash_params_folder_path = "/Volumes/chLi/Dataset/Mash/ShapeNet/mash/"
