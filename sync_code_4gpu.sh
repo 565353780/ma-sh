@@ -4,6 +4,7 @@ sync_code() {
 
 rsync -avP --checksum $HOME/chLi/Dataset/Transformers 4gpu:/home/jintian/chLi/Dataset/
 
+sync_code blender-manage
 sync_code mash-diffusion
 sync_code base-trainer
 
