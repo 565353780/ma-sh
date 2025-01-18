@@ -1,6 +1,8 @@
 import numpy as np
+import open3d as o3d
 
 from ma_sh.Data.mesh import Mesh
+from ma_sh.Method.pcd import getPointCloud
 from ma_sh.Module.Convertor.base_convertor import BaseConvertor
 
 
@@ -17,28 +19,6 @@ class Convertor(BaseConvertor):
         return
 
     def convertData(self, source_path: str, target_path: str) -> bool:
-        '''
-        if '000-091' not in source_path:
-            return True
-
-        objaverse_shape_id_list = [
-            '000-091/bf193e241b2f48f0bd2208f89e38fae8',
-            '000-091/91979ad79916460d92c7697464f2b5f4',
-            '000-091/d4efa3e396274421b07b2fa4314c60bb',
-            '000-091/97c493d5c7a443b89229e5f7edb3ae4a',
-            '000-091/01fcb4e4c36548ca86624b63dfc6b255',
-            '000-091/9df219962230449caa4c95a60feb0c9e',
-        ]
-        valid_shape = False
-        for shape_id in objaverse_shape_id_list:
-            if shape_id in source_path:
-                valid_shape = True
-                break
-
-        if not valid_shape:
-            return True
-        '''
-
         mesh = Mesh(source_path)
 
         if not mesh.isValid():
@@ -65,6 +45,10 @@ class Convertor(BaseConvertor):
             print("\t source_path:", source_path)
             return False
 
-        np.save(target_path, points)
+        if target_path[-4:] == '.npy':
+            np.save(target_path, points)
+        else:
+            pcd = getPointCloud(points)
+            o3d.io.write_point_cloud(target_path, pcd, write_ascii=True)
 
         return True
