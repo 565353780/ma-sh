@@ -234,6 +234,15 @@ class AdaptiveTrainer(BaseTrainer):
             if not_fit_dists2.shape[0] > 0:
                 not_fit_loss = torch.mean(not_fit_dists2) - self.max_fit_error2
 
+        if torch.isnan(fit_loss).any():
+            fit_loss = torch.zeros_like(fit_loss)
+        if torch.isnan(coverage_loss).any():
+            coverage_loss = torch.zeros_like(coverage_loss)
+        if torch.isnan(boundary_connect_loss).any():
+            boundary_connect_loss = torch.zeros_like(boundary_connect_loss)
+        if torch.isnan(not_fit_loss).any():
+            not_fit_loss = torch.zeros_like(not_fit_loss)
+
         weighted_not_fit_loss = self.not_fit_loss_weight * not_fit_loss
         weighted_fit_loss = fit_loss_weight * fit_loss
         weighted_coverage_loss = coverage_loss_weight * coverage_loss
