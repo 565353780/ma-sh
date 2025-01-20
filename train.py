@@ -72,27 +72,33 @@ def trainOnDataset():
 def trainOnMesh():
     shape_id = 'XiaomiSU7'
     gt_mesh_file_path = '/home/chli/chLi/Dataset/XiaomiSU7/Xiaomi_SU7_2024_low_mesh.obj'
-    gt_points_file_path = '/home/chli/chLi/Dataset/XiaomiSU7/Xiaomi_SU7_2024_low_mesh_pcd.npy'
+    gt_mesh_file_path = '/home/chli/chLi/Dataset/XiaomiSU7/normalized_mesh/Xiaomi_SU7_2024_low_mesh.obj'
+    gt_points_file_path = '/home/chli/chLi/Dataset/XiaomiSU7/sample_pcd/Xiaomi_SU7_2024_low_mesh_pcd.npy'
+
+    shape_id = 'bunny'
+    gt_mesh_file_path = '/home/chli/chLi/Dataset/Famous/bunny.ply'
+    normalized_mesh_file_path = '/home/chli/chLi/Dataset/Famous/normalized_mesh/bunny.ply'
+    gt_points_file_path = '/home/chli/chLi/Dataset/Famous/sample_pcd/bunny.npy'
+
     gt_points_num = 400000
     anchor_num_list = [10, 20, 50, 75, 100, 200, 300, 400, 500, 1000, 1500]
-    save_freq = -1
+    anchor_num_list = [10, 20, 50, 75, 100, 200]
+    save_freq = 20
     render_only = False
+    overwrite = True
 
     if not os.path.exists(gt_mesh_file_path):
         print('mesh not exist!')
         print('mesh_file_path:', gt_mesh_file_path)
         return False
 
+    if not os.path.exists(normalized_mesh_file_path):
+        mesh = Mesh(gt_mesh_file_path)
+        mesh.normalize()
+        mesh.save(normalized_mesh_file_path, True)
+
     if not os.path.exists(gt_points_file_path):
-        sample_points = Mesh(gt_mesh_file_path).toSamplePoints(gt_points_num)
-
-        min_bound = np.min(sample_points, axis=0)
-        max_bound = np.max(sample_points, axis=0)
-        length = np.max(max_bound - min_bound)
-        scale = 0.9 / length
-        center = (min_bound + max_bound) / 2.0
-
-        sample_points = (sample_points - center) * scale
+        sample_points = Mesh(normalized_mesh_file_path).toSamplePoints(gt_points_num)
 
         createFileFolder(gt_points_file_path)
         np.save(gt_points_file_path, sample_points)
@@ -108,8 +114,9 @@ def trainOnMesh():
         save_log_folder_path = None
         save_result_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit/fixed/' + shape_id + '/anchor-' + str(anchor_num) + '/'
 
-        if os.path.exists(save_result_folder_path + 'mash/'):
-            continue
+        if not overwrite:
+            if os.path.exists(save_result_folder_path + 'mash/'):
+                continue
 
         if os.path.exists(save_result_folder_path):
             rmtree(save_result_folder_path)

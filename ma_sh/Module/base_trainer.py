@@ -398,8 +398,8 @@ class BaseTrainer(ABC):
 
             pbar.set_description("LOSS %.6f" % (loss,))
 
-            self.autoSavePcd("train", self.save_freq)
-            # self.autoSaveMash("train")
+            self.autoSavePcd("train", self.save_freq, False)
+            self.autoSaveMash("train", self.save_freq)
 
             self.step += 1
             pbar.update(1)
@@ -484,8 +484,8 @@ class BaseTrainer(ABC):
 
             pbar.set_description("LOSS %.6f" % (loss,))
 
-            self.autoSavePcd("train", self.save_freq)
-            # self.autoSaveMash("train")
+            self.autoSavePcd("train", self.save_freq, False)
+            self.autoSaveMash("train", self.save_freq)
 
             self.step += 1
             pbar.update(1)
