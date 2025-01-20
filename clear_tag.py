@@ -17,7 +17,6 @@ if __name__ == "__main__":
         print("\t dataset not found!")
         exit()
 
-
     if clear_tag:
         clearTag(dataset_root_folder_path + "Objaverse_82K/glbs/", '.glb', dry_run, worker_num)
         clearTag(dataset_root_folder_path + "Objaverse_82K/mesh/", '.obj', dry_run, worker_num)

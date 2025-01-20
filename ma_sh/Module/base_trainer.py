@@ -296,11 +296,11 @@ class BaseTrainer(ABC):
             )
 
         if torch.isnan(fit_loss).any():
-            fit_loss = torch.zeros_like(fit_loss)
+            fit_loss[torch.isnan(fit_loss)] = 0
         if torch.isnan(coverage_loss).any():
-            coverage_loss = torch.zeros_like(coverage_loss)
+            coverage_loss[torch.isnan(coverage_loss)] = 0
         if torch.isnan(boundary_connect_loss).any():
-            boundary_connect_loss = torch.zeros_like(boundary_connect_loss)
+            boundary_connect_loss[torch.isnan(boundary_connect_loss)] = 0
 
         weighted_fit_loss = fit_loss_weight * fit_loss
         weighted_coverage_loss = coverage_loss_weight * coverage_loss
