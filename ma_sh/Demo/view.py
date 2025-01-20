@@ -3,12 +3,11 @@ import torch
 import functools
 import numpy as np
 import open3d as o3d
-from copy import deepcopy
 
 from ma_sh.Config.custom_path import toDatasetRootPath
-from ma_sh.Data.mesh import Mesh
 from ma_sh.Method.data import toNumpy
 from ma_sh.Method.pcd import getPointCloud
+from ma_sh.Method.clip import clip_with_obb
 from ma_sh.Model.mash import Mash
 from ma_sh.Module.o3d_viewer import O3DViewer
 
@@ -26,20 +25,40 @@ def compare(str_a: str, str_b: str) -> int:
 
 def demo():
     # view single mash
-    if False:
+    if True:
         mash_file_path_list = [
-            "/home/chli/chLi/Dataset/MashV4/ShapeNet/03001627/1006be65e7bc937e9141f9b58470d646.npy",
-            "/home/chli/chLi/Dataset/MashV4/ShapeNet/03001627/1007e20d5e811b308351982a6e40cf41.npy",
-            "./output/combined_mash.npy",
+            '/home/chli/chLi/Results/ma-sh/output/fit/fixed/XiaomiSU7/anchor-1500/mash/0_final_anc-1500_mash.npy',
+            #"/home/chli/chLi/Dataset/MashV4/ShapeNet/03001627/1006be65e7bc937e9141f9b58470d646.npy",
+            #"/home/chli/chLi/Dataset/MashV4/ShapeNet/03001627/1007e20d5e811b308351982a6e40cf41.npy",
+            #"./output/combined_mash.npy",
         ]
 
         for mash_file_path in mash_file_path_list:
-            mash = Mash.fromParamsFile(mash_file_path, 40, 100, 1.0, device="cuda")
+            mash = Mash.fromParamsFile(mash_file_path, 180, 2000, 1.0, device="cuda")
 
             mash_pcd = mash.toSamplePcd()
 
-            print("start show mash:", mash_file_path)
-            o3d.visualization.draw_geometries([mash_pcd])
+            mash_pcd_pts = np.asarray(mash_pcd.points)
+
+            bounds = np.max(mash_pcd_pts, axis=0) - np.min(mash_pcd_pts, axis=0)
+
+            clip_num = 6
+            save_folder_path = '/home/chli/chLi/Results/ma-sh/output/clip/XiaomiSU7/anc-1500/'
+            for i in range(clip_num):
+                current_center = 0.0 + i / (2 * clip_num + 2)
+                clipped_pts = clip_with_obb(mash_pcd_pts, bounds, 0, [current_center, 0.0, 0.0])
+
+                clipped_pcd = getPointCloud(clipped_pts)
+
+                os.makedirs(save_folder_path, exist_ok=True)
+                o3d.io.write_point_cloud(save_folder_path + str(i) + '_pcd.ply', clipped_pcd, write_ascii=True)
+                continue
+
+                clipped_pcd.translate([1, 0, 0])
+
+                print("start show mash:", mash_file_path)
+                o3d.visualization.draw_geometries([mash_pcd, clipped_pcd])
+        exit()
 
     # view mash dataset
     if False:
