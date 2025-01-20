@@ -70,22 +70,29 @@ def trainOnDataset():
     return True
 
 def trainOnMesh():
-    shape_id = 'XiaomiSU7'
-    gt_mesh_file_path = '/home/chli/chLi/Dataset/XiaomiSU7/Xiaomi_SU7_2024_low_mesh.obj'
-    gt_mesh_file_path = '/home/chli/chLi/Dataset/XiaomiSU7/normalized_mesh/Xiaomi_SU7_2024_low_mesh.obj'
-    gt_points_file_path = '/home/chli/chLi/Dataset/XiaomiSU7/sample_pcd/Xiaomi_SU7_2024_low_mesh_pcd.npy'
-
-    shape_id = 'bunny'
-    gt_mesh_file_path = '/home/chli/chLi/Dataset/Famous/bunny.ply'
-    normalized_mesh_file_path = '/home/chli/chLi/Dataset/Famous/normalized_mesh/bunny.ply'
-    gt_points_file_path = '/home/chli/chLi/Dataset/Famous/sample_pcd/bunny.npy'
-
     gt_points_num = 400000
-    anchor_num_list = [10, 20, 50, 75, 100, 200, 300, 400, 500, 1000, 1500]
-    anchor_num_list = [10, 20, 50, 75, 100, 200]
-    save_freq = 20
+
+    shape_id = 'XiaomiSU7'
+    # shape_id = 'bunny'
+
+    if shape_id == 'XiaomiSU7':
+        gt_mesh_file_path = '/home/chli/chLi/Dataset/XiaomiSU7/Xiaomi_SU7_2024_low_mesh.obj'
+        normalized_mesh_file_path = '/home/chli/chLi/Dataset/XiaomiSU7/normalized_mesh/Xiaomi_SU7_2024_low_mesh.ply'
+        gt_points_file_path = '/home/chli/chLi/Dataset/XiaomiSU7/sample_pcd/Xiaomi_SU7_2024_low_mesh.npy'
+        anchor_num_list = [10, 20, 50, 100, 200, 400, 1800]
+        save_freq = -1
+
+    elif shape_id == 'bunny':
+        gt_mesh_file_path = '/home/chli/chLi/Dataset/Famous/bunny.ply'
+        normalized_mesh_file_path = '/home/chli/chLi/Dataset/Famous/normalized_mesh/bunny.ply'
+        gt_points_file_path = '/home/chli/chLi/Dataset/Famous/sample_pcd/bunny.npy'
+        anchor_num_list = [10, 20, 50, 75, 100, 200]
+        save_freq = 20
+    else:
+        return False
+
     render_only = False
-    overwrite = True
+    overwrite = False
 
     if not os.path.exists(gt_mesh_file_path):
         print('mesh not exist!')
