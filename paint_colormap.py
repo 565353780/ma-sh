@@ -1,8 +1,4 @@
-import os
-import numpy as np
-
-from ma_sh.Data.mesh import Mesh
-from ma_sh.Model.mash import Mash
+from ma_sh.Method.paint import paintColormap
 
 
 def demo():
@@ -13,50 +9,59 @@ def demo():
     mesh_name = 'bunny'
 
     normalized_mesh_file_path = '/home/chli/chLi/Dataset/Famous/normalized_mesh/' + mesh_name + '.ply'
-    gt_points_file_path = '/home/chli/chLi/Dataset/Famous/sample_pcd/' + mesh_name + '.npy'
     mash_result_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit/fixed/' + mesh_name + '/'
     save_colored_gt_mesh_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit_error_mesh/' + mesh_name + '/'
-    save_colored_mash_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit_error_mash/' + mesh_name + '/'
 
-    assert os.path.exists(normalized_mesh_file_path)
-    assert os.path.exists(gt_points_file_path)
-    assert os.path.exists(mash_result_folder_path)
+    paintColormap(
+        normalized_mesh_file_path,
+        mash_result_folder_path,
+        save_colored_gt_mesh_folder_path,
+        error_max_percent,
+        accurate,
+        overwrite,
+    )
+    return True
 
-    gt_mesh = Mesh(normalized_mesh_file_path)
+def demo_paint_dataset():
+    error_max_percent = 0.0001
+    accurate = False
+    overwrite = False
 
-    for root, _, files in os.walk(mash_result_folder_path):
-        for file in files:
-            if not file.endswith('.npy'):
-                continue
+    shapenet_shape_id_list = [
+        '02691156/1066b65c30d153e04c3a35cee92bb95b',
+    ]
+    objaverse_shape_id_list = [
+        '000-091/91979ad79916460d92c7697464f2b5f4',
+        '000-091/9df219962230449caa4c95a60feb0c9e',
+    ]
 
-            rel_file_path = os.path.relpath(root, mash_result_folder_path) + '/'
+    for shape_id in shapenet_shape_id_list:
+        normalized_mesh_file_path = '/home/chli/chLi2/Dataset/NormalizedMesh/ShapeNet/' + shape_id + '.obj'
+        mash_result_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit/fixed/' + shape_id.replace('/', '_') + '/'
+        save_colored_gt_mesh_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit_error_mesh/' + shape_id.replace('/', '_') + '/'
 
-            mash_file_path = root + '/' + file
-            assert os.path.exists(mash_file_path)
+        paintColormap(
+            normalized_mesh_file_path,
+            mash_result_folder_path,
+            save_colored_gt_mesh_folder_path,
+        )
 
-            save_colored_gt_mesh_file_path = save_colored_gt_mesh_folder_path + rel_file_path + file[:-4] + '.ply'
-            save_colored_mash_file_path = save_colored_mash_folder_path + rel_file_path + file[:-4] + '.ply'
+    for shape_id in objaverse_shape_id_list:
+        normalized_mesh_file_path = '/home/chli/chLi/Dataset/Objaverse_82K/manifold/' + shape_id + '.obj'
+        mash_result_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit/fixed/' + shape_id.replace('/', '_') + '/'
+        save_colored_gt_mesh_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit_error_mesh/' + shape_id.replace('/', '_') + '/'
 
-            if not overwrite:
-                if os.path.exists(save_colored_gt_mesh_file_path):
-                    continue
+        paintColormap(
+            normalized_mesh_file_path,
+            mash_result_folder_path,
+            save_colored_gt_mesh_folder_path,
+            error_max_percent,
+            accurate,
+            overwrite,
+        )
 
-            print('start paint mesh:', file)
-
-            mash_pcd = Mash.fromParamsFile(
-                mash_file_path,
-                mask_boundary_sample_num=180,
-                sample_polar_num=2000,
-                sample_point_scale=1.0,
-                device='cuda',
-            ).toSamplePcd()
-
-            mash_pts = np.asarray(mash_pcd.points)
-
-            gt_mesh.paintJetColorsByPoints(mash_pts, error_max_percent, accurate)
-
-            gt_mesh.save(save_colored_gt_mesh_file_path, overwrite)
     return True
 
 if __name__ == "__main__":
-    demo()
+    # demo()
+    demo_paint_dataset()
