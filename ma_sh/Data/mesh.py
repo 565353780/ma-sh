@@ -12,7 +12,7 @@ from ma_sh.Data.point import Point
 from ma_sh.Data.pcd import Pcd
 from ma_sh.Method.data import toNumpy
 from ma_sh.Method.io import loadMeshFile
-from ma_sh.Method.path import createFileFolder, removeFile
+from ma_sh.Method.path import createFileFolder, removeFile, renameFile
 from ma_sh.Method.mesh import samplePointCloud, samplePoints
 from ma_sh.Method.sort import getNearIdxs
 from ma_sh.Method.color import getJetColorsFromDists
@@ -96,7 +96,23 @@ class Mesh(object):
         return True
 
     def center(self) -> Point:
-        return Point.from_numpy(np.mean(self.vertices, axis=0))
+        min_bound = np.min(self.vertices, axis=0)
+        max_bound = np.max(self.vertices, axis=0)
+
+        center = (min_bound + max_bound) / 2.0
+        return Point.from_numpy(center)
+
+    def length(self) -> float:
+        min_bound = np.min(self.vertices, axis=0)
+        max_bound = np.max(self.vertices, axis=0)
+        length = np.max(max_bound - min_bound)
+        return length
+
+    def normalize(self) -> bool:
+        center = self.center().numpy()
+        scale = 0.9 / self.length()
+        self.vertices = (self.vertices - center) * scale
+        return True
 
     def points(self) -> np.ndarray:
         if self.vertices is None:
@@ -387,20 +403,21 @@ class Mesh(object):
         return Pcd.from_o3d(sample_pcd)
 
     def save(self, save_mesh_file_path: str, overwrite: bool = False) -> bool:
-        createFileFolder(save_mesh_file_path)
+        if not overwrite:
+            if os.path.exists(save_mesh_file_path):
+                return True
 
-        if os.path.exists(save_mesh_file_path):
-            if overwrite:
-                removeFile(save_mesh_file_path)
-            else:
-                print("[ERROR][Mesh::save]")
-                print("\t save mesh file already exist!")
-                print("\t save_mesh_file_path:", save_mesh_file_path)
-                return False
+        removeFile(save_mesh_file_path)
 
         o3d_mesh = self.toO3DMesh()
 
-        o3d.io.write_triangle_mesh(save_mesh_file_path, o3d_mesh, write_ascii=True)
+        tmp_save_mesh_file_path = save_mesh_file_path[:-4] + '_tmp' + save_mesh_file_path[-4:]
+
+        createFileFolder(save_mesh_file_path)
+
+        o3d.io.write_triangle_mesh(tmp_save_mesh_file_path, o3d_mesh, write_ascii=True)
+
+        renameFile(tmp_save_mesh_file_path, save_mesh_file_path)
         return True
 
     def render(self):
