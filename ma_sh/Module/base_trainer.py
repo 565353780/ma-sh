@@ -295,13 +295,6 @@ class BaseTrainer(ABC):
                 self.mash.anchor_num, boundary_pts, self.mash.mask_boundary_phi_idxs
             )
 
-        if torch.isnan(fit_loss).any():
-            fit_loss[torch.isnan(fit_loss)] = 0
-        if torch.isnan(coverage_loss).any():
-            coverage_loss[torch.isnan(coverage_loss)] = 0
-        if torch.isnan(boundary_connect_loss).any():
-            boundary_connect_loss[torch.isnan(boundary_connect_loss)] = 0
-
         weighted_fit_loss = fit_loss_weight * fit_loss
         weighted_coverage_loss = coverage_loss_weight * coverage_loss
         weighted_boundary_connect_loss = (
