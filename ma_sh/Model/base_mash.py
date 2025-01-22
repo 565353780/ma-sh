@@ -152,27 +152,39 @@ class BaseMash(ABC):
         self.positions[anchor_mask].requires_grad_(need_grad)
         return True
 
-    def clearGrads(self, anchor_mask: Union[torch.Tensor, None] = None) -> bool:
+    def editGrads(self, edit_fn, anchor_mask: Union[torch.Tensor, None] = None) -> bool:
         if anchor_mask is None:
             if self.mask_params.grad is not None:
-                self.mask_params.grad = None
+                self.mask_params.grad = edit_fn(self.mask_params.grad)
             if self.sh_params.grad is not None:
-                self.sh_params.grad = None
+                self.sh_params.grad = edit_fn(self.sh_params.grad)
             if self.rotate_vectors.grad is not None:
-                self.rotate_vectors.grad = None
+                self.rotate_vectors.grad = edit_fn(self.rotate_vectors.grad)
             if self.positions.grad is not None:
-                self.positions.grad = None
+                self.positions.grad = edit_fn(self.positions.grad)
             return True
 
         if self.mask_params[anchor_mask].grad is not None:
-            self.mask_params[anchor_mask].grad = None
+            self.mask_params[anchor_mask].grad = edit_fn(self.mask_params[anchor_mask].grad)
         if self.sh_params[anchor_mask].grad is not None:
-            self.sh_params[anchor_mask].grad = None
+            self.sh_params[anchor_mask].grad = edit_fn(self.sh_params[anchor_mask].grad)
         if self.rotate_vectors[anchor_mask].grad is not None:
-            self.rotate_vectors[anchor_mask].grad = None
+            self.rotate_vectors[anchor_mask].grad = edit_fn(self.rotate_vectors[anchor_mask].grad)
         if self.positions[anchor_mask].grad is not None:
-            self.positions[anchor_mask].grad = None
+            self.positions[anchor_mask].grad = edit_fn(self.positions[anchor_mask].grad)
         return True
+
+    def clearGrads(self, anchor_mask: Union[torch.Tensor, None] = None) -> bool:
+        def edit_fn(grad: torch.Tensor) -> None:
+            return None
+        return self.editGrads(edit_fn, anchor_mask)
+
+    def clearNanGrads(self, anchor_mask: Union[torch.Tensor, None] = None) -> bool:
+        def edit_fn(grad: torch.Tensor) -> torch.Tensor:
+            nan_mask = torch.isnan(grad)
+            grad[nan_mask] = 0
+            return grad
+        return self.editGrads(edit_fn, anchor_mask)
 
     def initParams(self) -> bool:
         self.mask_params, self.sh_params, self.rotate_vectors, self.positions = (

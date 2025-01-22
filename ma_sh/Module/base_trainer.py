@@ -315,6 +315,8 @@ class BaseTrainer(ABC):
 
         loss.backward()
 
+        self.mash.clearNanGrads()
+
         self.optimizer.step()
 
         loss_dict = {

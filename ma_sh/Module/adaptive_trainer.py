@@ -256,6 +256,8 @@ class AdaptiveTrainer(BaseTrainer):
 
         loss.backward()
 
+        self.mash.clearNanGrads()
+
         self.optimizer.step()
 
         self.coverage_percent = self.getCoveragePercent(coverage_dists2)

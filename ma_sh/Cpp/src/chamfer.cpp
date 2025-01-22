@@ -1,12 +1,7 @@
 #include "chamfer.h"
 
 const torch::Tensor toValidTensor(const torch::Tensor &source_tensor) {
-  torch::Tensor valid_tensor = source_tensor;
-
-  const torch::Tensor nan_mask = torch::isnan(source_tensor);
-
-  valid_tensor.masked_fill_(nan_mask, 0.0);
-
+  const torch::Tensor valid_tensor = torch::nan_to_num(source_tensor, 0.0);
   return valid_tensor;
 }
 
@@ -77,9 +72,11 @@ const std::vector<torch::Tensor> chamfer_3DDist(const torch::Tensor &input1,
 
   const torch::Tensor valid_dists1 = toValidTensor(dists_with_idxs[0]);
   const torch::Tensor valid_dists2 = toValidTensor(dists_with_idxs[1]);
+  const torch::Tensor idxs1 = dists_with_idxs[2].toType(torch::kInt);
+  const torch::Tensor idxs2 = dists_with_idxs[3].toType(torch::kInt);
 
   const std::vector<torch::Tensor> valid_dists_with_idxs(
-      {valid_dists1, valid_dists2, dists_with_idxs[2], dists_with_idxs[3]});
+      {valid_dists1, valid_dists2, idxs1, idxs2});
 
   return valid_dists_with_idxs;
 }
