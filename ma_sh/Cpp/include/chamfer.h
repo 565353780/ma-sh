@@ -2,6 +2,8 @@
 
 #include <torch/extension.h>
 
+const torch::Tensor toValidTensor(const torch::Tensor &source_tensor);
+
 #ifdef USE_CUDA
 int chamfer_cuda_forward(const torch::Tensor &xyz1, const torch::Tensor &xyz2,
                          torch::Tensor &dist1, torch::Tensor &dist2,

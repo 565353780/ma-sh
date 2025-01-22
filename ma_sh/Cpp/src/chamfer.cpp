@@ -1,5 +1,15 @@
 #include "chamfer.h"
 
+const torch::Tensor toValidTensor(const torch::Tensor &source_tensor) {
+  torch::Tensor valid_tensor = source_tensor;
+
+  const torch::Tensor nan_mask = torch::isnan(source_tensor);
+
+  valid_tensor.masked_fill_(nan_mask, 0.0);
+
+  return valid_tensor;
+}
+
 #ifdef USE_CUDA
 std::vector<torch::Tensor>
 chamfer_3DFunction::forward(torch::autograd::AutogradContext *ctx,
@@ -65,7 +75,13 @@ const std::vector<torch::Tensor> chamfer_3DDist(const torch::Tensor &input1,
   const std::vector<torch::Tensor> dists_with_idxs =
       chamfer_3DFunction::apply(contiguous_input1, contiguous_input2);
 
-  return dists_with_idxs;
+  const torch::Tensor valid_dists1 = toValidTensor(dists_with_idxs[0]);
+  const torch::Tensor valid_dists2 = toValidTensor(dists_with_idxs[1]);
+
+  const std::vector<torch::Tensor> valid_dists_with_idxs(
+      {valid_dists1, valid_dists2, dists_with_idxs[2], dists_with_idxs[3]});
+
+  return valid_dists_with_idxs;
 }
 #endif
 
@@ -106,8 +122,11 @@ const std::vector<torch::Tensor> distChamfer(const torch::Tensor &a,
   const torch::Tensor idxs1 = std::get<1>(P1).toType(torch::kInt);
   const torch::Tensor idxs2 = std::get<1>(P2).toType(torch::kInt);
 
+  const torch::Tensor valid_dists1 = toValidTensor(dists1);
+  const torch::Tensor valid_dists2 = toValidTensor(dists2);
+
   const std::vector<torch::Tensor> dists_with_idxs(
-      {dists1, dists2, idxs1, idxs2});
+      {valid_dists1, valid_dists2, idxs1, idxs2});
 
   return dists_with_idxs;
 }

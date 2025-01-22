@@ -209,9 +209,6 @@ class AdaptiveTrainer(BaseTrainer):
             sample_pts.unsqueeze(0), gt_points
         )
 
-        fit_dists2[torch.isnan(fit_dists2)] = 0.0
-        coverage_dists2[torch.isnan(coverage_dists2)] = 0.0
-
         valid_idx_max = boundary_pts.shape[0] + inner_pts.shape[0]
 
         valid_fit_dists2 = fit_dists2[:, :valid_idx_max]
