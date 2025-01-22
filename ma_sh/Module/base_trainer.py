@@ -286,9 +286,24 @@ class BaseTrainer(ABC):
         boundary_connect_loss = torch.zeros_like(fit_loss)
 
         if fit_loss_weight > 0 or coverage_loss_weight > 0:
+            '''
             fit_loss, coverage_loss = mash_cpp.toChamferDistanceLoss(
                 torch.vstack([boundary_pts, inner_pts]), gt_points
             )
+            '''
+
+            fit_dists2, coverage_dists2 = mash_cpp.toChamferDistance(
+                torch.vstack([boundary_pts, inner_pts]).unsqueeze(0), gt_points
+            )[:2]
+
+            fit_dists2[torch.isnan(fit_dists2)] = 0.0
+            coverage_dists2[torch.isnan(coverage_dists2)] = 0.0
+
+            fit_dists = torch.sqrt(fit_dists2 + EPSILON)
+            coverage_dists = torch.sqrt(coverage_dists2 + EPSILON)
+
+            fit_loss = torch.mean(fit_dists)
+            coverage_loss = torch.mean(coverage_dists)
 
         if boundary_connect_loss_weight > 0:
             boundary_connect_loss = mash_cpp.toBoundaryConnectLoss(
@@ -308,6 +323,9 @@ class BaseTrainer(ABC):
         if torch.isnan(loss).any():
             print('[ERROR][BaseTrainer::trainStep]')
             print('\t loss is nan!')
+            print('\t\t fit_loss:', fit_loss)
+            print('\t\t coverage_loss:', coverage_loss)
+            print('\t\t boundary_connect_loss:', boundary_connect_loss)
             return None
 
         loss.backward()

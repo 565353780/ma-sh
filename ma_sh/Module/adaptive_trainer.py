@@ -209,6 +209,9 @@ class AdaptiveTrainer(BaseTrainer):
             sample_pts.unsqueeze(0), gt_points
         )
 
+        fit_dists2[torch.isnan(fit_dists2)] = 0.0
+        coverage_dists2[torch.isnan(coverage_dists2)] = 0.0
+
         valid_idx_max = boundary_pts.shape[0] + inner_pts.shape[0]
 
         valid_fit_dists2 = fit_dists2[:, :valid_idx_max]
@@ -248,6 +251,10 @@ class AdaptiveTrainer(BaseTrainer):
         if torch.isnan(loss).any():
             print('[ERROR][BaseTrainer::trainStep]')
             print('\t loss is nan!')
+            print('\t\t not_fit_loss:', not_fit_loss)
+            print('\t\t fit_loss:', fit_loss)
+            print('\t\t coverage_loss:', coverage_loss)
+            print('\t\t boundary_connect_loss:', boundary_connect_loss)
             return None
 
         loss.backward()
