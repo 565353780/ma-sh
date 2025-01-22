@@ -73,13 +73,31 @@ def trainOnMesh():
     gt_points_num = 400000
 
     shape_id = 'XiaomiSU7'
+    shape_id = 'RobotArm'
+    shape_id = 'Washer'
     # shape_id = 'bunny'
 
     if shape_id == 'XiaomiSU7':
         gt_mesh_file_path = '/home/chli/chLi/Dataset/XiaomiSU7/Xiaomi_SU7_2024_low_mesh.obj'
         normalized_mesh_file_path = '/home/chli/chLi/Dataset/XiaomiSU7/normalized_mesh/Xiaomi_SU7_2024_low_mesh.ply'
         gt_points_file_path = '/home/chli/chLi/Dataset/XiaomiSU7/sample_pcd/Xiaomi_SU7_2024_low_mesh.npy'
-        anchor_num_list = [10, 20, 50, 100, 200, 400, 1800]
+        anchor_num_list = [10, 20, 50, 100, 200, 400, 1500]
+        anchor_num_list = [1500]
+        save_freq = -1
+
+    elif shape_id == 'RobotArm':
+        gt_mesh_file_path = '/home/chli/chLi/Dataset/RobotArm/Rmk3.obj'
+        normalized_mesh_file_path = '/home/chli/chLi/Dataset/RobotArm/normalized_mesh/Rmk3.ply'
+        gt_points_file_path = '/home/chli/chLi/Dataset/RobotArm/sample_pcd/Rmk3.npy'
+        anchor_num_list = [10, 20, 50, 100, 200, 400]
+        save_freq = -1
+
+    elif shape_id == 'Washer':
+        gt_mesh_file_path = '/home/chli/chLi/Dataset/Washer/BOSCH_WLG.obj'
+        normalized_mesh_file_path = '/home/chli/chLi/Dataset/Washer/normalized_mesh/BOSCH_WLG.ply'
+        gt_points_file_path = '/home/chli/chLi/Dataset/Washer/sample_pcd/BOSCH_WLG.npy'
+        anchor_num_list = [10, 20, 50, 100, 200, 400]
+        anchor_num_list = [1500]
         save_freq = -1
 
     elif shape_id == 'bunny':
@@ -88,6 +106,7 @@ def trainOnMesh():
         gt_points_file_path = '/home/chli/chLi/Dataset/Famous/sample_pcd/bunny.npy'
         anchor_num_list = [10, 20, 50, 75, 100, 200]
         save_freq = 20
+
     else:
         return False
 

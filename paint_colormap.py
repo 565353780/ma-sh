@@ -6,11 +6,33 @@ def demo():
     accurate = False
     overwrite = False
 
-    mesh_name = 'bunny'
+    shape_id = 'XiaomiSU7'
+    shape_id = 'RobotArm'
+    shape_id = 'Washer'
+    # shape_id = 'bunny'
 
-    normalized_mesh_file_path = '/home/chli/chLi/Dataset/Famous/normalized_mesh/' + mesh_name + '.ply'
-    mash_result_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit/fixed/' + mesh_name + '/'
-    save_colored_gt_mesh_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit_error_mesh/' + mesh_name + '/'
+    if shape_id == 'XiaomiSU7':
+        normalized_mesh_file_path = '/home/chli/chLi/Dataset/XiaomiSU7/normalized_mesh/Xiaomi_SU7_2024_low_mesh.ply'
+        mash_result_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit/fixed/XiaomiSU7/'
+        save_colored_gt_mesh_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit_error_mesh/XiaomiSU7/'
+
+    elif shape_id == 'RobotArm':
+        normalized_mesh_file_path = '/home/chli/chLi/Dataset/RobotArm/normalized_mesh/Rmk3.ply'
+        mash_result_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit/fixed/RobotArm/'
+        save_colored_gt_mesh_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit_error_mesh/RobotArm/'
+
+    elif shape_id == 'Washer':
+        normalized_mesh_file_path = '/home/chli/chLi/Dataset/Washer/normalized_mesh/BOSCH_WLG.ply'
+        mash_result_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit/fixed/Washer/'
+        save_colored_gt_mesh_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit_error_mesh/Washer/'
+
+    elif shape_id == 'bunny':
+        normalized_mesh_file_path = '/home/chli/chLi/Dataset/Famous/normalized_mesh/bunny.ply'
+        mash_result_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit/fixed/bunny/'
+        save_colored_gt_mesh_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit_error_mesh/bunny/'
+
+    else:
+        return False
 
     paintColormap(
         normalized_mesh_file_path,
@@ -63,5 +85,5 @@ def demo_paint_dataset():
     return True
 
 if __name__ == "__main__":
-    # demo()
-    demo_paint_dataset()
+    demo()
+    # demo_paint_dataset()
