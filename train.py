@@ -75,7 +75,7 @@ def trainOnMesh():
     shape_id = 'XiaomiSU7'
     shape_id = 'RobotArm'
     shape_id = 'Washer'
-    # shape_id = 'bunny'
+    #shape_id = 'bunny'
 
     if shape_id == 'XiaomiSU7':
         gt_mesh_file_path = '/home/chli/chLi/Dataset/XiaomiSU7/Xiaomi_SU7_2024_low_mesh.obj'
@@ -97,7 +97,7 @@ def trainOnMesh():
         normalized_mesh_file_path = '/home/chli/chLi/Dataset/Washer/normalized_mesh/BOSCH_WLG.ply'
         gt_points_file_path = '/home/chli/chLi/Dataset/Washer/sample_pcd/BOSCH_WLG.npy'
         anchor_num_list = [10, 20, 50, 100, 200, 400]
-        anchor_num_list = [1500]
+        anchor_num_list = [400, 1500, 1000, 500, 400]
         save_freq = -1
 
     elif shape_id == 'bunny':
@@ -105,7 +105,7 @@ def trainOnMesh():
         normalized_mesh_file_path = '/home/chli/chLi/Dataset/Famous/normalized_mesh/bunny.ply'
         gt_points_file_path = '/home/chli/chLi/Dataset/Famous/sample_pcd/bunny.npy'
         anchor_num_list = [10, 20, 50, 75, 100, 200]
-        save_freq = 20
+        save_freq = -1
 
     else:
         return False

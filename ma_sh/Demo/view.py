@@ -1,5 +1,6 @@
 import os
 import torch
+from random import shuffle
 import functools
 import numpy as np
 import open3d as o3d
@@ -24,10 +25,37 @@ def compare(str_a: str, str_b: str) -> int:
 
 
 def demo():
+    # test clip function
+    if False:
+        pcd_file_path = '/home/chli/chLi/Dataset/Washer/sample_pcd/BOSCH_WLG.npy'
+        pts = np.load(pcd_file_path)
+        pcd = getPointCloud(pts)
+
+        bounds = np.max(pts, axis=0) - np.min(pts, axis=0)
+
+        clip_num = 6
+        save_folder_path = '/home/chli/chLi/Results/ma-sh/output/clip/Washer/anc-1500/'
+        for i in range(clip_num):
+            current_center = 0.0 + i / (2 * clip_num + 2) # XiaomiSU7
+            clipped_pts = clip_with_obb(pts, bounds, 0, [current_center, 0.0, 0.0])
+
+            clipped_pcd = getPointCloud(clipped_pts)
+
+            os.makedirs(save_folder_path, exist_ok=True)
+            o3d.io.write_point_cloud(save_folder_path + str(i) + '_pcd.ply', clipped_pcd, write_ascii=True)
+            #continue
+
+            clipped_pcd.translate([1, 0, 0])
+
+            print("start show mash:", pcd_file_path)
+            o3d.visualization.draw_geometries([pcd, clipped_pcd])
+        exit()
+
     # view single mash
-    if True:
+    if False:
         mash_file_path_list = [
-            '/home/chli/chLi/Results/ma-sh/output/fit/fixed/XiaomiSU7/anchor-1500/mash/0_final_anc-1500_mash.npy',
+            '/home/chli/chLi/Results/ma-sh/output/fit/fixed/Washer/anchor-1500/mash/0_final_anc-1500_mash.npy',
+            #'/home/chli/chLi/Results/ma-sh/output/fit/fixed/XiaomiSU7/anchor-1500/mash/0_final_anc-1500_mash.npy',
             #"/home/chli/chLi/Dataset/MashV4/ShapeNet/03001627/1006be65e7bc937e9141f9b58470d646.npy",
             #"/home/chli/chLi/Dataset/MashV4/ShapeNet/03001627/1007e20d5e811b308351982a6e40cf41.npy",
             #"./output/combined_mash.npy",
@@ -38,6 +66,12 @@ def demo():
 
             mash_pcd = mash.toSamplePcd()
 
+            '''
+            print("start show mash:", mash_file_path)
+            o3d.visualization.draw_geometries([mash_pcd])
+            exit()
+            '''
+
             mash_pcd_pts = np.asarray(mash_pcd.points)
 
             bounds = np.max(mash_pcd_pts, axis=0) - np.min(mash_pcd_pts, axis=0)
@@ -45,7 +79,8 @@ def demo():
             clip_num = 6
             save_folder_path = '/home/chli/chLi/Results/ma-sh/output/clip/XiaomiSU7/anc-1500/'
             for i in range(clip_num):
-                current_center = 0.0 + i / (2 * clip_num + 2)
+                current_center = 0.0 + i / (2 * clip_num + 2) # XiaomiSU7
+                #current_center = 0.0 - i / (clip_num + 2) # Washer
                 clipped_pts = clip_with_obb(mash_pcd_pts, bounds, 0, [current_center, 0.0, 0.0])
 
                 clipped_pcd = getPointCloud(clipped_pts)
@@ -65,8 +100,12 @@ def demo():
         dataset_root_folder_path = toDatasetRootPath()
         assert dataset_root_folder_path is not None
 
-        mash_dataset_folder_path = dataset_root_folder_path + 'Objaverse_82K/manifold_mash/'
-        mash_dataset_folder_path = dataset_root_folder_path + 'MashV4/ShapeNet/02691156/'
+        # mash_dataset_folder_path = dataset_root_folder_path + 'Objaverse_82K/manifold_mash/'
+        #'02828884', # 6: bench
+        #'04256520', # 47: sofa
+        mash_dataset_folder_path = dataset_root_folder_path + 'MashV4/ShapeNet/02828884/'
+
+        mash_file_path_list = []
 
         for root, _, files in os.walk(mash_dataset_folder_path):
             for file in files:
@@ -75,10 +114,15 @@ def demo():
 
                 mash_file_path = root + '/' + file
 
-                mash = Mash.fromParamsFile(mash_file_path, device="cuda:0")
+                mash_file_path_list.append(mash_file_path)
 
-                print('mash:', mash_file_path)
-                mash.renderSamplePoints()
+        shuffle(mash_file_path_list) 
+
+        for mash_file_path in mash_file_path_list:
+            mash = Mash.fromParamsFile(mash_file_path, device="cuda:0")
+
+            print('mash:', mash_file_path)
+            mash.renderSamplePoints()
 
     # view part mash folder
     if True:
