@@ -1,4 +1,5 @@
 import torch
+from time import time
 from typing import Union
 from torch.optim import AdamW
 
@@ -214,6 +215,17 @@ class Trainer(BaseTrainer):
 
             break
         """
+
+        total_time = time() - self.start_time
+
+        print('[INFO][Trainer::autoTrainMash]')
+        print('\t training finished! metrics:')
+        print('\t surface sampling:', self.sample_mash_time)
+        print('\t fit loss:', self.fit_loss_time)
+        print('\t coverage loss:', self.coverage_loss_time)
+        print('\t boundary connect loss:', self.boundary_connect_loss_time)
+        print('\t total:', total_time)
+        print('\t error:', self.error)
 
         if self.o3d_viewer is not None:
             self.o3d_viewer.run()

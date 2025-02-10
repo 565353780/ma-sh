@@ -2,6 +2,7 @@ import os
 import torch
 import numpy as np
 import open3d as o3d
+from time import time
 from tqdm import tqdm
 from typing import Union
 from abc import ABC, abstractmethod
@@ -69,6 +70,13 @@ class BaseTrainer(ABC):
         self.translate = None
         self.scale = None
         self.surface_dist = 0.001
+
+        self.sample_mash_time = 0
+        self.fit_loss_time = 0
+        self.coverage_loss_time = 0
+        self.boundary_connect_loss_time = 0
+        self.start_time = time()
+        self.error = 0
         return
 
     def initRecords(self) -> bool:
@@ -279,8 +287,11 @@ class BaseTrainer(ABC):
     ) -> Union[dict, None]:
         self.optimizer.zero_grad()
 
+        start = time()
         boundary_pts, inner_pts = self.mash.toSamplePoints()[:2]
+        self.sample_mash_time += time() - start
 
+        start = time()
         fit_loss = torch.tensor(0.0).type(gt_points.dtype).to(gt_points.device)
         coverage_loss = torch.zeros_like(fit_loss)
         boundary_connect_loss = torch.zeros_like(fit_loss)
@@ -289,11 +300,16 @@ class BaseTrainer(ABC):
             fit_loss, coverage_loss = mash_cpp.toChamferDistanceLoss(
                 torch.vstack([boundary_pts, inner_pts]), gt_points
             )
+        spend = time() - start
+        self.fit_loss_time += spend / 2.0
+        self.coverage_loss_time += spend / 2.0
 
+        start = time()
         if boundary_connect_loss_weight > 0:
             boundary_connect_loss = mash_cpp.toBoundaryConnectLoss(
                 self.mash.anchor_num, boundary_pts, self.mash.mask_boundary_phi_idxs
             )
+        self.boundary_connect_loss_time += time() - start
 
         weighted_fit_loss = fit_loss_weight * fit_loss
         weighted_coverage_loss = coverage_loss_weight * coverage_loss
@@ -319,6 +335,9 @@ class BaseTrainer(ABC):
 
         self.optimizer.step()
 
+        chamfer_distance = toNumpy(fit_loss) + toNumpy(coverage_loss)
+        self.error = chamfer_distance
+
         loss_dict = {
             "State/boundary_pts": boundary_pts.shape[0],
             "State/inner_pts": inner_pts.shape[0],
@@ -334,7 +353,7 @@ class BaseTrainer(ABC):
                 weighted_boundary_connect_loss
             ),
             "Train/loss": toNumpy(loss),
-            "Metric/chamfer_distance": toNumpy(fit_loss) + toNumpy(coverage_loss),
+            "Metric/chamfer_distance": chamfer_distance,
         }
 
         return loss_dict
