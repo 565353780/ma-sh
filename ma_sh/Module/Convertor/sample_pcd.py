@@ -27,23 +27,26 @@ class Convertor(BaseConvertor):
             print("\t source_path:", source_path)
             return False
 
-        try:
-            points = mesh.toSamplePoints(self.gt_points_num)
-        except KeyboardInterrupt:
-            print('[INFO][Convertor::convertData]')
-            print('\t program interrupted by the user (Ctrl+C).')
-            exit()
-        except:
-            print("[ERROR][Convertor::convertData]")
-            print("\t toSamplePoints failed!")
-            print("\t source_path:", source_path)
-            return False
+        if mesh.pointNum() < self.gt_points_num:
+            try:
+                points = mesh.toSamplePoints(self.gt_points_num)
+            except KeyboardInterrupt:
+                print('[INFO][Convertor::convertData]')
+                print('\t program interrupted by the user (Ctrl+C).')
+                exit()
+            except:
+                print("[ERROR][Convertor::convertData]")
+                print("\t toSamplePoints failed!")
+                print("\t source_path:", source_path)
+                return False
 
-        if points is None:
-            print("[ERROR][Convertor::convertData]")
-            print("\t toSamplePoints failed!")
-            print("\t source_path:", source_path)
-            return False
+            if points is None:
+                print("[ERROR][Convertor::convertData]")
+                print("\t toSamplePoints failed!")
+                print("\t source_path:", source_path)
+                return False
+        else:
+            points = mesh.points()
 
         if target_path[-4:] == '.npy':
             np.save(target_path, points)
