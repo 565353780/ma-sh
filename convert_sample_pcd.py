@@ -4,9 +4,9 @@ from ma_sh.Module.Convertor.sample_pcd import Convertor
 
 if __name__ == '__main__':
     dataset_root_folder_path = toDatasetRootPath()
-    gt_points_num = 8192
+    gt_points_num = 400000
     source_data_type = '.obj'
-    target_data_type = '.ply'
+    target_data_type = '.npy'
 
     if dataset_root_folder_path is None:
         print('[ERROR][sample_pcd::demo]')
@@ -14,8 +14,8 @@ if __name__ == '__main__':
         exit()
 
     convertor = Convertor(
-        dataset_root_folder_path + "ShapeNet/manifold/",
-        dataset_root_folder_path + "ShapeNet/manifold_pcd/",
+        dataset_root_folder_path + "vae-eval/manifold/",
+        dataset_root_folder_path + "vae-eval/manifold_pcd/",
         gt_points_num,
     )
 

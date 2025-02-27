@@ -6,6 +6,7 @@ git clone git@github.com:565353780/open-clip-detect.git
 git clone git@github.com:565353780/dino-v2-detect.git
 git clone git@github.com:565353780/ulip-manage.git
 git clone git@github.com:565353780/distribution-manage.git
+git clone git@github.com:565353780/wn-nc.git
 
 cd sdf-generate
 ./dev_setup.sh
@@ -17,16 +18,19 @@ cd ../param-gauss-recon
 ./dev_setup.sh
 
 cd ../open-clip-detect
-./setup.sh
+./dev_setup.sh
 
 cd ../dino-v2-detect
-./setup.sh
+./dev_setup.sh
 
 cd ../ulip-manage
-./setup.sh
+./dev_setup.sh
 
 cd ../distribution-manage
-./setup.sh
+./dev_setup.sh
+
+cd ../wn-nc
+./dev_setup.sh
 
 if [ "$(uname)" = "Darwin" ]; then
   brew install bear

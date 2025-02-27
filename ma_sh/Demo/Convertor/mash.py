@@ -1,3 +1,6 @@
+import sys
+sys.path.append('../wn-nc')
+
 import torch
 
 from ma_sh.Config.custom_path import toDatasetRootPath
@@ -7,7 +10,7 @@ from ma_sh.Module.Convertor.mash import Convertor
 def demo():
     dataset_root_folder_path = toDatasetRootPath()
     gt_points_num = 400000
-    anchor_num = 400
+    anchor_num = 800
     mask_degree_max = 3
     sh_degree_max = 2
     mask_boundary_sample_num = 90
@@ -22,7 +25,7 @@ def demo():
     warmup_step_num = 80
     warmup_epoch = 4
     factor = 0.8
-    patience = 2
+    patience = 4
     source_data_type = '.npy'
     target_data_type = '.npy'
 
@@ -32,8 +35,8 @@ def demo():
         return False
 
     convertor = Convertor(
-        dataset_root_folder_path + "ShapeNet/manifold_pcd/",
-        dataset_root_folder_path + "ShapeNet/manifold_mash/",
+        dataset_root_folder_path + "vae-eval/manifold_pcd/",
+        dataset_root_folder_path + "vae-eval/manifold_mash_" + str(anchor_num) + "/",
         gt_points_num,
         anchor_num,
         mask_degree_max,

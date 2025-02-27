@@ -1,4 +1,3 @@
-import copy
 import os
 import torch
 import numpy as np
@@ -6,10 +5,14 @@ import open3d as o3d
 import matplotlib.pyplot as plt
 from math import sqrt
 from copy import deepcopy
+from shutil import copyfile
 from typing import Union, Tuple
 from abc import ABC, abstractmethod
 
 import mash_cpp
+
+from wn_nc.Module.wnnc_reconstructor import WNNCReconstructor
+from wn_nc.Module.mesh_smoother import MeshSmoother
 
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
 from ma_sh.Method.data import toNumpy
@@ -590,6 +593,50 @@ class BaseMash(ABC):
 
         sample_pcd = getPointCloud(sample_points_array)
         return sample_pcd
+
+    def toMeshFile(self, save_mesh_file_path: str, overwrite: bool = False) -> bool:
+        if os.path.exists(save_mesh_file_path):
+            if not overwrite:
+                return True
+
+            removeFile(save_mesh_file_path)
+
+        createFileFolder(save_mesh_file_path)
+
+        save_base_path = save_mesh_file_path[:-4]
+
+        save_xyz_file_path = save_base_path + '_1_xyz.xyz'
+        save_wnnc_xyz_file_path = save_base_path + '_2_wnnc_xyz.xyz'
+        save_wnnc_mesh_file_path = save_base_path + '_3_wnnc_mesh.ply'
+        save_wnnc_smooth_mesh_file_path = save_base_path + '_4_wnnc_smooth_mesh.ply'
+
+        mash_pcd = self.toSamplePcd()
+        o3d.io.write_point_cloud(save_xyz_file_path, mash_pcd, write_ascii=True)
+
+        WNNCReconstructor.autoReconstructSurface(
+            save_xyz_file_path,
+            save_wnnc_xyz_file_path,
+            save_wnnc_mesh_file_path,
+            width_tag='l1',
+            wsmin=0.01,
+            wsmax=0.04,
+            iters=40,
+            use_gpu=True,
+            print_progress=True,
+            overwrite=True)
+
+        MeshSmoother.smoothMesh(
+            save_wnnc_mesh_file_path,
+            save_wnnc_smooth_mesh_file_path,
+            n_iter=10,
+            pass_band=0.01,
+            edge_angle=15.0,
+            feature_angle=45.0,
+            overwrite=True)
+
+        copyfile(save_wnnc_smooth_mesh_file_path, save_mesh_file_path)
+
+        return True
 
     def renderSamplePointsWithNormals(self, refine_normals: bool = False, fps_sample_scale: float = -1) -> bool:
         (
