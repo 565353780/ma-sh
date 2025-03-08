@@ -7,10 +7,14 @@ from ma_sh.Config.custom_path import toDatasetRootPath
 from ma_sh.Module.Convertor.mash import Convertor
 
 
-def demo():
+def demo(
+    anchor_num: int,
+    pcd_rel_folder_path: str,
+    save_mash_rel_folder_path: str,
+):
     dataset_root_folder_path = toDatasetRootPath()
     gt_points_num = 400000
-    anchor_num = 1600
+    # anchor_num = 400
     mask_degree_max = 3
     sh_degree_max = 2
     mask_boundary_sample_num = 90
@@ -35,8 +39,8 @@ def demo():
         return False
 
     convertor = Convertor(
-        dataset_root_folder_path + "Thingi10K/mesh_pcd/",
-        dataset_root_folder_path + "Thingi10K/mesh_mash-1600anc/",
+        dataset_root_folder_path + pcd_rel_folder_path,
+        dataset_root_folder_path + save_mash_rel_folder_path,
         gt_points_num,
         anchor_num,
         mask_degree_max,
