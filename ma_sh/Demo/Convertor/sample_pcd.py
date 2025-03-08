@@ -6,7 +6,7 @@ def demo():
     dataset_root_folder_path = toDatasetRootPath()
     gt_points_num = 400000
     source_data_type = '.obj'
-    target_data_type = '.npy'
+    target_data_type = '.ply'
 
     if dataset_root_folder_path is None:
         print('[ERROR][sample_pcd_objaverse::demo]')

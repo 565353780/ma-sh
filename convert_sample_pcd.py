@@ -6,7 +6,7 @@ if __name__ == '__main__':
     dataset_root_folder_path = toDatasetRootPath()
     gt_points_num = 400000
     random_weight = -1.0
-    source_data_type = '.obj'
+    source_data_type = '.bin'
     target_data_type = '.ply'
 
     if dataset_root_folder_path is None:
@@ -14,11 +14,9 @@ if __name__ == '__main__':
         print('\t toDatasetRootPath failed!')
         exit()
 
-    gt_points_num = 4096
-
     convertor = Convertor(
-        dataset_root_folder_path + "ShapeNet/manifold/03001627/",
-        dataset_root_folder_path + "ShapeNet/manifold_pcd_fps/" + str(gt_points_num) + "/03001627/",
+        dataset_root_folder_path + "KITTI/raw_data/",
+        dataset_root_folder_path + "KITTI/pcd/",
         gt_points_num,
         random_weight,
     )
