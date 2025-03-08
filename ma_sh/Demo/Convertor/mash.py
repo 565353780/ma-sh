@@ -10,7 +10,7 @@ from ma_sh.Module.Convertor.mash import Convertor
 def demo():
     dataset_root_folder_path = toDatasetRootPath()
     gt_points_num = 400000
-    anchor_num = 400
+    anchor_num = 1600
     mask_degree_max = 3
     sh_degree_max = 2
     mask_boundary_sample_num = 90
@@ -26,7 +26,7 @@ def demo():
     warmup_epoch = 4
     factor = 0.8
     patience = 4
-    source_data_type = '.npy'
+    source_data_type = '.ply'
     target_data_type = '.npy'
 
     if dataset_root_folder_path is None:
@@ -35,8 +35,8 @@ def demo():
         return False
 
     convertor = Convertor(
-        dataset_root_folder_path + "ShapeNet/manifold_pcd/03001627/",
-        dataset_root_folder_path + "ShapeNet/manifold_mash/03001627/",
+        dataset_root_folder_path + "Thingi10K/mesh_pcd/",
+        dataset_root_folder_path + "Thingi10K/mesh_mash-1600anc/",
         gt_points_num,
         anchor_num,
         mask_degree_max,
