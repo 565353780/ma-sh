@@ -12,10 +12,12 @@ class Convertor(BaseConvertor):
         source_root_folder_path: str,
         target_root_folder_path: str,
         gt_points_num: int = 400000,
+        random_weight: float = -1.0,
     ) -> None:
         super().__init__(source_root_folder_path, target_root_folder_path)
 
         self.gt_points_num = gt_points_num
+        self.random_weight = random_weight
         return
 
     def convertData(self, source_path: str, target_path: str) -> bool:
@@ -27,7 +29,11 @@ class Convertor(BaseConvertor):
             print("\t source_path:", source_path)
             return False
 
-        if mesh.pointNum() < self.gt_points_num:
+        if self.random_weight >= 0.0:
+            points = mesh.toRandomSamplePoints(self.gt_points_num, self.random_weight)
+        #elif mesh.pointNum() > 10 * self.gt_points_num:
+        #    points = mesh.points()
+        else:
             try:
                 points = mesh.toSamplePoints(self.gt_points_num)
             except KeyboardInterrupt:
@@ -45,8 +51,6 @@ class Convertor(BaseConvertor):
                 print("\t toSamplePoints failed!")
                 print("\t source_path:", source_path)
                 return False
-        else:
-            points = mesh.points()
 
         if target_path[-4:] == '.npy':
             np.save(target_path, points)

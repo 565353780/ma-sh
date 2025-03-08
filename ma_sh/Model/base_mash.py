@@ -594,7 +594,7 @@ class BaseMash(ABC):
         sample_pcd = getPointCloud(sample_points_array)
         return sample_pcd
 
-    def toMeshFile(self, save_mesh_file_path: str, need_smooth: bool = False, overwrite: bool = False) -> bool:
+    def toMeshFile(self, save_mesh_file_path: str, need_smooth: bool = True, overwrite: bool = False) -> bool:
         if os.path.exists(save_mesh_file_path):
             if not overwrite:
                 return True
@@ -617,7 +617,7 @@ class BaseMash(ABC):
             save_xyz_file_path,
             save_wnnc_xyz_file_path,
             save_wnnc_mesh_file_path,
-            width_tag='l0',
+            width_tag='l1',
             wsmin=0.01,
             wsmax=0.04,
             iters=40,
@@ -635,9 +635,9 @@ class BaseMash(ABC):
                 feature_angle=45.0,
                 overwrite=True)
 
-            copyfile(save_wnnc_smooth_mesh_file_path, save_mesh_file_path)
-        else:
-            copyfile(save_wnnc_mesh_file_path, save_mesh_file_path)
+            #copyfile(save_wnnc_smooth_mesh_file_path, save_mesh_file_path)
+        #else:
+            #copyfile(save_wnnc_mesh_file_path, save_mesh_file_path)
 
         return True
 
