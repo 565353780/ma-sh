@@ -12,6 +12,8 @@ def demo(
     pcd_rel_folder_path: str,
     save_mash_rel_folder_path: str,
 ):
+    print('==== ' + save_mash_rel_folder_path + ' ====')
+
     dataset_root_folder_path = toDatasetRootPath()
     gt_points_num = 400000
     # anchor_num = 400

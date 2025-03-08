@@ -100,6 +100,9 @@ def demoToPCDThingi10K():
     toSourcePCDPipeline('Thingi10K', 'test', '.obj')
     return
 
+def demoToPCDSimpleShapes():
+    return toSourcePCDPipeline('SimpleShapes', 'raw_meshes', '.ply')
+
 def toSDFPipeline(
     dataset_folder_name: str = 'Objaverse_82K',
     source_data_folder_name: str = 'glbs',

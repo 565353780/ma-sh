@@ -15,6 +15,13 @@ if __name__ == "__main__":
         demo_convert_mash(400, 'ShapeNet/manifold_pcd-4096/', 'ShapeNet/manifold_mash-4096-400anc/')
         demo_convert_mash(200, 'ShapeNet/manifold_pcd-4096/', 'ShapeNet/manifold_mash-4096-200anc/')
         demo_convert_mash(100, 'ShapeNet/manifold_pcd-4096/', 'ShapeNet/manifold_mash-4096-100anc/')
+        demo_convert_mash(1600, 'SimpleShapes/mesh_pcd/', 'SimpleShapes/mesh_mash-1600anc/')
+        demo_convert_mash(400, 'SimpleShapes/mesh_pcd/', 'SimpleShapes/mesh_mash-400anc/')
+        demo_convert_mash(100, 'SimpleShapes/mesh_pcd/', 'SimpleShapes/mesh_mash-100anc/')
+        demo_convert_mash(50, 'SimpleShapes/mesh_pcd/', 'SimpleShapes/mesh_mash-50anc/')
+        demo_convert_mash(10, 'SimpleShapes/mesh_pcd/', 'SimpleShapes/mesh_mash-10anc/')
+        demo_convert_mash(6, 'SimpleShapes/mesh_pcd/', 'SimpleShapes/mesh_mash-6anc/')
+        demo_convert_mash(4, 'SimpleShapes/mesh_pcd/', 'SimpleShapes/mesh_mash-4anc/')
 
         if not keep_alive:
             break
