@@ -9,6 +9,43 @@ from ma_sh.Module.Convertor.sample_sdf import Convertor as SampleSDFConvertor
 from ma_sh.Module.Convertor.pipeline_convertor import PipelineConvertor
 
 
+def toSourcePCDPipeline(
+    dataset_folder_name: str = 'Objaverse_82K',
+    source_data_folder_name: str = 'glbs',
+    source_type: str = '.glb',
+) -> bool:
+    dataset_root_folder_path = toDatasetRootPath()
+    if dataset_root_folder_path is None:
+        print('[ERROR][pipeline_convertor::toPCDPipeline]')
+        print('\t toDatasetRootPath failed!')
+        return False
+
+    convertor_list = [
+        ToTriMeshConvertor(
+            dataset_root_folder_path + dataset_folder_name + "/" + source_data_folder_name + "/",
+            dataset_root_folder_path + dataset_folder_name + "/mesh/",
+            include_texture=False,
+            remove_source=False,
+            need_normalize=True,
+        ),
+        SamplePcdConvertor(
+            dataset_root_folder_path + dataset_folder_name + '/mesh/',
+            dataset_root_folder_path + dataset_folder_name + '/mesh_pcd/',
+            gt_points_num=400000,
+        ),
+    ]
+
+    data_type_list = [
+        source_type,
+        '.obj',
+        '.ply',
+    ]
+
+    pipeline_convertor = PipelineConvertor(convertor_list)
+
+    pipeline_convertor.convertAll(data_type_list)
+    return True
+
 def toPCDPipeline(
     dataset_folder_name: str = 'Objaverse_82K',
     source_data_folder_name: str = 'glbs',
@@ -44,7 +81,7 @@ def toPCDPipeline(
         source_type,
         '.obj',
         '.obj',
-        '.npy',
+        '.ply',
     ]
 
     pipeline_convertor = PipelineConvertor(convertor_list)
@@ -57,6 +94,11 @@ def demoToPCDObjaverse():
 
 def demoToPCDShapeNet():
     return toPCDPipeline('ShapeNet', 'ShapeNetCore.v2', '.obj')
+
+def demoToPCDThingi10K():
+    toSourcePCDPipeline('Thingi10K', 'test', '.stl')
+    toSourcePCDPipeline('Thingi10K', 'test', '.obj')
+    return
 
 def toSDFPipeline(
     dataset_folder_name: str = 'Objaverse_82K',
