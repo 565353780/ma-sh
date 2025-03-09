@@ -14,15 +14,20 @@ class Convertor(BaseConvertor):
         target_root_folder_path: str,
         gt_points_num: int = 400000,
         random_weight: float = -1.0,
+        need_normalize: bool = False,
     ) -> None:
         super().__init__(source_root_folder_path, target_root_folder_path)
 
         self.gt_points_num = gt_points_num
         self.random_weight = random_weight
+        self.need_normalize = need_normalize
         return
 
     def convertMeshToPoints(self, source_path: str) -> Union[np.ndarray, None]:
         mesh = Mesh(source_path)
+
+        if self.need_normalize:
+            mesh.normalize()
 
         if not mesh.isValid():
             print("[ERROR][Convertor::convertMeshToPoints]")
@@ -54,6 +59,16 @@ class Convertor(BaseConvertor):
     def convertBinToPoints(self, source_path: str) -> Union[np.ndarray, None]:
         data = np.fromfile(source_path, dtype=np.float32).reshape(-1, 4)
         points = data[:, :3]
+
+        if self.need_normalize:
+            min_bound = np.min(points, axis=0)
+            max_bound = np.max(points, axis=0)
+            length = np.max(max_bound - min_bound)
+            scale = 0.9 / length
+            center = (min_bound + max_bound) / 2.0
+
+            points = (points - center) * scale
+
         return points
 
     def convertData(self, source_path: str, target_path: str) -> bool:
