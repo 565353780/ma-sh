@@ -2,7 +2,10 @@ from ma_sh.Config.custom_path import toDatasetRootPath
 from ma_sh.Module.Convertor.mash_to_mesh import Convertor
 
 
-def demo():
+def demo(
+    mash_rel_folder_path: str,
+    save_mesh_rel_folder_path: str,
+):
     dataset_root_folder_path = toDatasetRootPath()
     source_data_type = '.npy'
     target_data_type = '.ply'
@@ -12,14 +15,9 @@ def demo():
         print('\t toDatasetRootPath failed!')
         return False
 
-    data_tag = '_1600_sh3'
-    data_tag = '_400'
-    data_tag = '_random'
-    data_tag = ''
-
     convertor = Convertor(
-        dataset_root_folder_path + "ShapeNet/manifold_mash" + data_tag + "/03001627/",
-        dataset_root_folder_path + "ShapeNet/manifold_recon_mesh" + data_tag + "/03001627/",
+        dataset_root_folder_path + mash_rel_folder_path,
+        dataset_root_folder_path + save_mesh_rel_folder_path,
     )
 
     convertor.convertAll(source_data_type, target_data_type)
