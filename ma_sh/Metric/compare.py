@@ -5,235 +5,135 @@ import functools
 import numpy as np
 import open3d as o3d
 from tqdm import tqdm
+from typing import Tuple
 from shutil import copyfile
 
+from ma_sh.Data.mesh import Mesh
+from ma_sh.Model.mash import Mash
 import mash_cpp
 
-from ma_sh.Config.constant import EPSILON
-from ma_sh.Method.data import toNumpy
 from ma_sh.Method.pcd import getPointCloud
 from ma_sh.Method.path import createFileFolder, removeFile, renameFile
 from ma_sh.Method.trimesh import renderGeometries
-from ma_sh.Metric.fscore import fScore
+from ma_sh.Metric.chamfer import toChamfer
+from ma_sh.Metric.fscore import toFScore
+from ma_sh.Metric.nic import toNormalInConsistency
 from ma_sh.Module.metric_manager import MetricManager
 
 @torch.no_grad()
-def compareCD():
-    dataset_folder_path = '/home/chli/chLi/Dataset/'
-    sample_point_num = 50000
-    compare_resolution = '4000'
-    dtype = torch.float32
-    device = 'cuda'
-    fscore_thresh = 0.01 # since we use L1 distances here
-    save_metric_file_path = './output/metric_manifold_sample-' + compare_resolution + '.npy'
+def getMetrics(
+    gt_pts: np.ndarray,
+    query_pts: np.ndarray,
+    gt_normals: np.ndarray,
+    query_normals: np.ndarray,
+    chamfer_order: float = 1.0,
+    fscore_thresh: float = 0.01,
+    dtype=torch.float32,
+    device: str = 'cuda',
+) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    gt_pts = torch.from_numpy(np.asarray(gt_pts)).unsqueeze(0).type(dtype).to(device)
+    query_pts = torch.from_numpy(np.asarray(query_pts)).unsqueeze(0).type(dtype).to(device)
+    gt_normals = torch.from_numpy(np.asarray(gt_normals)).unsqueeze(0).type(dtype).to(device)
+    query_normals = torch.from_numpy(np.asarray(query_normals)).unsqueeze(0).type(dtype).to(device)
+
+    dists2_1, dists2_2, idxs_1 = mash_cpp.toChamferDistance(query_pts, gt_pts)[:3]
+
+    pair_idxs = torch.stack([torch.arange(idxs_1.shape[1], dtype=dtype, device=device).expand(idxs_1.shape[0], idxs_1.shape[1]), idxs_1], dim=-1)
+
+    chamfer = toChamfer(dists2_1, dists2_2, chamfer_order)
+    fscore = toFScore(dists2_1, dists2_2, fscore_thresh)
+    nic = toNormalInConsistency(query_normals, gt_normals, pair_idxs)
+
+    return chamfer, fscore, nic
+
+@torch.no_grad()
+def recordMetrics(
+    gt_data_folder_path: str,
+    query_data_folder_path: str,
+    gt_type: str,
+    query_type: str,
+    query_mode: str,
+    save_metric_file_path: str,
+    sample_point_num: int = 50000,
+    chamfer_order: float = 2.0,
+    fscore_thresh: float = 0.01,
+    dtype=torch.float32,
+    device: str = 'cuda',
+) -> bool:
+    assert query_mode in ['mesh', 'mash']
 
     metric_dict = {}
 
     if os.path.exists(save_metric_file_path):
         metric_dict = np.load(save_metric_file_path, allow_pickle=True).item()
 
-    gt_folder_path = dataset_folder_path + 'ManifoldMesh/'
-    gt_type = '.obj'
+    solved_shape_num = 0
+    for root, _, files in os.walk(query_data_folder_path):
+        for file in files:
+            if not file.endswith(query_type):
+                continue
 
-    mash_folder_path = dataset_folder_path + 'MashV4_Recon/'
-    mash_type = '.ply'
+            rel_file_basepath = os.path.relpath(root, query_data_folder_path) + '/' + file[:-4]
 
-    pgr_folder_path = dataset_folder_path + 'PGR_Manifold_Recon_' + compare_resolution + '/'
-    pgr_type = '.ply'
+            if rel_file_basepath in metric_dict.keys():
+                continue
 
-    aro_folder_path = dataset_folder_path + 'ARONet_Manifold_Recon_' + compare_resolution + '/'
-    aro_type = '.obj'
+            gt_file_path = gt_data_folder_path + rel_file_basepath + gt_type
+            print('gt_file_path:')
+            print(gt_file_path)
+            if not os.path.exists(gt_file_path):
+                continue
 
-    conv_folder_path = dataset_folder_path + 'ConvONet_Manifold_Recon_' + compare_resolution + '/'
-    conv_type = '.obj'
+            query_file_path = query_data_folder_path + rel_file_basepath + query_type
+            print('query_file_path:')
+            print(query_file_path)
+            if not os.path.exists(query_file_path):
+                continue
 
-    dataset_name_list = os.listdir(mash_folder_path)
-    dataset_name_list.sort()
+            gt_mesh = Mesh(gt_file_path, sample_point_num)
+            gt_pts = gt_mesh.sample_pts
+            gt_normals = gt_mesh.sample_normals
 
-    for dataset_name in dataset_name_list:
-        if dataset_name not in metric_dict.keys():
-            metric_dict[dataset_name] = {}
+            if query_mode == 'mesh':
+                query_mesh = Mesh(query_file_path, sample_point_num)
+                query_pts = query_mesh.sample_pts
+                query_normals = query_mesh.sample_normals
+            elif query_mode == 'mash':
+                query_pcd = Mash.fromParamsFile(query_file_path, device='cuda').toSamplePcdWithWNNCNormals()
+                query_pts = np.asarray(query_pcd.points)
+                query_normals = np.asarray(query_pcd.normals)
 
-        gt_dataset_folder_path = gt_folder_path + dataset_name + '/'
-        mash_dataset_folder_path = mash_folder_path + dataset_name + '/'
-        pgr_dataset_folder_path = pgr_folder_path + dataset_name + '/'
-        aro_dataset_folder_path = aro_folder_path + dataset_name + '/'
-        conv_dataset_folder_path = conv_folder_path + dataset_name + '/'
+            chamfer, fscore, nic = getMetrics(
+                gt_pts=gt_pts,
+                query_pts=query_pts,
+                gt_normals=gt_normals,
+                query_normals=query_normals,
+                chamfer_order=chamfer_order,
+                fscore_thresh=fscore_thresh,
+                dtype=dtype,
+                device=device,
+            )
 
-        category_list = os.listdir(gt_dataset_folder_path)
-        category_list.sort()
+            metric_dict[rel_file_basepath] = {
+                'chamfer': chamfer[0].item(),
+                'fscore': fscore[0].item(),
+                'nic': nic[0].item(),
+            }
 
-        gt_mesh_filename_list_dict = {}
-        max_shape_num = 0
-        for category in tqdm(category_list):
-            gt_category_folder_path = gt_dataset_folder_path + category + '/'
+            print('==== updated:', rel_file_basepath, '====')
+            for key, item in metric_dict[rel_file_basepath].items():
+                print(key, ':', item.item(), '\t', end='')
+            print()
+            tmp_save_metric_file_path = save_metric_file_path.replace('.npy', '_tmp.npy')
+            createFileFolder(tmp_save_metric_file_path)
 
-            gt_mesh_filename_list = os.listdir(gt_category_folder_path)
-            gt_mesh_filename_list.sort()
+            np.save(tmp_save_metric_file_path, metric_dict, allow_pickle=True)
+            removeFile(save_metric_file_path)
+            renameFile(tmp_save_metric_file_path, save_metric_file_path)
 
-            max_shape_num = max(max_shape_num, len(gt_mesh_filename_list))
-            gt_mesh_filename_list_dict[category] = gt_mesh_filename_list
+            solved_shape_num += 1
+            print('solved_shape_num:', solved_shape_num)
 
-        solved_shape_num = 0
-        for i in range(max_shape_num):
-            for category, gt_mesh_filename_list in gt_mesh_filename_list_dict.items():
-                if category not in metric_dict[dataset_name].keys():
-                    metric_dict[dataset_name][category] = {}
-
-                if len(gt_mesh_filename_list) <= i:
-                    continue
-
-                gt_mesh_filename = gt_mesh_filename_list[i]
-
-                gt_category_folder_path = gt_dataset_folder_path + category + '/'
-                mash_category_folder_path = mash_dataset_folder_path + category + '/'
-                pgr_category_folder_path = pgr_dataset_folder_path + category + '/'
-                aro_category_folder_path = aro_dataset_folder_path + category + '/'
-                conv_category_folder_path = conv_dataset_folder_path + category + '/'
-
-                mesh_id = gt_mesh_filename.split(gt_type)[0]
-
-                if mesh_id not in metric_dict[dataset_name][category].keys():
-                    metric_dict[dataset_name][category][mesh_id] = {}
-
-                gt_mesh_file_path = gt_category_folder_path + mesh_id + gt_type
-                mash_mesh_file_path = mash_category_folder_path + mesh_id + mash_type
-                pgr_mesh_file_path = pgr_category_folder_path + mesh_id + pgr_type
-                aro_mesh_file_path = aro_category_folder_path + mesh_id + aro_type
-                conv_mesh_file_path = conv_category_folder_path + mesh_id + conv_type
-
-                is_update = False
-
-                gt_mesh = o3d.io.read_triangle_mesh(gt_mesh_file_path)
-                gt_sample_pcd = gt_mesh.sample_points_uniformly(sample_point_num)
-                gt_pts = torch.from_numpy(np.asarray(gt_sample_pcd.points)).unsqueeze(0).type(dtype).to(device)
-
-                if os.path.exists(mash_mesh_file_path):
-                    mash_dists_1 = None
-                    mash_dists_2 = None
-                    if 'mash_cd' not in metric_dict[dataset_name][category][mesh_id].keys():
-                        mash_mesh = trimesh.load_mesh(mash_mesh_file_path)
-                        mash_sample_pts = mash_mesh.sample(sample_point_num)
-                        mash_pts = torch.from_numpy(np.asarray(mash_sample_pts)).unsqueeze(0).type(dtype).to(device)
-                        mash_dists2_1, mash_dists2_2 = mash_cpp.toChamferDistance(mash_pts, gt_pts)[:2]
-                        mash_dists_1 = torch.sqrt(mash_dists2_1 + EPSILON)
-                        mash_dists_2 = torch.sqrt(mash_dists2_2 + EPSILON)
-                        mash_dist_1 = torch.mean(mash_dists_1)
-                        mash_dist_2 = torch.mean(mash_dists_2)
-                        mash_cd = toNumpy(mash_dist_1 + mash_dist_2)
-                        metric_dict[dataset_name][category][mesh_id]['mash_cd'] = mash_cd
-                        is_update = True
-                    if 'mash_fscore' not in metric_dict[dataset_name][category][mesh_id].keys():
-                        if mash_dists_1 is None:
-                            mash_mesh = trimesh.load_mesh(mash_mesh_file_path)
-                            mash_sample_pts = mash_mesh.sample(sample_point_num)
-                            mash_pts = torch.from_numpy(np.asarray(mash_sample_pts)).unsqueeze(0).type(dtype).to(device)
-                            mash_dists2_1, mash_dists2_2 = mash_cpp.toChamferDistance(mash_pts, gt_pts)[:2]
-                            mash_dists_1 = torch.sqrt(mash_dists2_1 + EPSILON)
-                            mash_dists_2 = torch.sqrt(mash_dists2_2 + EPSILON)
-
-                        mash_fscore = toNumpy(fScore(mash_dists_1, mash_dists_2, fscore_thresh)[0])
-                        metric_dict[dataset_name][category][mesh_id]['mash_fscore'] = mash_fscore
-                        is_update = True
-
-                if os.path.exists(pgr_mesh_file_path):
-                    pgr_dists_1 = None
-                    pgr_dists_2 = None
-                    if 'pgr_cd' not in metric_dict[dataset_name][category][mesh_id].keys():
-                        pgr_mesh = trimesh.load_mesh(pgr_mesh_file_path)
-                        pgr_sample_pts = pgr_mesh.sample(sample_point_num)
-                        pgr_pts = torch.from_numpy(np.asarray(pgr_sample_pts)).unsqueeze(0).type(dtype).to(device)
-                        pgr_dists2_1, pgr_dists2_2 = mash_cpp.toChamferDistance(pgr_pts, gt_pts)[:2]
-                        pgr_dists_1 = torch.sqrt(pgr_dists2_1 + EPSILON)
-                        pgr_dists_2 = torch.sqrt(pgr_dists2_2 + EPSILON)
-                        pgr_dist_1 = torch.mean(pgr_dists_1)
-                        pgr_dist_2 = torch.mean(pgr_dists_2)
-                        pgr_cd = toNumpy(pgr_dist_1 + pgr_dist_2)
-                        metric_dict[dataset_name][category][mesh_id]['pgr_cd'] = pgr_cd
-                        is_update = True
-                    if 'pgr_fscore' not in metric_dict[dataset_name][category][mesh_id].keys():
-                        if pgr_dists_1 is None:
-                            pgr_mesh = trimesh.load_mesh(pgr_mesh_file_path)
-                            pgr_sample_pts = pgr_mesh.sample(sample_point_num)
-                            pgr_pts = torch.from_numpy(np.asarray(pgr_sample_pts)).unsqueeze(0).type(dtype).to(device)
-                            pgr_dists2_1, pgr_dists2_2 = mash_cpp.toChamferDistance(pgr_pts, gt_pts)[:2]
-                            pgr_dists_1 = torch.sqrt(pgr_dists2_1 + EPSILON)
-                            pgr_dists_2 = torch.sqrt(pgr_dists2_2 + EPSILON)
-
-                        pgr_fscore = toNumpy(fScore(pgr_dists_1, pgr_dists_2, fscore_thresh)[0])
-                        metric_dict[dataset_name][category][mesh_id]['pgr_fscore'] = pgr_fscore
-                        is_update = True
-
-                if os.path.exists(aro_mesh_file_path):
-                    aro_dists_1 = None
-                    aro_dists_2 = None
-                    if 'aro_cd' not in metric_dict[dataset_name][category][mesh_id].keys():
-                        aro_mesh = trimesh.load_mesh(aro_mesh_file_path)
-                        aro_sample_pts = aro_mesh.sample(sample_point_num)
-                        aro_pts = torch.from_numpy(np.asarray(aro_sample_pts)).unsqueeze(0).type(dtype).to(device)
-                        aro_dists2_1, aro_dists2_2 = mash_cpp.toChamferDistance(aro_pts, gt_pts)[:2]
-                        aro_dists_1 = torch.sqrt(aro_dists2_1 + EPSILON)
-                        aro_dists_2 = torch.sqrt(aro_dists2_2 + EPSILON)
-                        aro_dist_1 = torch.mean(aro_dists_1)
-                        aro_dist_2 = torch.mean(aro_dists_2)
-                        aro_cd = toNumpy(aro_dist_1 + aro_dist_2)
-                        metric_dict[dataset_name][category][mesh_id]['aro_cd'] = aro_cd
-                        is_update = True
-                    if 'aro_fscore' not in metric_dict[dataset_name][category][mesh_id].keys():
-                        if aro_dists_1 is None:
-                            aro_mesh = trimesh.load_mesh(aro_mesh_file_path)
-                            aro_sample_pts = aro_mesh.sample(sample_point_num)
-                            aro_pts = torch.from_numpy(np.asarray(aro_sample_pts)).unsqueeze(0).type(dtype).to(device)
-                            aro_dists2_1, aro_dists2_2 = mash_cpp.toChamferDistance(aro_pts, gt_pts)[:2]
-                            aro_dists_1 = torch.sqrt(aro_dists2_1 + EPSILON)
-                            aro_dists_2 = torch.sqrt(aro_dists2_2 + EPSILON)
-
-                        aro_fscore = toNumpy(fScore(aro_dists_1, aro_dists_2, fscore_thresh)[0])
-                        metric_dict[dataset_name][category][mesh_id]['aro_fscore'] = aro_fscore
-                        is_update = True
-
-                if os.path.exists(conv_mesh_file_path):
-                    conv_dists_1 = None
-                    conv_dists_2 = None
-                    if 'conv_cd' not in metric_dict[dataset_name][category][mesh_id].keys():
-                        conv_mesh = trimesh.load_mesh(conv_mesh_file_path)
-                        conv_sample_pts = conv_mesh.sample(sample_point_num)
-                        conv_pts = torch.from_numpy(np.asarray(conv_sample_pts)).unsqueeze(0).type(dtype).to(device)
-                        conv_dists2_1, conv_dists2_2 = mash_cpp.toChamferDistance(conv_pts, gt_pts)[:2]
-                        conv_dists_1 = torch.sqrt(conv_dists2_1 + EPSILON)
-                        conv_dists_2 = torch.sqrt(conv_dists2_2 + EPSILON)
-                        conv_dist_1 = torch.mean(conv_dists_1)
-                        conv_dist_2 = torch.mean(conv_dists_2)
-                        conv_cd = toNumpy(conv_dist_1 + conv_dist_2)
-                        metric_dict[dataset_name][category][mesh_id]['conv_cd'] = conv_cd
-                        is_update = True
-                    if 'conv_fscore' not in metric_dict[dataset_name][category][mesh_id].keys():
-                        if conv_dists_1 is None:
-                            conv_mesh = trimesh.load_mesh(conv_mesh_file_path)
-                            conv_sample_pts = conv_mesh.sample(sample_point_num)
-                            conv_pts = torch.from_numpy(np.asarray(conv_sample_pts)).unsqueeze(0).type(dtype).to(device)
-                            conv_dists2_1, conv_dists2_2 = mash_cpp.toChamferDistance(conv_pts, gt_pts)[:2]
-                            conv_dists_1 = torch.sqrt(conv_dists2_1 + EPSILON)
-                            conv_dists_2 = torch.sqrt(conv_dists2_2 + EPSILON)
-
-                        conv_fscore = toNumpy(fScore(conv_dists_1, conv_dists_2, fscore_thresh)[0])
-                        metric_dict[dataset_name][category][mesh_id]['conv_fscore'] = conv_fscore
-                        is_update = True
-
-                if is_update:
-                    print('==== updated:', dataset_name, '/', category, '/', mesh_id, '====')
-                    for key, item in metric_dict[dataset_name][category][mesh_id].items():
-                        print(key, ':', item.item(), '\t', end='')
-                    print()
-                    tmp_save_metric_file_path = save_metric_file_path.replace('.npy', '_tmp.npy')
-                    createFileFolder(tmp_save_metric_file_path)
-
-                    np.save(tmp_save_metric_file_path, metric_dict, allow_pickle=True)
-                    removeFile(save_metric_file_path)
-                    renameFile(tmp_save_metric_file_path, save_metric_file_path)
-
-                solved_shape_num += 1
-                print('solved_shape_num:', solved_shape_num)
     return True
 
 old_selected_id_list = [

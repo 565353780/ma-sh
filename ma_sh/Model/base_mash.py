@@ -594,6 +594,28 @@ class BaseMash(ABC):
         sample_pcd = getPointCloud(sample_points_array)
         return sample_pcd
 
+    def toSamplePcdWithWNNCNormals(self) -> o3d.geometry.PointCloud:
+        save_xyz_file_path = './tmp/mash_1_xyz.xyz'
+        save_wnnc_xyz_file_path = './tmp/mash_2_wnnc_xyz.xyz'
+
+        mash_pcd = self.toSamplePcd()
+        o3d.io.write_point_cloud(save_xyz_file_path, mash_pcd, write_ascii=True)
+
+        WNNCReconstructor.estimateNormal(
+            save_xyz_file_path,
+            save_wnnc_xyz_file_path,
+            width_tag='l1',
+            wsmin=0.01,
+            wsmax=0.04,
+            iters=40,
+            use_gpu=True,
+            print_progress=True,
+            overwrite=True)
+
+        wnnc_pcd = o3d.io.read_point_cloud(save_wnnc_xyz_file_path)
+
+        return wnnc_pcd
+
     def toMeshFile(self, save_mesh_file_path: str, need_smooth: bool = True, overwrite: bool = False) -> bool:
         if os.path.exists(save_mesh_file_path):
             if not overwrite:
