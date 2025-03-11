@@ -54,11 +54,11 @@ def recordMetrics(
     save_metric_file_path: str,
     sample_point_num: int = 50000,
     chamfer_order_list: list = [1.0, 2.0],
-    fscore_thresh_list: list = [0.01, 0.001],
+    fscore_thresh_list: list = [0.01],
     dtype=torch.float32,
     device: str = 'cuda',
 ) -> bool:
-    assert query_mode in ['mesh', 'mash']
+    assert query_mode in ['mesh', 'mash', 'mashmesh']
 
     metric_dict = {}
 
@@ -96,6 +96,11 @@ def recordMetrics(
                 query_pcd = Mash.fromParamsFile(query_file_path, device='cuda').toSamplePcdWithWNNCNormals()
                 query_pts = np.asarray(query_pcd.points)
                 query_normals = np.asarray(query_pcd.normals)
+            elif query_mode == 'mashmesh':
+                query_mesh = Mash.fromParamsFile(query_file_path, device='cuda').toWNNCMesh()
+                query_mesh.samplePoints(sample_point_num)
+                query_pts = query_mesh.sample_pts
+                query_normals = query_mesh.sample_normals
 
             chamfer_dict, fscore_dict, nic = getMetrics(
                 gt_pts=gt_pts,

@@ -5,7 +5,6 @@ import open3d as o3d
 import matplotlib.pyplot as plt
 from math import sqrt
 from copy import deepcopy
-from shutil import copyfile
 from typing import Union, Tuple
 from abc import ABC, abstractmethod
 
@@ -15,6 +14,7 @@ from wn_nc.Module.wnnc_reconstructor import WNNCReconstructor
 from wn_nc.Module.mesh_smoother import MeshSmoother
 
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
+from ma_sh.Data.mesh import Mesh
 from ma_sh.Method.data import toNumpy
 from ma_sh.Method.check import checkShape
 from ma_sh.Method.pcd import getPointCloud
@@ -624,6 +624,43 @@ class BaseMash(ABC):
         wnnc_pcd.normals = o3d.utility.Vector3dVector(normals)
 
         return wnnc_pcd
+
+    def toWNNCMesh(self, need_smooth: bool = True) -> Mesh:
+        save_xyz_file_path = './tmp/mash_1_xyz.xyz'
+        save_wnnc_xyz_file_path = './tmp/mash_2_wnnc_xyz.xyz'
+        save_wnnc_mesh_file_path = './tmp/mash_3_wnnc_mesh.ply'
+        save_wnnc_smooth_mesh_file_path = './tmp/mash_4_wnnc_smooth_mesh.ply'
+
+        createFileFolder(save_xyz_file_path)
+
+        mash_pcd = self.toSamplePcd()
+        o3d.io.write_point_cloud(save_xyz_file_path, mash_pcd, write_ascii=True)
+
+        WNNCReconstructor.autoReconstructSurface(
+            save_xyz_file_path,
+            save_wnnc_xyz_file_path,
+            save_wnnc_mesh_file_path,
+            width_tag='l1',
+            wsmin=0.01,
+            wsmax=0.04,
+            iters=40,
+            use_gpu=True,
+            print_progress=True,
+            overwrite=True)
+
+        if need_smooth:
+            MeshSmoother.smoothMesh(
+                save_wnnc_mesh_file_path,
+                save_wnnc_smooth_mesh_file_path,
+                n_iter=10,
+                pass_band=0.01,
+                edge_angle=15.0,
+                feature_angle=45.0,
+                overwrite=True)
+
+            return Mesh(save_wnnc_smooth_mesh_file_path)
+
+        return Mesh(save_wnnc_mesh_file_path)
 
     def toMeshFile(self, save_mesh_file_path: str, need_smooth: bool = True, overwrite: bool = False) -> bool:
         if os.path.exists(save_mesh_file_path):

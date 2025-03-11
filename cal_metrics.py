@@ -1,4 +1,6 @@
 import sys
+
+from ma_sh.Config.custom_path import toDatasetRootPath
 sys.path.append('../wn-nc/')
 sys.path.append('../siggraph-rebuttal/')
 
@@ -24,9 +26,12 @@ def toTableStrFromFile(metric_file_path: str) -> str:
 
     return toTableStr(data)
 
-if __name__ == '__main__':
-    gt_data_folder_path = '/home/chli/chLi/Dataset/Thingi10K/mesh/'
-    query_data_folder_path = '/home/chli/chLi/Dataset/Thingi10K/mesh_mash-1600anc/'
+def demoEvalData():
+    dataset_root_path = toDatasetRootPath()
+    assert dataset_root_path is not None
+
+    gt_data_folder_path = dataset_root_path + 'Thingi10K/mesh/'
+    query_data_folder_path = dataset_root_path + 'Thingi10K/mesh_mash-1600anc/'
     gt_type = '.obj'
     query_type = '.npy'
     query_mode = 'mash'
@@ -52,6 +57,34 @@ if __name__ == '__main__':
     )
 
     table_str = toTableStrFromFile(save_metric_file_path)
+
+    print("Table:")
+    print(table_str)
+    return True
+
+if __name__ == '__main__':
+    dataset_root_path = toDatasetRootPath()
+    assert dataset_root_path is not None
+
+    mode = 'ShapeNet-MASHMesh'
+
+    if mode == 'ShapeNet-MASH':
+        recordMetrics(
+            dataset_root_path + 'ShapeNet/manifold/',
+            dataset_root_path + 'ShapeNet/manifold_mash/',
+            '.obj', '.npy', 'mash',
+            './output/metrics/ShapeNet_MASH.npy',
+        )
+
+    if mode == 'ShapeNet-MASHMesh':
+        recordMetrics(
+            dataset_root_path + 'ShapeNet/manifold/',
+            dataset_root_path + 'ShapeNet/manifold_mash/',
+            '.obj', '.npy', 'mashmesh',
+            './output/metrics/ShapeNet_MASHMesh.npy',
+        )
+
+    table_str = toTableStrFromFile('./output/metrics/ShapeNet_MASH.npy')
 
     print("Table:")
     print(table_str)
