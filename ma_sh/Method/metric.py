@@ -7,6 +7,7 @@ from ma_sh.Data.mesh import Mesh
 from ma_sh.Model.mash import Mash
 import mash_cpp
 
+from ma_sh.Method.format import formatFloat
 from ma_sh.Method.path import createFileFolder, removeFile, renameFile
 from ma_sh.Metric.chamfer import toChamfer
 from ma_sh.Metric.fscore import toFScore
@@ -140,4 +141,6 @@ def toMeanMetric(metric_dict: dict, metric_name: str) -> float:
     if len(metric_list) == 0:
         return np.nan
 
-    return np.mean(metric_list)
+    mean_metric = np.mean(metric_list)
+
+    return formatFloat(mean_metric)

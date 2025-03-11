@@ -7,7 +7,6 @@ import numpy as np
 
 from siggraph_rebuttal.Method.table import toTableStr
 
-from ma_sh.Method.format import formatFloat
 from ma_sh.Method.metric import recordMetrics, toMeanMetric
 
 def toTableStrFromFile(metric_file_path: str) -> str:
@@ -20,7 +19,7 @@ def toTableStrFromFile(metric_file_path: str) -> str:
 
     for value in metric_dict.values():
         for metric_key in value.keys():
-            data.append([metric_key, formatFloat(toMeanMetric(metric_dict, metric_key))])
+            data.append([metric_key, toMeanMetric(metric_dict, metric_key)])
         break
 
     return toTableStr(data)
