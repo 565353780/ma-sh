@@ -1,14 +1,16 @@
 import sys
 
-from ma_sh.Config.custom_path import toDatasetRootPath
 sys.path.append('../wn-nc/')
 sys.path.append('../siggraph-rebuttal/')
 
+import os
 import torch
 import numpy as np
 
 from siggraph_rebuttal.Method.table import toTableStr
 
+from ma_sh.Config.custom_path import toDatasetRootPath
+from ma_sh.Data.metric import ShapeNet_Data
 from ma_sh.Method.metric import recordMetrics, toMeanMetric
 
 def toTableStrFromFile(metric_file_path: str) -> str:
@@ -66,25 +68,35 @@ if __name__ == '__main__':
     dataset_root_path = toDatasetRootPath()
     assert dataset_root_path is not None
 
-    mode = 'ShapeNet-MASHMesh'
+    mode = 'ShapeNet_MASHMesh1'
 
-    if mode == 'ShapeNet-MASH':
+    save_metric_file_path = './output/metrics/' + mode + '.npy'
+
+    if mode == 'ShapeNet_MASH':
         recordMetrics(
             dataset_root_path + 'ShapeNet/manifold/',
             dataset_root_path + 'ShapeNet/manifold_mash/',
-            '.obj', '.npy', 'mash',
-            './output/metrics/ShapeNet_MASH.npy',
+            '.obj', '.npy', 'mash', save_metric_file_path,
         )
 
-    if mode == 'ShapeNet-MASHMesh':
+    if mode == 'ShapeNet_MASHMesh':
         recordMetrics(
             dataset_root_path + 'ShapeNet/manifold/',
             dataset_root_path + 'ShapeNet/manifold_mash/',
-            '.obj', '.npy', 'mashmesh',
-            './output/metrics/ShapeNet_MASHMesh.npy',
+            '.obj', '.npy', 'mashmesh', save_metric_file_path,
         )
 
-    table_str = toTableStrFromFile('./output/metrics/ShapeNet_MASH.npy')
+    if mode == 'Thingi10K_MASH':
+        recordMetrics(
+            dataset_root_path + 'Thingi10K/mesh/',
+            dataset_root_path + 'Thingi10K/mesh_mash-1600anc/',
+            '.obj', '.npy', 'mash', save_metric_file_path,
+        )
 
-    print("Table:")
-    print(table_str)
+    if os.path.exists(save_metric_file_path):
+        table_str = toTableStrFromFile(save_metric_file_path)
+        print("Table:")
+        print(table_str)
+
+    print('ShapeNet_Data')
+    print(toTableStr(ShapeNet_Data))

@@ -141,7 +141,12 @@ def toMeanMetric(metric_dict: dict, metric_name: str) -> float:
     for value in metric_dict.values():
         if metric_name not in value.keys():
             continue
-        metric_list.append(value[metric_name])
+
+        metric_value = value[metric_name]
+        if np.isnan(metric_value):
+            continue
+
+        metric_list.append(metric_value)
 
     if len(metric_list) == 0:
         return np.nan
