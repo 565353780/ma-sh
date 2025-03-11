@@ -27,7 +27,5 @@ def toNormalInConsistency(
     reverse_angles = 180.0 - angles
     min_angles = torch.minimum(angles, reverse_angles)
 
-    average_min_angle = min_angles.mean(dim=-1, keepdim=True)
-
-    average_angle = average_min_angle.mean(dim=-1, keepdim=True)
-    return average_angle
+    average_min_angle = min_angles.mean(dim=-1)
+    return average_min_angle

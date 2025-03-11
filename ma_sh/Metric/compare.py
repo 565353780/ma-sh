@@ -38,7 +38,7 @@ def getMetrics(
 
     dists2_1, dists2_2, idxs_1 = mash_cpp.toChamferDistance(query_pts, gt_pts)[:3]
 
-    pair_idxs = torch.stack([torch.arange(idxs_1.shape[1], dtype=dtype, device=device).expand(idxs_1.shape[0], idxs_1.shape[1]), idxs_1], dim=-1)
+    pair_idxs = torch.stack([torch.arange(idxs_1.shape[1], dtype=torch.int64, device=device).expand(idxs_1.shape[0], idxs_1.shape[1]), idxs_1.type(torch.int64)], dim=-1)
 
     chamfer = toChamfer(dists2_1, dists2_2, chamfer_order)
     fscore = toFScore(dists2_1, dists2_2, fscore_thresh)
@@ -79,14 +79,10 @@ def recordMetrics(
                 continue
 
             gt_file_path = gt_data_folder_path + rel_file_basepath + gt_type
-            print('gt_file_path:')
-            print(gt_file_path)
             if not os.path.exists(gt_file_path):
                 continue
 
             query_file_path = query_data_folder_path + rel_file_basepath + query_type
-            print('query_file_path:')
-            print(query_file_path)
             if not os.path.exists(query_file_path):
                 continue
 
@@ -122,7 +118,7 @@ def recordMetrics(
 
             print('==== updated:', rel_file_basepath, '====')
             for key, item in metric_dict[rel_file_basepath].items():
-                print(key, ':', item.item(), '\t', end='')
+                print(key, ':', item, '\t', end='')
             print()
             tmp_save_metric_file_path = save_metric_file_path.replace('.npy', '_tmp.npy')
             createFileFolder(tmp_save_metric_file_path)

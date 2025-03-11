@@ -598,6 +598,8 @@ class BaseMash(ABC):
         save_xyz_file_path = './tmp/mash_1_xyz.xyz'
         save_wnnc_xyz_file_path = './tmp/mash_2_wnnc_xyz.xyz'
 
+        createFileFolder(save_xyz_file_path)
+
         mash_pcd = self.toSamplePcd()
         o3d.io.write_point_cloud(save_xyz_file_path, mash_pcd, write_ascii=True)
 
@@ -612,7 +614,14 @@ class BaseMash(ABC):
             print_progress=True,
             overwrite=True)
 
-        wnnc_pcd = o3d.io.read_point_cloud(save_wnnc_xyz_file_path)
+        data = np.loadtxt(save_wnnc_xyz_file_path)
+
+        points = data[:, :3]
+        normals = data[:, 3:6]
+
+        wnnc_pcd = o3d.geometry.PointCloud()
+        wnnc_pcd.points = o3d.utility.Vector3dVector(points)
+        wnnc_pcd.normals = o3d.utility.Vector3dVector(normals)
 
         return wnnc_pcd
 
