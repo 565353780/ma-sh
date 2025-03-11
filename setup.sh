@@ -7,6 +7,7 @@ git clone https://github.com/565353780/dino-v2-detect.git
 git clone https://github.com/565353780/ulip-manage.git
 git clone https://github.com/565353780/distribution-manage.git
 git clone https://github.com/565353780/wn-nc.git
+git clone https://github.com/565353780/siggraph-rebuttal.git
 
 cd sdf-generate
 ./setup.sh
@@ -30,6 +31,9 @@ cd ../distribution-manage
 ./setup.sh
 
 cd ../wn-nc
+./setup.sh
+
+cd ../siggraph-rebuttal
 ./setup.sh
 
 if [ "$(uname)" = "Darwin" ]; then
