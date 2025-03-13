@@ -12,6 +12,7 @@ from siggraph_rebuttal.Method.table import toTableStr
 from ma_sh.Config.custom_path import toDatasetRootPath
 from ma_sh.Data.metric import (
     Coverage_Data,
+    KITTI_Data,
     SAMPLE_Data,
     ShapeNet_NonUniform_1024_Data,
     ShapeNet_NonUniform_2048_Data,
@@ -225,13 +226,47 @@ def createRecordForSetting(setting: str) -> bool:
             '/home/chli/chLi/Results/ma-sh/output/fit/simple_mash_anc400_sh2/',
             '.obj', '.npy', 'mash', save_metric_file_path,
         )
+
+    if setting == 'KITTI_MASH_400':
+        recordMetrics(
+            dataset_root_path + 'KITTI/trans_pcd/',
+            '/home/chli/chLi/Dataset/KITTI/trans_mash-400anc/',
+            '.ply', '.npy', 'mash', save_metric_file_path,
+            fscore_thresh_list=[0.1],
+        )
+
+    if setting == 'KITTI_MASH_1600':
+        recordMetrics(
+            dataset_root_path + 'KITTI/trans_pcd/',
+            '/home/chli/chLi/Dataset/KITTI/trans_mash-1600anc/',
+            '.ply', '.npy', 'mash', save_metric_file_path,
+            fscore_thresh_list=[0.1],
+        )
+
+    if setting == 'KITTI_PGR':
+        recordMetrics(
+            dataset_root_path + 'KITTI/trans_pcd/',
+            '/home/chli/github/ASDF/param-gauss-recon/output/recon/KITTI_trans/',
+            '.ply', '.ply', 'mesh', save_metric_file_path,
+            fscore_thresh_list=[0.1],
+        )
+
+    if setting == 'KITTI_ARONet':
+        recordMetrics(
+            dataset_root_path + 'KITTI/trans_pcd/',
+            '/home/chli/github/ASDF/aro-net/output/KITTI_trans/',
+            '.ply', '.obj', 'mesh', save_metric_file_path,
+            fscore_thresh_list=[0.1],
+        )
+
+
     return True
 
 if __name__ == '__main__':
     dataset_root_path = toDatasetRootPath()
     assert dataset_root_path is not None
 
-    setting = '1ShapeNet_NonUniform_2048_MASH-100anc'
+    setting = '1KITTI_ARONet'
 
     createRecordForSetting(setting)
 
@@ -258,3 +293,5 @@ if __name__ == '__main__':
         print(toTableStr(SAMPLE_Data))
         print('==== Coverage_Data ====')
         print(toTableStr(Coverage_Data))
+        print('==== KITTI_Data ====')
+        print(toTableStr(KITTI_Data))
