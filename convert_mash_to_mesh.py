@@ -22,6 +22,9 @@ if __name__ == "__main__":
         # demo_convert_mash_to_mesh('SimpleShapes/mesh_mash-6anc/', 'SimpleShapes/mesh_mash_recon-6anc/')
         # demo_convert_mash_to_mesh('SimpleShapes/mesh_mash-4anc/', 'SimpleShapes/mesh_mash_recon-4anc/')
 
+        demo_convert_mash_to_mesh('ShapeNet/manifold_mash-2048_random-10-400anc/', 'test/ShapeNet/manifold_mash_recon-2048_random-10-400anc/')
+        demo_convert_mash_to_mesh('ShapeNet/manifold_mash-1024_random-10-400anc/', 'test/ShapeNet/manifold_mash_recon-1024_random-10-400anc/')
+
         demo_convert_mash_to_mesh('Thingi10K/mesh_mash-1600anc/', 'test/Thingi10K/mesh_mash_recon-1600anc/')
         demo_convert_mash_to_mesh('KITTI/mash-400anc/', 'test/KITTI/mash_recon-400anc/')
         demo_convert_mash_to_mesh('KITTI/mash-1600anc/', 'test/KITTI/mash_recon-1600anc/')
