@@ -14,12 +14,14 @@ class Convertor(BaseConvertor):
         target_root_folder_path: str,
         gt_points_num: int = 400000,
         random_weight: float = -1.0,
+        noise_weight: float = -1.0,
         need_normalize: bool = False,
     ) -> None:
         super().__init__(source_root_folder_path, target_root_folder_path)
 
         self.gt_points_num = gt_points_num
         self.random_weight = random_weight
+        self.noise_weight = noise_weight
         self.need_normalize = need_normalize
         return
 
@@ -35,8 +37,12 @@ class Convertor(BaseConvertor):
             print("\t source_path:", source_path)
             return None
 
-        if self.random_weight >= 0.0:
-            points = mesh.toRandomSamplePoints(self.gt_points_num, self.random_weight)
+        if self.random_weight > 0.0 or self.noise_weight > 0.0:
+            points = mesh.toRandomSamplePoints(
+                self.gt_points_num,
+                self.random_weight,
+                self.noise_weight,
+            )
             return points
 
         #if mesh.pointNum() > 10 * self.gt_points_num:

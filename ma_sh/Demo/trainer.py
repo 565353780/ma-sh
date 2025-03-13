@@ -1,4 +1,5 @@
 import torch
+from typing import Union
 
 from ma_sh.Module.trainer import Trainer
 from ma_sh.Module.timer import Timer
@@ -7,13 +8,14 @@ from ma_sh.Module.timer import Timer
 def demo(
     gt_points_file_path: str,
     anchor_num: int = 400,
+    sh_degree_max: int = 2,
     save_freq: int = 1,
-    save_log_folder_path: str = 'auto',
-    save_result_folder_path: str = 'auto',
+    save_log_folder_path: Union[str, None] = 'auto',
+    save_result_folder_path: Union[str, None] = 'auto',
 ):
     #anchor_num = 400
     mask_degree_max = 3
-    sh_degree_max = 2
+    #sh_degree_max = 2
     mask_boundary_sample_num = 90
     sample_point_num = 1000
     sample_point_scale = 0.8

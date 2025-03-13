@@ -86,7 +86,7 @@ class Convertor(BaseConvertor):
         trainer = self.createTrainer()
 
         try:
-            if not trainer.loadGTPointsFile(source_path):
+            if not trainer.loadGTPointsFile(source_path, self.gt_points_num):
                 print('[ERROR][Convertor::convertData]')
                 print('\t loadGTPointsFile failed!')
                 return False

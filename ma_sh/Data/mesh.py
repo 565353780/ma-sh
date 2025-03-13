@@ -349,6 +349,7 @@ class Mesh(object):
         self,
         sample_point_num: int,
         random_weight: float = 0.0,
+        noise_weight: float = 0.0,
         with_color: bool=False,
     ) -> Union[Tuple[None, None], None, Tuple[np.ndarray, np.ndarray], np.ndarray]:
         if not self.isValid(True):
@@ -358,15 +359,23 @@ class Mesh(object):
                 return None, None
             return None
 
-        uniform_sample_point_num = int(sample_point_num * (1.0 + random_weight))
-        ratio = sample_point_num / uniform_sample_point_num
+        if random_weight > 0:
+            uniform_sample_point_num = int(sample_point_num * (1.0 + random_weight))
+            ratio = sample_point_num / uniform_sample_point_num
 
-        o3d_mesh = self.toO3DMesh()
-        sample_pcd = o3d_mesh.sample_points_uniformly(uniform_sample_point_num)
+            o3d_mesh = self.toO3DMesh()
+            sample_pcd = o3d_mesh.sample_points_uniformly(uniform_sample_point_num)
 
-        random_sample_pcd = sample_pcd.random_down_sample(ratio)
+            random_sample_pcd = sample_pcd.random_down_sample(ratio)
 
-        random_sample_points = np.asarray(random_sample_pcd.points)
+            random_sample_points = np.asarray(random_sample_pcd.points)
+        else:
+            random_sample_points = self.toO3DMesh().sample_points_uniformly(sample_point_num)
+
+        if noise_weight > 0:
+            noise = np.random.normal(scale=noise_weight, size=random_sample_points.shape)
+            random_sample_points += noise
+
         if not with_color:
             return random_sample_points
 

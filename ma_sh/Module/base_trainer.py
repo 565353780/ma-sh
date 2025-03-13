@@ -100,11 +100,12 @@ class BaseTrainer(ABC):
 
         sample_gt_pcd = gt_pcd
         if sample_point_num is not None:
-            sample_gt_pcd = downSample(gt_pcd, sample_point_num)
-            if sample_gt_pcd is None:
-                print('[WARN][BaseTrainer::loadGTPoints]')
-                print('\t downSample failed! will use all input gt points!')
-                sample_gt_pcd = gt_pcd
+            if sample_point_num < np.asarray(gt_pcd.points).shape[0]:
+                sample_gt_pcd = downSample(gt_pcd, sample_point_num)
+                if sample_gt_pcd is None:
+                    print('[WARN][BaseTrainer::loadGTPoints]')
+                    print('\t downSample failed! will use all input gt points!')
+                    sample_gt_pcd = gt_pcd
 
         self.gt_points = np.asarray(sample_gt_pcd.points)
 

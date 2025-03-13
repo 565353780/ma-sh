@@ -1,3 +1,6 @@
+import sys
+sys.path.append('../wn-nc/')
+
 import os
 import numpy as np
 import open3d as o3d
@@ -75,7 +78,7 @@ def trainOnMesh():
     shape_id = 'XiaomiSU7'
     shape_id = 'RobotArm'
     shape_id = 'Washer'
-    #shape_id = 'bunny'
+    shape_id = 'bunny'
 
     if shape_id == 'XiaomiSU7':
         gt_mesh_file_path = '/home/chli/chLi/Dataset/XiaomiSU7/Xiaomi_SU7_2024_low_mesh.obj'
@@ -155,6 +158,28 @@ def trainOnMesh():
             save_result_folder_path)
     return True
 
+def trainOnPcd():
+    shape_id = '000-091/9df219962230449caa4c95a60feb0c9e'
+    pcd_file_path = '/home/chli/chLi/Dataset/Objaverse_82K/manifold_pcd/' + shape_id + '.npy'
+
+    anchor_num_list = [400]
+    sh_degree_max_list = [2, 3, 4, 5, 6]
+    save_freq = -1
+
+    for anchor_num in anchor_num_list:
+        for sh_degree_max in sh_degree_max_list:
+            save_log_folder_path = '/home/chli/chLi/Results/ma-sh/logs/anc' + str(anchor_num) + '_sh' + str(sh_degree_max) + '_' + shape_id.replace('/', '_') + '/'
+            save_result_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit/anc' + str(anchor_num) + '_sh' + str(sh_degree_max) + '/' + shape_id + '/'
+
+            demo_train(
+                pcd_file_path,
+                anchor_num,
+                sh_degree_max,
+                save_freq,
+                save_log_folder_path,
+                save_result_folder_path)
+    return True
+
 if __name__ == "__main__":
     '''
     with profiler.profile(
@@ -169,5 +194,6 @@ if __name__ == "__main__":
     exit()
     '''
 
-    # trainOnDataset()
-    trainOnMesh()
+    #trainOnDataset()
+    #trainOnMesh()
+    trainOnPcd()
