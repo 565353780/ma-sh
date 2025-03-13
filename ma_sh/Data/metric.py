@@ -34,6 +34,26 @@ ShapeNet_NonUniform_Data = [
     ['NIC\\downarrow', '64.077', '33.378', '33.042', '27.573\\bf', '30.664\\underline'],
 ]
 
+ShapeNet_NonUniform_2048_Data = [
+    ['Method', 'SPR+PCA', 'PGR', 'ConvONet', 'ARONet', 'MASH', 'GEN+ABBAlign-MEAN', 'GEN+ABBAlign-BEST'],
+    ['L1-CD\\downarrow', '89.023', '10.701\\underline', '16.980', '15.523', '12.341', '17.081', '6.893\\bf'],
+    ['L2-CD\\downarrow', '327.094', '19.694', '33.052', '26.824', '16.850\\underline', '27.324', '11.271\\bf'],
+    ['FScore\\uparrow', '0.411', '0.732', '0.759', '0.789\\underline', '0.757', '0.628', '0.913\\bf'],
+    ['D_H\\downarrow',  '0.332', '0.128\\underline', '0.162', '0.154', '0.131', '0.188', '0.089\\bf'],
+    ['S_cos\\uparrow',  '0.312', '0.804', '0.787', '0.802', '0.798', '0.842\\underline', '0.945\\bf'],
+    ['NIC\\downarrow',  '59.071', '24.096', '31.051', '28.200', '35.323', '23.701\\underline', '21.607\\bf'],
+]
+
+ShapeNet_NonUniform_1024_Data = [
+    ['Method', 'SPR+PCA', 'PGR', 'ConvONet', 'ARONet', 'MASH', 'GEN+ICP'],
+    ['L1-CD\\downarrow', '', '14.927', '16.682', '16.593', '18.113', ''],
+    ['L2-CD\\downarrow', '', '36.092', '47.041', '33.502', '37.730', ''],
+    ['FScore\\uparrow', '', '0.722', '0.698', '0.763', '0.538', ''],
+    ['D_H\\downarrow',  '', '', '0.196', '0.192', '', ''],
+    ['S_cos\\uparrow',  '', '', '', '', '', ''],
+    ['NIC\\downarrow',  '', '28.542', '', '30.298', '40.094', ''],
+]
+
 Thingi10K_Data = [
     ['Method', 'SPR+PCA', 'PGR', 'ConvONet', 'ARONet', 'MASHMesh', 'MASH', 'MASH-1600anc'],
     ['L1-CD\\downarrow', '54.677', '4.862', '18.692', '17.472', '6.202', '5.618', '3.353'],

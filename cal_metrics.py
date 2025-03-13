@@ -13,6 +13,8 @@ from ma_sh.Config.custom_path import toDatasetRootPath
 from ma_sh.Data.metric import (
     Coverage_Data,
     SAMPLE_Data,
+    ShapeNet_NonUniform_1024_Data,
+    ShapeNet_NonUniform_2048_Data,
     Timing_Data,
     ShapeNet_Data,
     ShapeNet_NonUniform_Data,
@@ -71,117 +73,185 @@ def demoEvalData():
     print(table_str)
     return True
 
-if __name__ == '__main__':
+def createRecordForSetting(setting: str) -> bool:
     dataset_root_path = toDatasetRootPath()
     assert dataset_root_path is not None
 
-    mode = '1ShapeNet_NonUniform_MASH'
+    save_metric_file_path = './output/metrics/' + setting + '.npy'
 
-    save_metric_file_path = './output/metrics/' + mode + '.npy'
-
-    if mode == 'ShapeNet_MASH':
+    if setting == 'ShapeNet_MASH':
         recordMetrics(
             dataset_root_path + 'ShapeNet/manifold/',
             dataset_root_path + 'ShapeNet/manifold_mash/',
             '.obj', '.npy', 'mash', save_metric_file_path,
         )
 
-    if mode == 'ShapeNet_MASHMesh':
+    if setting == 'ShapeNet_MASHMesh':
         recordMetrics(
             dataset_root_path + 'ShapeNet/manifold/',
             dataset_root_path + 'ShapeNet/manifold_mash/',
             '.obj', '.npy', 'mashmesh', save_metric_file_path,
         )
 
-    if mode == 'ShapeNet_NonUniform_MASH':
+    if setting == 'ShapeNet_NonUniform_MASH':
         recordMetrics(
             dataset_root_path + 'ShapeNet/manifold/',
             dataset_root_path + 'ShapeNet/manifold_mash-4096_random-10_noise-0-002-400anc/',
             '.obj', '.npy', 'mash', save_metric_file_path,
         )
 
-    if mode == 'ShapeNet_NonUniform_MASHMesh':
+    if setting == 'ShapeNet_NonUniform_MASHMesh':
         recordMetrics(
             dataset_root_path + 'ShapeNet/manifold/',
             dataset_root_path + 'ShapeNet/manifold_mash-4096_random-10_noise-0-002-400anc/',
             '.obj', '.npy', 'mashmesh', save_metric_file_path,
         )
 
-    if mode == 'ShapeNet_NonUniform_ARONet':
+    if setting == 'ShapeNet_NonUniform_2048_MASH':
+        recordMetrics(
+            dataset_root_path + 'ShapeNet/manifold_test/',
+            dataset_root_path + 'ShapeNet/manifold_mash-2048_random-10-400anc/03001627/',
+            '.obj', '.npy', 'mash', save_metric_file_path,
+        )
+
+    if setting == 'ShapeNet_NonUniform_2048_MASH-100anc':
+        recordMetrics(
+            dataset_root_path + 'ShapeNet/manifold_test/',
+            dataset_root_path + 'ShapeNet/manifold_mash-2048_random-10-100anc/03001627/',
+            '.obj', '.npy', 'mash', save_metric_file_path,
+        )
+
+    if setting == 'ShapeNet_NonUniform_1024_MASH':
+        recordMetrics(
+            dataset_root_path + 'ShapeNet/manifold_test/',
+            dataset_root_path + 'ShapeNet/manifold_mash-1024_random-10-400anc/03001627/',
+            '.obj', '.npy', 'mash', save_metric_file_path,
+        )
+
+    if setting == 'ShapeNet_NonUniform_1024_MASH-50anc':
+        recordMetrics(
+            dataset_root_path + 'ShapeNet/manifold_test/',
+            dataset_root_path + 'ShapeNet/manifold_mash-1024_random-10-50anc/03001627/',
+            '.obj', '.npy', 'mash', save_metric_file_path,
+        )
+
+    if setting == 'ShapeNet_NonUniform_ARONet':
         recordMetrics(
             dataset_root_path + 'ShapeNet/manifold/',
             '/home/chli/github/ASDF/aro-net/output/ShapeNet_NonUniform/',
             '.obj', '.obj', 'mesh', save_metric_file_path,
         )
 
-    if mode == 'ShapeNet_NonUniform_PGR':
+    if setting == 'ShapeNet_NonUniform_2048_ARONet':
+        recordMetrics(
+            dataset_root_path + 'ShapeNet/manifold_test/',
+            '/home/chli/github/ASDF/aro-net/output/ShapeNet_2048/03001627/',
+            '.obj', '.obj', 'mesh', save_metric_file_path,
+        )
+
+    if setting == 'ShapeNet_NonUniform_1024_ARONet':
+        recordMetrics(
+            dataset_root_path + 'ShapeNet/manifold_test/',
+            '/home/chli/github/ASDF/aro-net/output/ShapeNet_1024/03001627/',
+            '.obj', '.obj', 'mesh', save_metric_file_path,
+        )
+
+    if setting == 'ShapeNet_NonUniform_PGR':
         recordMetrics(
             dataset_root_path + 'ShapeNet/manifold_test/',
             '/home/chli/github/ASDF/param-gauss-recon/output/recon/k_7_min_0.0015_max_0.015_alpha_1.05_depth_min_1_depth_max_1/',
             '.obj', '.ply', 'mesh', save_metric_file_path,
         )
 
-    if mode == 'Thingi10K_MASH_400':
+    if setting == 'ShapeNet_NonUniform_2048_PGR':
+        recordMetrics(
+            dataset_root_path + 'ShapeNet/manifold_test/',
+            '/home/chli/github/ASDF/param-gauss-recon/output/recon/2048/',
+            '.obj', '.ply', 'mesh', save_metric_file_path,
+        )
+
+    if setting == 'ShapeNet_NonUniform_1024_PGR':
+        recordMetrics(
+            dataset_root_path + 'ShapeNet/manifold_test/',
+            '/home/chli/github/ASDF/param-gauss-recon/output/recon/1024/',
+            '.obj', '.ply', 'mesh', save_metric_file_path,
+        )
+
+    if setting == 'Thingi10K_MASH_400':
         recordMetrics(
             dataset_root_path + 'Thingi10K/mesh/',
             dataset_root_path + 'Thingi10K/mesh_mash-400anc/',
             '.obj', '.npy', 'mash', save_metric_file_path,
         )
 
-    if mode == 'Thingi10K_MASHMesh_400':
+    if setting == 'Thingi10K_MASHMesh_400':
         recordMetrics(
             dataset_root_path + 'Thingi10K/mesh/',
             dataset_root_path + 'Thingi10K/mesh_mash-400anc/',
             '.obj', '.npy', 'mashmesh', save_metric_file_path,
         )
 
-    if mode == 'Thingi10K_MASH_1600':
+    if setting == 'Thingi10K_MASH_1600':
         recordMetrics(
             dataset_root_path + 'Thingi10K/mesh/',
             dataset_root_path + 'Thingi10K/mesh_mash-1600anc/',
             '.obj', '.npy', 'mash', save_metric_file_path,
         )
 
-    if mode == 'Thingi10K_ARONet':
+    if setting == 'Thingi10K_ARONet':
         recordMetrics(
             dataset_root_path + 'Thingi10K/mesh/',
             '/home/chli/github/ASDF/aro-net/output/Thingi10K_400k/',
             '.obj', '.obj', 'mesh', save_metric_file_path,
         )
 
-    if mode == 'Thingi10K_PGR':
+    if setting == 'Thingi10K_PGR':
         recordMetrics(
             dataset_root_path + 'Thingi10K/mesh/',
             '/home/chli/github/ASDF/param-gauss-recon/output/recon/k_7_min_0.0015_max_0.015_alpha_1.05_depth_min_1_depth_max_1/',
             '.obj', '.ply', 'mesh', save_metric_file_path,
         )
 
-    if mode == 'SAMPLE_MASH':
+    if setting == 'SAMPLE_MASH':
         recordMetrics(
             dataset_root_path + 'Objaverse_82K/manifold/',
             '/home/chli/chLi/Results/ma-sh/output/fit/mash_anc400_sh2/',
             '.obj', '.npy', 'mash', save_metric_file_path,
         )
 
-    if mode == 'SAMPLE_SIMPLEMASH':
+    if setting == 'SAMPLE_SIMPLEMASH':
         recordMetrics(
             dataset_root_path + 'Objaverse_82K/manifold/',
             '/home/chli/chLi/Results/ma-sh/output/fit/simple_mash_anc400_sh2/',
             '.obj', '.npy', 'mash', save_metric_file_path,
         )
+    return True
+
+if __name__ == '__main__':
+    dataset_root_path = toDatasetRootPath()
+    assert dataset_root_path is not None
+
+    setting = '1ShapeNet_NonUniform_2048_MASH-100anc'
+
+    createRecordForSetting(setting)
+
+    save_metric_file_path = './output/metrics/' + setting + '.npy'
 
     if os.path.exists(save_metric_file_path):
         table_str = toTableStrFromFile(save_metric_file_path)
         print("Table:")
         print(table_str)
-
-    if True:
+    else:
         print('==== Timing_Data ====')
         print(toTableStr(Timing_Data))
         print('==== ShapeNet_Data ====')
         print(toTableStr(ShapeNet_Data))
         print('==== ShapeNet_NonUniform_Data ====')
         print(toTableStr(ShapeNet_NonUniform_Data))
+        print('==== ShapeNet_NonUniform_2048_Data ====')
+        print(toTableStr(ShapeNet_NonUniform_2048_Data))
+        print('==== ShapeNet_NonUniform_1024_Data ====')
+        print(toTableStr(ShapeNet_NonUniform_1024_Data))
         print('==== Thingi10K_Data ====')
         print(toTableStr(Thingi10K_Data))
         print('==== SAMPLE_Data ====')
