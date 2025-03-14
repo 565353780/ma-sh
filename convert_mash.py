@@ -8,7 +8,7 @@ if __name__ == "__main__":
 
     while True:
         #demo_convert_mash(400, 'Objaverse_82K/manifold_pcd/', 'Objaverse_82K/manifold_mash/')
-        #demo_convert_mash(400, 'ShapeNet/manifold_pcd/', 'ShapeNet/manifold_mash/')
+        demo_convert_mash(400, 'ShapeNet/manifold_pcd/', 'ShapeNet/manifold_mash/')
 
         #demo_convert_mash(400, 'ShapeNet/manifold_pcd-4096/', 'ShapeNet/manifold_mash-4096-400anc/')
         #demo_convert_mash(400, 'ShapeNet/manifold_pcd-4096_random-10_noise-0-002/', 'ShapeNet/manifold_mash-4096_random-10_noise-0-002-400anc/')
@@ -23,8 +23,8 @@ if __name__ == "__main__":
         #demo_convert_mash(400, 'KITTI/pcd/', 'KITTI/mash-400anc/')
         #demo_convert_mash(1600, 'KITTI/pcd/', 'KITTI/mash-1600anc/')
 
-        demo_convert_mash(400, 'KITTI/trans_pcd/', 'KITTI/trans_mash-400anc/')
-        demo_convert_mash(1600, 'KITTI/trans_pcd/', 'KITTI/trans_mash-1600anc/')
+        #demo_convert_mash(400, 'KITTI/trans_pcd/', 'KITTI/trans_mash-400anc/')
+        #demo_convert_mash(1600, 'KITTI/trans_pcd/', 'KITTI/trans_mash-1600anc/')
 
         #demo_convert_mash(400, 'ShapeNet/manifold_pcd-4096/', 'ShapeNet/manifold_mash-4096-400anc/')
         #demo_convert_mash(200, 'ShapeNet/manifold_pcd-4096/', 'ShapeNet/manifold_mash-4096-200anc/')

@@ -16,9 +16,10 @@ from ma_sh.Data.metric import (
     SAMPLE_Data,
     ShapeNet_NonUniform_1024_Data,
     ShapeNet_NonUniform_2048_Data,
+    ShapeNet_NonUniform_4096_Data,
+    ShapeNet_NonUniform_8192_Data,
     Timing_Data,
     ShapeNet_Data,
-    ShapeNet_NonUniform_Data,
     Thingi10K_Data,
 )
 from ma_sh.Method.metric import recordMetrics, toMeanMetric
@@ -281,8 +282,10 @@ if __name__ == '__main__':
         print(toTableStr(Timing_Data))
         print('==== ShapeNet_Data ====')
         print(toTableStr(ShapeNet_Data))
-        print('==== ShapeNet_NonUniform_Data ====')
-        print(toTableStr(ShapeNet_NonUniform_Data))
+        print('==== ShapeNet_NonUniform_8192_Data ====')
+        print(toTableStr(ShapeNet_NonUniform_8192_Data))
+        print('==== ShapeNet_NonUniform_4096_Data ====')
+        print(toTableStr(ShapeNet_NonUniform_4096_Data))
         print('==== ShapeNet_NonUniform_2048_Data ====')
         print(toTableStr(ShapeNet_NonUniform_2048_Data))
         print('==== ShapeNet_NonUniform_1024_Data ====')

@@ -5,19 +5,33 @@ Timing_Data = [
 
 ShapeNet_Data = [
     ['Method', 'SPR+PCA', 'PGR', 'ConvONet', 'ARONet', 'MASHMesh', 'MASH', 'GEN+ICP+R10', 'FPS'],
-    ['L1-CD\\downarrow', '89.565', '6.381\\underline', '17.732', '15.697', '5.450', '4.944\\bf', '6.554', '4.782'],
-    ['L2-CD\\downarrow', '429.112', '26.876\\underline', '72.523', '66.051', '22.523', '2.268\\bf', '5.945', '1.871'],
+    ['L1-CD\\downarrow', '89.565', '6.381', '17.732', '15.697', '5.450', '4.944\\bf', '6.554', '4.782'],
+    ['L2-CD\\downarrow', '429.112', '26.876', '72.523', '66.051', '22.523', '2.268\\bf', '5.945', '1.871'],
     ['FScore\\uparrow', '0.497', '0.988\\bf', '0.812', '0.880', '0.997', '0.998\\bf', '0.951', '0.999'],
-    ['D_H\\downarrow', '0.272', '0.023\\underline', '0.131', '0.117', '0.019', '0.013\\bf', '0.068', '0.012'],
-    ['S_cos\\uparrow', '0.684', '0.974\\underline', '0.821', '0.898', '0.980', '0.984\\bf', '0.950', '0.991'],
-    ['NIC\\downarrow', '65.023', '19.178\\underline', '29.810', '23.035', '18.040', '13.346\\bf', '21.089', '6.230'],
+    ['D_H\\downarrow', '0.272', '0.023', '0.131', '0.117', '0.019', '0.013\\bf', '0.068', '0.012'],
+    ['S_cos\\uparrow', '0.684', '0.974', '0.821', '0.898', '0.980', '0.984\\bf', '0.950', '0.991'],
+    ['NIC\\downarrow', '65.023', '19.178', '29.810', '23.035', '18.040', '13.346\\bf', '21.089', '6.230'],
 ]
 
 ShapeNet_Data = [
-    ShapeNet_Data[i][:5] + ShapeNet_Data[i][6:9] for i in range(len(ShapeNet_Data))
+    ShapeNet_Data[i][:5] + ShapeNet_Data[i][6:8] for i in range(len(ShapeNet_Data))
 ]
 
-ShapeNet_NonUniform_Data = [
+ShapeNet_NonUniform_8192_Data = [
+    ['Method', 'SPR+PCA', 'PGR', 'ConvONet', 'ARONet', 'MASH-Mesh', 'MASH', 'GEN+ICP+R10'],
+    ['L1-CD\\downarrow', '93.452', '8.714', '19.031', '17.301', '8.607', '5.932\\bf', '6.723'],
+    ['L2-CD\\downarrow', '342.803', '17.809', '53.071', '42.806', '6.687', '6.021\\bf', '6.300'],
+    ['FScore\\uparrow', '0.466', '0.892', '0.763', '0.782', '0.917', '0.958\\bf', '0.949'],
+    ['D_H\\downarrow', '0.291', '0.048', '0.133', '0.121', '0.032', '0.023\\bf', '0.069'],
+    ['S_cos\\uparrow', '0.623', '0.897', '0.820', '0.837', '0.842', '0.972\\bf', '0.963'],
+    ['NIC\\downarrow', '67.712', '23.622', '31.796', '29.801', '23.064', '19.823\\bf', '21.107'],
+]
+
+ShapeNet_NonUniform_8192_Data = [
+    ShapeNet_NonUniform_8192_Data[i][:5] + ShapeNet_NonUniform_8192_Data[i][6:8] for i in range(len(ShapeNet_NonUniform_8192_Data))
+]
+
+ShapeNet_NonUniform_4096_Data = [
     ['Method', 'SPR+PCA', 'PGR', 'ConvONet', 'ARONet', 'MASH', 'GEN+ICP+R10'],
     ['L1-CD\\downarrow', '98.017', '12.692', '19.780', '16.568', '9.433\\underline', '6.768\\bf'],
     ['L2-CD\\downarrow', '391.056', '10.667', '38.251', '26.452', '7.739\\underline', '6.919\\bf'],
@@ -38,13 +52,17 @@ ShapeNet_NonUniform_2048_Data = [
 ]
 
 ShapeNet_NonUniform_1024_Data = [
-    ['Method', 'SPR+PCA', 'PGR', 'ConvONet', 'ARONet', 'MASH', 'GEN+ICP+R10'],
-    ['L1-CD\\downarrow', '131.059', '14.927\\underline', '16.682', '16.593', '18.113', '7.172\\bf'],
-    ['L2-CD\\downarrow', '462.081', '36.092', '47.041', '33.502\\underline', '37.730', '8.628\\bf'],
-    ['FScore\\uparrow', '0.326', '0.722\\underline', '0.698', '0.763', '0.538', '0.892\\bf'],
-    ['D_H\\downarrow',  '0.442', '0.194', '0.196', '0.192\\underline', '0.231', '0.116\\bf'],
-    ['S_cos\\uparrow',  '0.320', '0.782', '0.798\\underline', '0.760', '0.632', '0.899\\bf'],
-    ['NIC\\downarrow',  '56.711', '31.542', '29.514\\underline', '30.298', '40.094', '24.046\\bf'],
+    ['Method', 'SPR+PCA', 'PGR', 'ConvONet', 'ARONet', 'MASH', 'MASH-Mesh', 'GEN+ICP+R10'],
+    ['L1-CD\\downarrow', '131.059', '14.927', '16.682', '16.593', '18.113', '19.302', '7.172\\bf'],
+    ['L2-CD\\downarrow', '462.081', '36.092', '47.041', '33.502', '37.730', '39.503', '8.628\\bf'],
+    ['FScore\\uparrow', '0.326', '0.722', '0.698', '0.763', '0.538', '0.516', '0.892\\bf'],
+    ['D_H\\downarrow',  '0.442', '0.194', '0.196', '0.192', '0.231', '0.274', '0.116\\bf'],
+    ['S_cos\\uparrow',  '0.320', '0.782', '0.798', '0.760', '0.632', '0.617', '0.899\\bf'],
+    ['NIC\\downarrow',  '56.711', '31.542', '29.514', '30.298', '40.094', '46.033', '24.046\\bf'],
+]
+
+ShapeNet_NonUniform_1024_Data = [
+    ShapeNet_NonUniform_1024_Data[i][:6] + ShapeNet_NonUniform_1024_Data[i][7:8] for i in range(len(ShapeNet_NonUniform_1024_Data))
 ]
 
 Thingi10K_Data = [
@@ -79,9 +97,13 @@ Coverage_Data = [
 ]
 
 KITTI_Data = [
-    ['Method', 'SPR+PCA', 'PGR', 'ConvONet', 'ARONet', 'MASH-400', 'MASH-1600'],
+    ['Method', 'SPR+PCA', 'PGR', 'ConvONet', 'ARONet', 'MASH-400', 'MASH\\bf'],
     ['L1-CD\\downarrow', '8.062', '2.211', '3.826', '2.254', '0.180\\underline', '0.101\\bf'],
     ['L2-CD\\downarrow', '64.087', '7.433', '15.627', '4.825', '0.058\\underline', '0.015\\bf'],
     ['FScore(0.1)\\uparrow', '0.017', '0.061', '0.024', '0.037', '0.722\\underline', '0.877\\bf'],
     ['D_H\\downarrow', '33.282', '11.086', '26.028', '13.252', '2.372\\underline', '1.125\\bf'],
+]
+
+ShapeNet_Data = [
+    ShapeNet_Data[i][:6] + ShapeNet_Data[i][6:8] for i in range(len(ShapeNet_Data))
 ]
