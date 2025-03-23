@@ -1,3 +1,6 @@
+import sys
+sys.path.append('../wn-nc/')
+
 from ma_sh.Test.import_o3d import test as test_import_o3d
 from ma_sh.Test.rotate import test as test_rotate
 from ma_sh.Test.grad import test as test_grad
@@ -20,7 +23,8 @@ if __name__ == "__main__":
     # test_mash_unit()
     # test_mash_model()
     # test_simple_mash_model()
-    # test_render_simple_mash()
+    test_render_simple_mash()
+    exit()
     # test_random_mash()
     # test_param_coverage()
     test_noise()

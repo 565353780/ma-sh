@@ -32,7 +32,7 @@ def demo(
     warmup_epoch = 4
     factor = 0.8
     patience = 4
-    source_data_type = '.ply'
+    source_data_type = '.npy'
     target_data_type = '.npy'
 
     if dataset_root_folder_path is None:

@@ -5,7 +5,7 @@ import torch
 import numpy as np
 import open3d as o3d
 from ma_sh.Model.mash import Mash
-from ma_sh.Config.transformer import getTransformer
+from ma_sh.Method.transformer import getTransformer
 from ma_sh.Method.io import loadMashFileParamsTensor
 
 def test():

@@ -6,11 +6,11 @@ from ma_sh.Model.simple_mash import SimpleMash
 from ma_sh.Test.init_values import initValues
 
 def test():
-    anchor_num = 400
+    anchor_num = 800
     mask_degree_max = 3
     sh_degree_max = 2
     sample_phi_num = 10
-    sample_theta_num = 20
+    sample_theta_num = 10
     use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float32

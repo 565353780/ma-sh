@@ -1,27 +1,12 @@
-import torch
+import os
+from shutil import copyfile
 
-from ma_sh.Method.render import renderPoints, renderGeometries
-from ma_sh.Model.simple_mash import SimpleMash
+folder = '/home/chli/chLi/Dataset/ShapeNet/manifold_test/'
 
-a = SimpleMash(2, 3, 2, 10, 10, device='cpu')
-for i in range(2):
-    a.positions[i, 0] = 0.1 * i
-for i in range(2):
-    a.rotate_vectors[i, 0] = 0.1 * i
+shape_ids = os.listdir(folder)
 
-points = a.toSamplePoints()
-mesh = a.toSampleMesh()
-centers, axis_lengths, rotations = a.toSimpleSampleEllipses()
-ellipses = a.toSimpleSampleO3DEllipses()
-print(rotations)
-print(torch.bmm(rotations, rotations.transpose(1, 2)))
-print(centers.shape)
-print(axis_lengths.shape)
-print(rotations.shape)
+for shape_id in shape_ids:
+    shape_file_path = folder + shape_id + '/models/model_normalized.obj'
+    target = folder + shape_id + '.obj'
 
-renderGeometries(ellipses)
-exit()
-
-mesh.render()
-
-#renderPoints(points.detach().clone().cpu().numpy())
+    copyfile(shape_file_path, target)
