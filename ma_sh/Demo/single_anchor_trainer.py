@@ -1,6 +1,7 @@
 import sys
 sys.path.append('../wn-nc')
 
+import os
 import numpy as np
 import open3d as o3d
 
@@ -11,8 +12,12 @@ def demo():
     gt_pcd_file_path = '/home/chli/chLi/Dataset/Famous/sample_pcd/bunny.ply'
     surface_position = np.array([0.350297, -0.048401, -0.072172])
     anchor_rel_position = np.array([0.05, -0.05, 0]) * 0.1
+    pretrained_mash_file_path = '/home/chli/github/ASDF/ma-sh/output/single_anchor_fitting/mash/648_final_anc-1_mash.npy'
+    vis_pretrained_mash = True
 
-    mash_file_path = '/home/chli/github/ASDF/ma-sh/output/single_anchor_fitting/mash/648_final_anc-1_mash.npy'
+    if not os.path.exists(pretrained_mash_file_path):
+        pretrained_mash_file_path = None
+        vis_pretrained_mash = False
 
     single_anchor_trainer = SingleAnchorTrainer(
         mask_degree_max=0,
@@ -20,8 +25,8 @@ def demo():
         use_inv=True,
         device='cuda',
         patience=4,
-        render=True,
-        render_init_only=True,
+        render=vis_pretrained_mash,
+        render_init_only=vis_pretrained_mash,
         save_result_folder_path='auto',
         save_log_folder_path='auto',
     )
@@ -33,9 +38,10 @@ def demo():
     anchor_position = surface_position + anchor_rel_position
 
     single_anchor_trainer.setMashPose(anchor_position, surface_position, 1e-6)
-    if mash_file_path is not None:
-        single_anchor_trainer.mash.loadParamsFile(mash_file_path)
-    single_anchor_trainer.setFullMask()
+    if pretrained_mash_file_path is not None:
+        single_anchor_trainer.mash.loadParamsFile(pretrained_mash_file_path)
+    if vis_pretrained_mash:
+        single_anchor_trainer.setFullMask()
 
     single_anchor_trainer.autoTrainMash()
 
