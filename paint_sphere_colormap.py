@@ -26,6 +26,9 @@ if __name__ == '__main__':
     sh_colored_sphere = createSHColoredSphere(
         degree_max, sh_params, resolution, colormap, gt_dist_min, gt_dist_max)[0]
 
-    sh_colored_sphere.translate([2.5, 0, 0])
+    # sh_colored_sphere.translate([2.5, 0, 0])
 
-    o3d.visualization.draw_geometries([sh_colored_sphere, gt_colored_sphere])
+    o3d.io.write_triangle_mesh('./output/gt_colored_sphere,ply', gt_colored_sphere, write_ascii=True)
+    o3d.io.write_triangle_mesh('./output/sh_colored_sphere,ply', sh_colored_sphere, write_ascii=True)
+
+    # o3d.visualization.draw_geometries([sh_colored_sphere, gt_colored_sphere])
