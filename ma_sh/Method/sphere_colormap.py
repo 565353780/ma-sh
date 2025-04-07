@@ -13,6 +13,7 @@ def gaussian_dist_func(phi, theta):
 def createColoredSphere(
     distance_func,
     resolution: int = 200,
+    colormap: str = 'viridis',
     dist_min: Union[float, None] = None,
     dist_max: Union[float, None] = None,
 ) -> o3d.geometry.TriangleMesh:
@@ -34,20 +35,23 @@ def createColoredSphere(
     if dist_min is None or dist_max is None:
         dist_min = values.min()
         dist_max = values.max()
+    else:
+        values = np.clip(values, dist_min, dist_max)
 
     values_norm = (values - dist_min) / (dist_max - dist_min)
 
-    cmap = cm.get_cmap("viridis")
+    cmap = cm.get_cmap(colormap)
     colors = cmap(values_norm)[:, :3]
 
     sphere.vertex_colors = o3d.utility.Vector3dVector(colors)
 
-    return sphere
+    return sphere, dist_min, dist_max
 
 def createSHColoredSphere(
     degree_max: int,
     sh_params: Union[np.ndarray, list],
     resolution: int = 200,
+    colormap: str = 'viridis',
     dist_min: Union[float, None] = None,
     dist_max: Union[float, None] = None,
 ) -> o3d.geometry.TriangleMesh:
@@ -56,16 +60,16 @@ def createSHColoredSphere(
 
     dist_func = partial(sh_3d_model.getDiffValues, method_name='numpy')
 
-    sh_colored_sphere = createColoredSphere(dist_func, resolution, dist_min, dist_max)
-
-    return sh_colored_sphere
+    return createColoredSphere(dist_func, resolution, colormap, dist_min, dist_max)
 
 def createGTColoredSphere(
     mesh_file_path: str,
     position: Union[np.ndarray, list],
     resolution: int = 200,
+    colormap: str = 'viridis',
     dist_min: Union[float, None] = None,
     dist_max: Union[float, None] = None,
+    background_color: Union[np.ndarray, list] = [255, 255, 255],
 ) -> o3d.geometry.TriangleMesh:
     mesh = o3d.io.read_triangle_mesh(mesh_file_path)
     mesh.compute_vertex_normals()
@@ -92,17 +96,26 @@ def createGTColoredSphere(
     depth_map = ans['t_hit'].numpy()
 
     depth_map[np.isinf(depth_map)] = np.nan
-    depth_map[np.isnan(depth_map)] = 0.0
+    depth_map[np.isnan(depth_map)] = -1.0
+
+    valid_depth_mask = depth_map >= 0
+    valid_depth_map = depth_map[valid_depth_mask]
 
     if dist_min is None or dist_max is None:
-        dist_min = depth_map.min()
-        dist_max = depth_map.max()
+        dist_min = valid_depth_map.min()
+        dist_max = valid_depth_map.max()
+    else:
+        depth_map = np.clip(depth_map, dist_min, dist_max)
 
     depth_norm = (depth_map - dist_min) / (dist_max - dist_min)
 
-    cmap = cm.get_cmap("viridis")
+    cmap = cm.get_cmap(colormap)
     colors = cmap(depth_norm)[:, :3]
+
+    bg_color = np.asarray(background_color, float) / 255.0
+
+    colors[valid_depth_mask == False] = bg_color
 
     sphere.vertex_colors = o3d.utility.Vector3dVector(colors)
 
-    return sphere
+    return sphere, dist_min, dist_max
