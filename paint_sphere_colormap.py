@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     resolution = 1000
     colormap = 'jet'
-    background_color = [200, 200, 200]
+    background_color = [255, 255, 255]
 
     gt_colored_sphere, gt_dist_min, gt_dist_max = createGTColoredSphere(
         mesh_file_path, pos, resolution, colormap, background_color=background_color)
@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     # sh_colored_sphere.translate([2.5, 0, 0])
 
-    o3d.io.write_triangle_mesh('./output/gt_colored_sphere,ply', gt_colored_sphere, write_ascii=True)
-    o3d.io.write_triangle_mesh('./output/sh_colored_sphere,ply', sh_colored_sphere, write_ascii=True)
+    o3d.io.write_triangle_mesh('./output/gt_colored_sphere.ply', gt_colored_sphere, write_ascii=True)
+    o3d.io.write_triangle_mesh('./output/sh_colored_sphere.ply', sh_colored_sphere, write_ascii=True)
 
     # o3d.visualization.draw_geometries([sh_colored_sphere, gt_colored_sphere])
