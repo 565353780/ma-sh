@@ -4,6 +4,7 @@ import numpy as np
 import open3d as o3d
 import matplotlib.pyplot as plt
 from math import sqrt
+from tqdm import trange
 from copy import deepcopy
 from typing import Union, Tuple
 from abc import ABC, abstractmethod
@@ -900,6 +901,7 @@ class BaseMash(ABC):
         renameFile(tmp_save_params_file_path, save_params_file_path)
         return True
 
+    @torch.no_grad()
     def saveAsPcdFile(
         self,
         save_pcd_file_path: str,
@@ -927,4 +929,48 @@ class BaseMash(ABC):
         )
 
         renameFile(tmp_save_pcd_file_path, save_pcd_file_path)
+        return True
+
+    @torch.no_grad()
+    def saveAsAnchorPcdFiles(
+        self,
+        save_pcd_folder_path: str,
+        overwrite: bool = False,
+    ) -> bool:
+        os.makedirs(save_pcd_folder_path, exist_ok=True)
+
+        boundary_pts, inner_pts, inner_anchor_idxs = self.toSamplePoints()
+
+        print("[INFO][Mash::saveAsAnchorPcdFiles]")
+        print("\t start save as anchor pcd files...")
+        for i in trange(self.anchor_num):
+            save_pcd_file_path = save_pcd_folder_path + str(i) + '_pcd.ply'
+            if os.path.exists(save_pcd_file_path):
+                if not overwrite:
+                    continue
+
+                removeFile(save_pcd_file_path)
+
+            boundary_mask = self.mask_boundary_phi_idxs == i
+            inner_mask = inner_anchor_idxs == i
+
+            anchor_boundary_pts = boundary_pts[boundary_mask]
+            anchor_inner_pts = inner_pts[inner_mask]
+
+            anchor_pts = torch.vstack([anchor_boundary_pts, anchor_inner_pts]).cpu().numpy()
+
+            pcd = getPointCloud(anchor_pts)
+
+            tmp_save_pcd_file_path = save_pcd_file_path[:-4] + "_tmp" + save_pcd_file_path[-4:]
+
+            o3d.io.write_point_cloud(tmp_save_pcd_file_path, pcd, write_ascii=True)
+
+            if not os.path.exists(tmp_save_pcd_file_path):
+                print("[ERROR][Mash::saveAsAnchorPcdFiles]")
+                print("\t write_point_cloud failed!")
+                print('\t save_pcd_file_path:', save_pcd_file_path)
+                continue
+
+            renameFile(tmp_save_pcd_file_path, save_pcd_file_path)
+
         return True

@@ -30,7 +30,7 @@ def compare(str_a: str, str_b: str) -> int:
 
 def demo():
     # test crop function
-    if True:
+    if False:
         createCroppedPcdFiles(
             '/home/chli/chLi/Dataset/Washer/sample_pcd/BOSCH_WLG.npy',
             '/home/chli/chLi/Results/ma-sh/output/crop/Washer/anc-1500/',
@@ -54,46 +54,64 @@ def demo():
 
     # view single mash
     if False:
-        mash_file_path_list = [
-            '/home/chli/chLi/Results/ma-sh/output/fit/fixed/Washer/anchor-1500/mash/0_final_anc-1500_mash.npy',
-            #'/home/chli/chLi/Results/ma-sh/output/fit/fixed/XiaomiSU7/anchor-1500/mash/0_final_anc-1500_mash.npy',
-            #"/home/chli/chLi/Dataset/MashV4/ShapeNet/03001627/1006be65e7bc937e9141f9b58470d646.npy",
-            #"/home/chli/chLi/Dataset/MashV4/ShapeNet/03001627/1007e20d5e811b308351982a6e40cf41.npy",
-            #"./output/combined_mash.npy",
-        ]
+        mash_file_path = '/home/chli/chLi/Results/ma-sh/output/fit/fixed/bunny/anchor-50/mash/578_final_anc-50_mash.npy'
 
-        for mash_file_path in mash_file_path_list:
-            mash = Mash.fromParamsFile(mash_file_path, 180, 2000, 1.0, device="cuda")
+        mash = Mash.fromParamsFile(mash_file_path, 180, 2000, 1.0, device="cuda")
 
-            mash_pcd = mash.toSamplePcd()
+        '''
+        mash.saveAsAnchorPcdFiles('/home/chli/chLi/Results/ma-sh/output/anchors_pcd/bunny_50anc/')
+        exit()
+        '''
 
-            '''
+        mash_pcd = mash.toSamplePcd()
+
+        '''
+        print("start show mash:", mash_file_path)
+        o3d.visualization.draw_geometries([mash_pcd])
+        exit()
+        '''
+
+        mash_pcd_pts = np.asarray(mash_pcd.points)
+
+        bounds = np.max(mash_pcd_pts, axis=0) - np.min(mash_pcd_pts, axis=0)
+
+        clip_num = 6
+        save_folder_path = '/home/chli/chLi/Results/ma-sh/output/clip/XiaomiSU7/anc-1500/'
+        for i in range(clip_num):
+            current_center = 0.0 + i / (2 * clip_num + 2) # XiaomiSU7
+            #current_center = 0.0 - i / (clip_num + 2) # Washer
+            clipped_pts = clip_with_obb(mash_pcd_pts, bounds, 0, [current_center, 0.0, 0.0])
+
+            clipped_pcd = getPointCloud(clipped_pts)
+
+            os.makedirs(save_folder_path, exist_ok=True)
+            o3d.io.write_point_cloud(save_folder_path + str(i) + '_pcd.ply', clipped_pcd, write_ascii=True)
+            continue
+
+            clipped_pcd.translate([1, 0, 0])
+
             print("start show mash:", mash_file_path)
-            o3d.visualization.draw_geometries([mash_pcd])
-            exit()
-            '''
+            o3d.visualization.draw_geometries([mash_pcd, clipped_pcd])
+        exit()
 
-            mash_pcd_pts = np.asarray(mash_pcd.points)
+    # view anchors pcd
+    if True:
+        anchors_pcd_folder_path = '/home/chli/chLi/Results/ma-sh/output/anchors_pcd/bunny_50anc/'
 
-            bounds = np.max(mash_pcd_pts, axis=0) - np.min(mash_pcd_pts, axis=0)
+        anchor_pcd_file_name_list = os.listdir(anchors_pcd_folder_path)
 
-            clip_num = 6
-            save_folder_path = '/home/chli/chLi/Results/ma-sh/output/clip/XiaomiSU7/anc-1500/'
-            for i in range(clip_num):
-                current_center = 0.0 + i / (2 * clip_num + 2) # XiaomiSU7
-                #current_center = 0.0 - i / (clip_num + 2) # Washer
-                clipped_pts = clip_with_obb(mash_pcd_pts, bounds, 0, [current_center, 0.0, 0.0])
-
-                clipped_pcd = getPointCloud(clipped_pts)
-
-                os.makedirs(save_folder_path, exist_ok=True)
-                o3d.io.write_point_cloud(save_folder_path + str(i) + '_pcd.ply', clipped_pcd, write_ascii=True)
+        anchor_pcd_list = []
+        for anchor_pcd_file_name in anchor_pcd_file_name_list:
+            if anchor_pcd_file_name.split('.')[-1] not in ['ply', 'obj']:
                 continue
 
-                clipped_pcd.translate([1, 0, 0])
+            anchor_pcd_file_path = anchors_pcd_folder_path + anchor_pcd_file_name
 
-                print("start show mash:", mash_file_path)
-                o3d.visualization.draw_geometries([mash_pcd, clipped_pcd])
+            anchor_pcd = o3d.io.read_point_cloud(anchor_pcd_file_path)
+
+            anchor_pcd_list.append(anchor_pcd)
+
+        o3d.visualization.draw_geometries(anchor_pcd_list)
         exit()
 
     # view mash dataset
