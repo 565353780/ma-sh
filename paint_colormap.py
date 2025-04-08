@@ -1,15 +1,18 @@
+import sys
+sys.path.append('../wn-nc/')
+
 from ma_sh.Method.paint import paintColormap
 
 
 def demo():
-    error_max_percent = 0.0001
+    error_max_percent = 0.0003
     accurate = False
     overwrite = False
 
     shape_id = 'XiaomiSU7'
     shape_id = 'RobotArm'
     shape_id = 'Washer'
-    # shape_id = 'bunny'
+    shape_id = 'bunny'
 
     if shape_id == 'XiaomiSU7':
         normalized_mesh_file_path = '/home/chli/chLi/Dataset/XiaomiSU7/normalized_mesh/Xiaomi_SU7_2024_low_mesh.ply'
@@ -28,8 +31,8 @@ def demo():
 
     elif shape_id == 'bunny':
         normalized_mesh_file_path = '/home/chli/chLi/Dataset/Famous/normalized_mesh/bunny.ply'
-        mash_result_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit/fixed/bunny/'
-        save_colored_gt_mesh_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit_error_mesh/bunny/'
+        mash_result_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit/fixed/bunny/anchor-50/'
+        save_colored_gt_mesh_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit_error_mesh/bunny/anchor-50/'
 
     else:
         return False
