@@ -30,6 +30,9 @@ def createAnimation(
     steps: list,
     values: list,
     save_video_file_path: str,
+    x_label: str = 'X',
+    y_label: str = 'Y',
+    title: str = 'Title',
     fps: int = 30,
     render: bool = False,
     overwrite: bool = False,
@@ -51,9 +54,9 @@ def createAnimation(
     line, = ax.plot([], [], lw=2)
     ax.set_xlim(0, max(steps))
     ax.set_ylim(0, max(values) * 1.1)
-    ax.set_xlabel('Step')
-    ax.set_ylabel('Chamfer')
-    ax.set_title('MASH Optimization')
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    ax.set_title(title)
 
     def init():
         line.set_data([], [])
@@ -80,6 +83,9 @@ def createLogAnimation(
     event_file_path: str,
     tag: str,
     save_video_file_path: str,
+    x_label: str = 'X',
+    y_label: str = 'Y',
+    title: str = 'Title',
     fps: int = 30,
     render: bool = False,
     overwrite: bool = False,
@@ -94,6 +100,9 @@ def createLogAnimation(
         steps,
         values,
         save_video_file_path,
+        x_label,
+        y_label,
+        title,
         fps,
         render,
         overwrite,
