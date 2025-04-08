@@ -86,6 +86,7 @@ def trainOnMesh():
         gt_points_file_path = '/home/chli/chLi/Dataset/XiaomiSU7/sample_pcd/Xiaomi_SU7_2024_low_mesh.npy'
         anchor_num_list = [10, 20, 50, 100, 200, 400, 1500]
         anchor_num_list = [1500]
+        sh_degree = 2
         save_freq = -1
 
     elif shape_id == 'RobotArm':
@@ -93,6 +94,7 @@ def trainOnMesh():
         normalized_mesh_file_path = '/home/chli/chLi/Dataset/RobotArm/normalized_mesh/Rmk3.ply'
         gt_points_file_path = '/home/chli/chLi/Dataset/RobotArm/sample_pcd/Rmk3.npy'
         anchor_num_list = [10, 20, 50, 100, 200, 400]
+        sh_degree = 2
         save_freq = -1
 
     elif shape_id == 'Washer':
@@ -101,6 +103,7 @@ def trainOnMesh():
         gt_points_file_path = '/home/chli/chLi/Dataset/Washer/sample_pcd/BOSCH_WLG.npy'
         anchor_num_list = [10, 20, 50, 100, 200, 400]
         anchor_num_list = [400, 1500, 1000, 500, 400]
+        sh_degree = 2
         save_freq = -1
 
     elif shape_id == 'bunny':
@@ -108,7 +111,9 @@ def trainOnMesh():
         normalized_mesh_file_path = '/home/chli/chLi/Dataset/Famous/normalized_mesh/bunny.ply'
         gt_points_file_path = '/home/chli/chLi/Dataset/Famous/sample_pcd/bunny.npy'
         anchor_num_list = [10, 20, 50, 75, 100, 200]
-        save_freq = -1
+        anchor_num_list = [50]
+        sh_degree = 2
+        save_freq = 1
 
     else:
         return False
@@ -140,7 +145,7 @@ def trainOnMesh():
         return True
 
     for anchor_num in anchor_num_list:
-        save_log_folder_path = None
+        save_log_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit/fixed/' + shape_id + '/logs/anchor-' + str(anchor_num) + '/'
         save_result_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit/fixed/' + shape_id + '/anchor-' + str(anchor_num) + '/'
 
         if not overwrite:
@@ -153,6 +158,7 @@ def trainOnMesh():
         demo_train(
             gt_points_file_path,
             anchor_num,
+            sh_degree,
             save_freq,
             save_log_folder_path,
             save_result_folder_path)
@@ -195,5 +201,5 @@ if __name__ == "__main__":
     '''
 
     #trainOnDataset()
-    #trainOnMesh()
-    trainOnPcd()
+    trainOnMesh()
+    # trainOnPcd()
