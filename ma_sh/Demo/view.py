@@ -1,14 +1,18 @@
+import sys
+sys.path.append('../wn-nc/')
+
 import os
 import torch
-from random import shuffle
 import functools
 import numpy as np
 import open3d as o3d
+from tqdm import trange
+from random import shuffle
 
 from ma_sh.Config.custom_path import toDatasetRootPath
 from ma_sh.Method.data import toNumpy
 from ma_sh.Method.pcd import getPointCloud
-from ma_sh.Method.clip import clip_with_obb
+from ma_sh.Method.crop import createCroppedPcdFiles
 from ma_sh.Model.mash import Mash
 from ma_sh.Module.o3d_viewer import O3DViewer
 
@@ -25,30 +29,27 @@ def compare(str_a: str, str_b: str) -> int:
 
 
 def demo():
-    # test clip function
-    if False:
-        pcd_file_path = '/home/chli/chLi/Dataset/Washer/sample_pcd/BOSCH_WLG.npy'
-        pts = np.load(pcd_file_path)
-        pcd = getPointCloud(pts)
+    # test crop function
+    if True:
+        createCroppedPcdFiles(
+            '/home/chli/chLi/Dataset/Washer/sample_pcd/BOSCH_WLG.npy',
+            '/home/chli/chLi/Results/ma-sh/output/crop/Washer/anc-1500/',
+            crop_num=60,
+            angle=0,
+            is_crop_right=False,
+            render=False,
+            overwrite=False,
+        )
 
-        bounds = np.max(pts, axis=0) - np.min(pts, axis=0)
-
-        clip_num = 6
-        save_folder_path = '/home/chli/chLi/Results/ma-sh/output/clip/Washer/anc-1500/'
-        for i in range(clip_num):
-            current_center = 0.0 + i / (2 * clip_num + 2) # XiaomiSU7
-            clipped_pts = clip_with_obb(pts, bounds, 0, [current_center, 0.0, 0.0])
-
-            clipped_pcd = getPointCloud(clipped_pts)
-
-            os.makedirs(save_folder_path, exist_ok=True)
-            o3d.io.write_point_cloud(save_folder_path + str(i) + '_pcd.ply', clipped_pcd, write_ascii=True)
-            #continue
-
-            clipped_pcd.translate([1, 0, 0])
-
-            print("start show mash:", pcd_file_path)
-            o3d.visualization.draw_geometries([pcd, clipped_pcd])
+        createCroppedPcdFiles(
+            '/home/chli/chLi/Dataset/XiaomiSU7/sample_pcd/Xiaomi_SU7_2024_low_mesh.npy',
+            '/home/chli/chLi/Results/ma-sh/output/crop/XiaomiSU7/anc-1500/',
+            crop_num=60,
+            angle=0,
+            is_crop_right=True,
+            render=False,
+            overwrite=False,
+        )
         exit()
 
     # view single mash
