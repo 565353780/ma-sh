@@ -110,8 +110,8 @@ def trainOnMesh():
         gt_mesh_file_path = '/home/chli/chLi/Dataset/Famous/bunny.ply'
         normalized_mesh_file_path = '/home/chli/chLi/Dataset/Famous/normalized_mesh/bunny.ply'
         gt_points_file_path = '/home/chli/chLi/Dataset/Famous/sample_pcd/bunny.npy'
-        anchor_num_list = [10, 20, 50, 75, 100, 200]
-        anchor_num_list = [50]
+        anchor_num_list = [10, 20, 50, 75, 100, 200, 400]
+        # anchor_num_list = [50]
         sh_degree = 2
         save_freq = 1
 
@@ -148,12 +148,16 @@ def trainOnMesh():
         save_log_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit/fixed/' + shape_id + '/logs/anchor-' + str(anchor_num) + '/'
         save_result_folder_path = '/home/chli/chLi/Results/ma-sh/output/fit/fixed/' + shape_id + '/anchor-' + str(anchor_num) + '/'
 
-        if not overwrite:
-            if os.path.exists(save_result_folder_path + 'mash/'):
-                continue
+        #save_log_folder_path = None
+        #save_result_folder_path = None
 
-        if os.path.exists(save_result_folder_path):
-            rmtree(save_result_folder_path)
+        if save_result_folder_path is not None:
+            if not overwrite:
+                if os.path.exists(save_result_folder_path + 'mash/'):
+                    continue
+
+            if os.path.exists(save_result_folder_path):
+                rmtree(save_result_folder_path)
 
         demo_train(
             gt_points_file_path,
