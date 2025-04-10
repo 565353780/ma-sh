@@ -1,20 +1,35 @@
 import os
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 from typing import Union, Tuple
+from matplotlib.animation import FuncAnimation, FFMpegWriter
 from tensorboard.backend.event_processing import event_accumulator
 
 from ma_sh.Method.path import createFileFolder, removeFile
 
 
 def extract_scalar(
-    event_file_path: str,
+    event_folder_path: str,
     tag: str,
 ) -> Union[Tuple[list, list], Tuple[None, None]]:
-    if not os.path.exists(event_file_path):
+    if not os.path.exists(event_folder_path):
+        print('[ERROR][animation::extract_scalar]')
+        print('\t event folder not exist!')
+        print('\t event_folder_path:', event_folder_path)
+        return None, None
+
+    event_file_path = None
+
+    event_file_name_list = os.listdir(event_folder_path)
+    for event_file_name in event_file_name_list:
+        if not event_file_name.startswith('event'):
+            continue
+
+        event_file_path = event_folder_path + event_file_name
+        break
+
+    if event_file_path is None:
         print('[ERROR][animation::extract_scalar]')
         print('\t event file not exist!')
-        print('\t event_file_path:', event_file_path)
         return None, None
 
     ea = event_accumulator.EventAccumulator(event_file_path)
@@ -58,6 +73,8 @@ def createAnimation(
     ax.set_ylabel(y_label)
     ax.set_title(title)
 
+    fig.tight_layout()
+
     def init():
         line.set_data([], [])
         return line,
@@ -66,9 +83,9 @@ def createAnimation(
         line.set_data(steps[:frame + 1], values[:frame + 1])
         return line,
 
-    ani = animation.FuncAnimation(
+    ani = FuncAnimation(
         fig, update, frames=max_frames, init_func=init,
-        blit=True, interval=50, repeat=False
+        blit=True, repeat=False,
     )
 
     if render:
@@ -76,11 +93,20 @@ def createAnimation(
 
     createFileFolder(save_video_file_path)
 
-    ani.save(save_video_file_path, fps=fps, extra_args=['-vcodec', 'libx264'])
+    writer = FFMpegWriter(fps=fps, metadata=dict(artist='chLi'), bitrate=1800)
+    ani.save(
+        save_video_file_path,
+        writer=writer,
+        dpi=300,
+    )
+
+    plt.savefig(save_video_file_path[:-4] + '.png', dpi=300, bbox_inches='tight')
+
+    plt.close()
     return True
 
 def createLogAnimation(
-    event_file_path: str,
+    event_folder_path: str,
     tag: str,
     save_video_file_path: str,
     x_label: str = 'X',
@@ -90,7 +116,7 @@ def createLogAnimation(
     render: bool = False,
     overwrite: bool = False,
 ) -> bool:
-    steps, values = extract_scalar(event_file_path, tag)
+    steps, values = extract_scalar(event_folder_path, tag)
     if steps is None or values is None:
         print('[ERROR][animation::createLogAnimation]')
         print('\t extract_scalar failed!')
