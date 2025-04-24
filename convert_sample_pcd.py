@@ -5,9 +5,10 @@ from ma_sh.Module.Convertor.sample_pcd import Convertor
 if __name__ == '__main__':
     dataset_root_folder_path = toDatasetRootPath()
     gt_points_num = 4000000000
-    gt_points_num = 512
+    gt_points_num = 8192
     random_weight = 10.0
-    noise_weight = 0.002
+    random_weight = 0.0
+    noise_weight = 0.0
     need_normalize = False
     source_data_type = '.obj'
     target_data_type = '.ply'
@@ -18,8 +19,8 @@ if __name__ == '__main__':
         exit()
 
     convertor = Convertor(
-        dataset_root_folder_path + "ShapeNet/manifold_test/",
-        dataset_root_folder_path + "ShapeNet/manifold_mash-512_nonuniform/03001627/",
+        dataset_root_folder_path + "Thingi10K/mesh/",
+        dataset_root_folder_path + "Thingi10K/mesh_pcd_8192/",
         gt_points_num,
         random_weight,
         noise_weight,
