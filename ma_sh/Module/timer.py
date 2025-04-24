@@ -42,6 +42,8 @@ class Timer(object):
     def now(self, append: str = "s") -> float:
         current_time_sum = self.currentTimeSum()
 
+        if append == "ms":
+            return current_time_sum * 1000.0
         if append == "s":
             return current_time_sum
         if append == "m":
