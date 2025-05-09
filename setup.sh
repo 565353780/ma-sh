@@ -8,6 +8,7 @@ git clone https://github.com/565353780/ulip-manage.git
 git clone https://github.com/565353780/distribution-manage.git
 git clone https://github.com/565353780/wn-nc.git
 git clone https://github.com/565353780/siggraph-rebuttal.git
+git clone https://github.com/565353780/chamfer-distance.git
 
 cd sdf-generate
 ./setup.sh
@@ -36,6 +37,11 @@ cd ../wn-nc
 cd ../siggraph-rebuttal
 ./setup.sh
 
+cd ../chamfer-distance
+./setup.sh
+
+cd ../ma-sh
+
 if [ "$(uname)" = "Darwin" ]; then
   brew install bear
 elif [ "$(uname)" = "Linux" ]; then
@@ -47,7 +53,6 @@ pip install -U ninja
 
 pip install -U torch torchvision torchaudio
 
-cd ../ma-sh
 ./compile.sh
 
 pip install -U tqdm tensorboard matplotlib trimesh torchviz \
