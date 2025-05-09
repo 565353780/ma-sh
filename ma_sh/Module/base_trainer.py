@@ -9,6 +9,8 @@ from abc import ABC, abstractmethod
 
 import mash_cpp
 
+from chamfer_distance.Module.chamfer_distances import ChamferDistances
+
 from ma_sh.Config.weights import W0
 from ma_sh.Config.constant import EPSILON
 from ma_sh.Config.degree import MAX_MASK_DEGREE, MAX_SH_DEGREE
@@ -17,6 +19,7 @@ from ma_sh.Method.data import toNumpy
 from ma_sh.Method.path import createFileFolder, removeFile
 from ma_sh.Method.pcd import getPointCloud, downSample
 from ma_sh.Method.time import getCurrentTime
+from ma_sh.Loss.boundary import BoundaryContinuousLoss
 from ma_sh.Module.logger import Logger
 from ma_sh.Module.o3d_viewer import O3DViewer
 
@@ -298,18 +301,25 @@ class BaseTrainer(ABC):
         boundary_connect_loss = torch.zeros_like(fit_loss)
 
         if fit_loss_weight > 0 or coverage_loss_weight > 0:
-            fit_loss, coverage_loss = mash_cpp.toChamferDistanceLoss(
-                torch.vstack([boundary_pts, inner_pts]), gt_points
-            )
+            mash_pts = torch.vstack([boundary_pts, inner_pts]).unsqueeze(0)
+            fit_dists2, coverage_dists2 = ChamferDistances.namedAlgo('cuda_kd')(mash_pts, gt_points)[:2]
+
+            fit_dists = torch.sqrt(fit_dists2 + EPSILON)
+            coverage_dists = torch.sqrt(coverage_dists2 + EPSILON)
+
+            fit_loss = torch.mean(fit_dists)
+            coverage_loss = torch.mean(coverage_dists)
+
         spend = time() - start
         self.fit_loss_time += spend / 2.0
         self.coverage_loss_time += spend / 2.0
 
         start = time()
         if boundary_connect_loss_weight > 0:
-            boundary_connect_loss = mash_cpp.toBoundaryConnectLoss(
+            boundary_connect_loss_2 = BoundaryContinuousLoss(
                 self.mash.anchor_num, boundary_pts, self.mash.mask_boundary_phi_idxs
             )
+
         self.boundary_connect_loss_time += time() - start
 
         weighted_fit_loss = fit_loss_weight * fit_loss

@@ -1,5 +1,6 @@
 import sys
 sys.path.append('../wn-nc/')
+sys.path.append('../chamfer-distance/')
 
 import os
 import numpy as np
@@ -111,7 +112,7 @@ def trainOnMesh():
         normalized_mesh_file_path = '/home/chli/chLi/Dataset/Famous/normalized_mesh/bunny.ply'
         gt_points_file_path = '/home/chli/chLi/Dataset/Famous/sample_pcd/bunny.npy'
         anchor_num_list = [10, 20, 50, 75, 100, 200, 400]
-        # anchor_num_list = [50]
+        anchor_num_list = [2800]
         sh_degree = 2
         save_freq = 1
 
@@ -119,7 +120,7 @@ def trainOnMesh():
         return False
 
     render_only = False
-    overwrite = False
+    overwrite = True
 
     if not os.path.exists(gt_mesh_file_path):
         print('mesh not exist!')
