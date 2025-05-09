@@ -69,6 +69,7 @@ def demo(
         save_log_folder_path,
     )
 
+    print('start load GT data...')
     if False:
         trainer.loadMeshFile(mesh_file_path)
     else:
@@ -88,6 +89,7 @@ def demo(
         trainer.loadGTPointsFile(gt_points_file_path, gt_points_num)
 
     timer = Timer()
+    print('start optimizing MASH...')
     trainer.autoTrainMash(gt_points_num)
 
     print('finish training, spend time :', timer.now())

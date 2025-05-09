@@ -103,7 +103,10 @@ class BaseTrainer(ABC):
 
         sample_gt_pcd = gt_pcd
         if sample_point_num is not None:
-            if sample_point_num < np.asarray(gt_pcd.points).shape[0]:
+            gt_point_num = np.asarray(gt_pcd.points).shape[0]
+            if sample_point_num < gt_point_num:
+                print('[INFO][BaseTrainer::loadGTPoints]')
+                print('\t start downSample', sample_point_num, 'points from gt', gt_point_num, 'points...')
                 sample_gt_pcd = downSample(gt_pcd, sample_point_num)
                 if sample_gt_pcd is None:
                     print('[WARN][BaseTrainer::loadGTPoints]')
@@ -316,7 +319,7 @@ class BaseTrainer(ABC):
 
         start = time()
         if boundary_connect_loss_weight > 0:
-            boundary_connect_loss_2 = BoundaryContinuousLoss(
+            boundary_connect_loss = BoundaryContinuousLoss(
                 self.mash.anchor_num, boundary_pts, self.mash.mask_boundary_phi_idxs
             )
 
