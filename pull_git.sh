@@ -34,3 +34,8 @@ if [ -d "../distribution-manage/" ]; then
   cd ../distribution-manage/
   git pull
 fi
+
+if [ -d "../chamfer-distance/" ]; then
+  cd ../chamfer-distance/
+  git pull
+fi
