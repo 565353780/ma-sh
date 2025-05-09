@@ -107,7 +107,7 @@ class BaseTrainer(ABC):
             if sample_point_num < gt_point_num:
                 print('[INFO][BaseTrainer::loadGTPoints]')
                 print('\t start downSample', sample_point_num, 'points from gt', gt_point_num, 'points...')
-                sample_gt_pcd = downSample(gt_pcd, sample_point_num)
+                sample_gt_pcd = downSample(gt_pcd, sample_point_num, try_fps_first=False)
                 if sample_gt_pcd is None:
                     print('[WARN][BaseTrainer::loadGTPoints]')
                     print('\t downSample failed! will use all input gt points!')
