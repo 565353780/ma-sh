@@ -2,6 +2,24 @@ from time import sleep
 
 from ma_sh.Demo.Convertor.mash_to_mesh import demo as demo_convert_mash_to_mesh
 
+from ma_sh.Module.Convertor.mash_to_mesh import Convertor
+
+
+def mash2mesh(
+    mash_folder_path: str,
+    save_mesh_folder_path: str,
+):
+    source_data_type = '.npy'
+    target_data_type = '.ply'
+
+    convertor = Convertor(
+        mash_folder_path,
+        save_mesh_folder_path,
+    )
+
+    convertor.convertAll(source_data_type, target_data_type)
+    return True
+
 if __name__ == "__main__":
     keep_alive = False
 
@@ -21,6 +39,13 @@ if __name__ == "__main__":
         # demo_convert_mash_to_mesh('SimpleShapes/mesh_mash-10anc/', 'SimpleShapes/mesh_mash_recon-10anc/')
         # demo_convert_mash_to_mesh('SimpleShapes/mesh_mash-6anc/', 'SimpleShapes/mesh_mash_recon-6anc/')
         # demo_convert_mash_to_mesh('SimpleShapes/mesh_mash-4anc/', 'SimpleShapes/mesh_mash_recon-4anc/')
+
+        mash2mesh('/home/chli/chLi/Results/ma-sh/output/fit/fixed/difficult-0/anchor-2400/', '/home/chli/chLi/Results/ma-sh/output/rencon/difficult-0/')
+        mash2mesh('/home/chli/chLi/Results/ma-sh/output/fit/fixed/difficult-1/anchor-2200/', '/home/chli/chLi/Results/ma-sh/output/rencon/difficult-1/')
+        mash2mesh('/home/chli/chLi/Results/ma-sh/output/fit/fixed/difficult-2/anchor-2200/', '/home/chli/chLi/Results/ma-sh/output/rencon/difficult-2/')
+        mash2mesh('/home/chli/chLi/Results/ma-sh/output/fit/fixed/difficult-3/anchor-2200/', '/home/chli/chLi/Results/ma-sh/output/rencon/difficult-3/')
+        mash2mesh('/home/chli/chLi/Results/ma-sh/output/fit/fixed/difficult-4/anchor-2200/', '/home/chli/chLi/Results/ma-sh/output/rencon/difficult-4/')
+        exit()
 
         demo_convert_mash_to_mesh('ShapeNet/manifold_mash-2048_random-10-400anc/', 'test/ShapeNet/manifold_mash_recon-2048_random-10-400anc/')
         demo_convert_mash_to_mesh('ShapeNet/manifold_mash-1024_random-10-400anc/', 'test/ShapeNet/manifold_mash_recon-1024_random-10-400anc/')

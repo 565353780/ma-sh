@@ -124,14 +124,14 @@ def trainOnMesh():
         ],
     }
 
-    shape_id = 'difficult-1'
+    shape_id = 'difficult-2'
 
     gt_mesh_file_path = shape_data_dict[shape_id][0]
     normalized_mesh_file_path = shape_data_dict[shape_id][1]
     gt_points_file_path = shape_data_dict[shape_id][2]
 
     anchor_num_list = [10, 20, 50, 100, 200, 400]
-    anchor_num_list = [2400]
+    anchor_num_list = [2200]
     sh_degree = 2
     save_freq = -1
 
