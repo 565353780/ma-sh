@@ -317,6 +317,9 @@ class BaseTrainer(ABC):
         coverage_loss = torch.zeros_like(fit_loss)
         boundary_connect_loss = torch.zeros_like(fit_loss)
 
+        fit_loss_weight = 0
+        coverage_loss_weight = 0
+
         if fit_loss_weight > 0 or coverage_loss_weight > 0:
             mash_pts = torch.vstack([boundary_pts, inner_pts]).unsqueeze(0)
 
@@ -344,6 +347,18 @@ class BaseTrainer(ABC):
             boundary_connect_loss = BoundaryContinuousLoss(
                 self.mash.anchor_num, boundary_pts
             )
+
+            if False:
+                boundary_connect_loss2, d2 = BoundaryContinuousLoss_NoExpandIndexing(
+                    self.mash.anchor_num, boundary_pts
+                )
+
+                print("====")
+                print(boundary_connect_loss)
+                print(boundary_connect_loss2)
+                print(d1.shape)
+                print(d2.shape)
+                assert torch.allclose(d1, d2, atol=1e-5)
 
         self.boundary_connect_loss_time += time() - start
 
