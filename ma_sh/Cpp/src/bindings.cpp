@@ -1,11 +1,9 @@
 #include "bound.h"
-#include "chamfer.h"
 #include "direction.h"
 #include "filter.h"
 #include "fps.h"
 #include "idx.h"
 #include "inv.h"
-#include "loss.h"
 #include "mash.h"
 #include "mash_unit.h"
 #include "mask.h"
@@ -23,8 +21,6 @@ PYBIND11_MODULE(mash_cpp, m) {
 
   m.def("toAnchorBounds", &toAnchorBounds, "bound.toAnchorBounds");
 
-  m.def("toChamferDistance", &toChamferDistance, "chamfer.toChamferDistance");
-
   m.def("toDirections", &toDirections, "direction.toDirections");
   m.def("toPolars", &toPolars, "direction.toPolars");
 
@@ -41,16 +37,6 @@ PYBIND11_MODULE(mash_cpp, m) {
   m.def("toLowerIdxsVec", &toLowerIdxsVec, "idx.toLowerIdxsVec");
 
   m.def("toInvPoints", &toInvPoints, "inv.toInvPoints");
-
-  m.def("toAnchorFitLoss", &toAnchorFitLoss, "loss.toAnchorFitLoss");
-  m.def("toAnchorCoverageLoss", &toAnchorCoverageLoss,
-        "loss.toAnchorCoverageLoss");
-  m.def("toChamferDistanceLoss", &toChamferDistanceLoss,
-        "loss.toChamferDistanceLoss");
-  m.def("toAnchorChamferDistanceLoss", &toAnchorChamferDistanceLoss,
-        "loss.toAnchorChamferDistanceLoss");
-  m.def("toBoundaryConnectLoss", &toBoundaryConnectLoss,
-        "loss.toBoundaryConnectLoss");
 
   m.def("toInMaskSamplePolars", &toInMaskSamplePolars,
         "mash.toInMaskSamplePolars");

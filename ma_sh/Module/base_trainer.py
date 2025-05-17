@@ -7,9 +7,8 @@ from tqdm import tqdm
 from typing import Union
 from abc import ABC, abstractmethod
 
-import mash_cpp
-
-from chamfer_distance.Module.chamfer_distances import ChamferDistances
+from chamfer_distance.Module.cukd_searcher import CUKDSearcher
+from chamfer_distance.Module.sided_distances import SidedDistances
 
 from ma_sh.Config.weights import W0
 from ma_sh.Config.constant import EPSILON
@@ -60,6 +59,8 @@ class BaseTrainer(ABC):
         self.mesh = Mesh()
         self.gt_points = None
 
+        self.searcher = CUKDSearcher()
+
         self.initRecords()
 
         self.o3d_viewer = None
@@ -98,19 +99,29 @@ class BaseTrainer(ABC):
             self.logger.setLogFolder(self.save_log_folder_path)
         return True
 
-    def loadGTPoints(self, gt_points: np.ndarray, sample_point_num: Union[int, None] = None) -> bool:
+    def loadGTPoints(
+        self, gt_points: np.ndarray, sample_point_num: Union[int, None] = None
+    ) -> bool:
         gt_pcd = getPointCloud(gt_points)
 
         sample_gt_pcd = gt_pcd
         if sample_point_num is not None:
             gt_point_num = np.asarray(gt_pcd.points).shape[0]
             if sample_point_num < gt_point_num:
-                print('[INFO][BaseTrainer::loadGTPoints]')
-                print('\t start downSample', sample_point_num, 'points from gt', gt_point_num, 'points...')
-                sample_gt_pcd = downSample(gt_pcd, sample_point_num, try_fps_first=False)
+                print("[INFO][BaseTrainer::loadGTPoints]")
+                print(
+                    "\t start downSample",
+                    sample_point_num,
+                    "points from gt",
+                    gt_point_num,
+                    "points...",
+                )
+                sample_gt_pcd = downSample(
+                    gt_pcd, sample_point_num, try_fps_first=False
+                )
                 if sample_gt_pcd is None:
-                    print('[WARN][BaseTrainer::loadGTPoints]')
-                    print('\t downSample failed! will use all input gt points!')
+                    print("[WARN][BaseTrainer::loadGTPoints]")
+                    print("\t downSample failed! will use all input gt points!")
                     sample_gt_pcd = gt_pcd
 
         self.gt_points = np.asarray(sample_gt_pcd.points)
@@ -128,7 +139,7 @@ class BaseTrainer(ABC):
         sample_gt_pcd.points = o3d.utility.Vector3dVector(self.gt_points)
 
         sample_gt_pcd.estimate_normals()
-        #sample_gt_pcd.orient_normals_consistent_tangent_plane(4)
+        # sample_gt_pcd.orient_normals_consistent_tangent_plane(4)
 
         self.gt_normals = np.asarray(sample_gt_pcd.normals)
 
@@ -153,27 +164,29 @@ class BaseTrainer(ABC):
 
         return True
 
-    def loadGTPointsFile(self, gt_points_file_path: str, sample_point_num: Union[int, None] = None) -> bool:
+    def loadGTPointsFile(
+        self, gt_points_file_path: str, sample_point_num: Union[int, None] = None
+    ) -> bool:
         if not os.path.exists(gt_points_file_path):
             print("[ERROR][BaseTrainer::loadGTPointsFile]")
             print("\t gt points file not exist!")
             print("\t gt_points_file_path:", gt_points_file_path)
             return False
 
-        gt_points_file_type = gt_points_file_path.split('.')[-1]
-        if gt_points_file_type == 'npy':
+        gt_points_file_type = gt_points_file_path.split(".")[-1]
+        if gt_points_file_type == "npy":
             try:
                 gt_points = np.load(gt_points_file_path)
             except KeyboardInterrupt:
-                print('[INFO][pcd::downSample]')
-                print('\t program interrupted by the user (Ctrl+C).')
+                print("[INFO][pcd::downSample]")
+                print("\t program interrupted by the user (Ctrl+C).")
                 exit()
             except (OSError, ValueError) as e:
-                print('[ERROR][BaseTrainer::loadGTPointsFile]')
-                print('\t load gt points file failed!')
-                print('\t gt_points_file_path:', gt_points_file_path)
-                print('\t error:')
-                print('\t', e)
+                print("[ERROR][BaseTrainer::loadGTPointsFile]")
+                print("\t load gt points file failed!")
+                print("\t gt_points_file_path:", gt_points_file_path)
+                print("\t error:")
+                print("\t", e)
                 return False
         else:
             gt_pcd = o3d.io.read_point_cloud(gt_points_file_path)
@@ -217,7 +230,8 @@ class BaseTrainer(ABC):
 
         self.mash.loadParams(
             sh_params=sh_params,
-            positions=self.mesh.sample_pts + self.surface_dist * self.mesh.sample_normals,
+            positions=self.mesh.sample_pts
+            + self.surface_dist * self.mesh.sample_normals,
             face_forward_vectors=-self.mesh.sample_normals,
         )
         return True
@@ -278,7 +292,7 @@ class BaseTrainer(ABC):
         return True
 
     def getLr(self) -> bool:
-        return self.optimizer.param_groups[0]['lr']
+        return self.optimizer.param_groups[0]["lr"]
 
     def updateLr(self, lr: float) -> bool:
         for param_group in self.optimizer.param_groups:
@@ -305,7 +319,13 @@ class BaseTrainer(ABC):
 
         if fit_loss_weight > 0 or coverage_loss_weight > 0:
             mash_pts = torch.vstack([boundary_pts, inner_pts]).unsqueeze(0)
-            fit_dists2, coverage_dists2 = ChamferDistances.namedAlgo('cuda_kd')(mash_pts, gt_points)[:2]
+
+            if self.searcher.gt_points is None:
+                self.searcher.addPoints(gt_points)
+
+            fit_dists2 = self.searcher.query(mash_pts)[0]
+
+            coverage_dists2 = SidedDistances.namedAlgo("cukd")(gt_points, mash_pts)[0]
 
             fit_dists = torch.sqrt(fit_dists2 + EPSILON)
             coverage_dists = torch.sqrt(coverage_dists2 + EPSILON)
@@ -317,10 +337,12 @@ class BaseTrainer(ABC):
         self.fit_loss_time += spend / 2.0
         self.coverage_loss_time += spend / 2.0
 
+        boundary_connect_loss_weight = 0.01
+
         start = time()
         if boundary_connect_loss_weight > 0:
             boundary_connect_loss = BoundaryContinuousLoss(
-                self.mash.anchor_num, boundary_pts, self.mash.mask_boundary_phi_idxs
+                self.mash.anchor_num, boundary_pts
             )
 
         self.boundary_connect_loss_time += time() - start
@@ -336,11 +358,11 @@ class BaseTrainer(ABC):
         )
 
         if torch.isnan(loss).any():
-            print('[ERROR][BaseTrainer::trainStep]')
-            print('\t loss is nan!')
-            print('\t\t fit_loss:', fit_loss)
-            print('\t\t coverage_loss:', coverage_loss)
-            print('\t\t boundary_connect_loss:', boundary_connect_loss)
+            print("[ERROR][BaseTrainer::trainStep]")
+            print("\t loss is nan!")
+            print("\t\t fit_loss:", fit_loss)
+            print("\t\t coverage_loss:", coverage_loss)
+            print("\t\t boundary_connect_loss:", boundary_connect_loss)
             return None
 
         loss.backward()
@@ -358,9 +380,7 @@ class BaseTrainer(ABC):
             "Train/epoch": self.epoch,
             "Train/fit_loss": toNumpy(fit_loss),
             "Train/coverage_loss": toNumpy(coverage_loss),
-            "Train/boundary_connect_loss": toNumpy(
-                boundary_connect_loss
-            ),
+            "Train/boundary_connect_loss": toNumpy(boundary_connect_loss),
             "Train/weighted_fit_loss": toNumpy(weighted_fit_loss),
             "Train/weighted_coverage_loss": toNumpy(weighted_coverage_loss),
             "Train/weighted_boundary_connect_loss": toNumpy(
@@ -417,8 +437,8 @@ class BaseTrainer(ABC):
             )
 
             if loss_dict is None:
-                print('[ERROR][BaseTrainer::warmUpEpoch]')
-                print('\t trainStep failed!')
+                print("[ERROR][BaseTrainer::warmUpEpoch]")
+                print("\t trainStep failed!")
                 return False
 
             assert isinstance(loss_dict, dict)
@@ -503,8 +523,8 @@ class BaseTrainer(ABC):
             )
 
             if loss_dict is None:
-                print('[ERROR][BaseTrainer::trainEpoch]')
-                print('\t trainStep failed!')
+                print("[ERROR][BaseTrainer::trainEpoch]")
+                print("\t trainStep failed!")
                 return False
 
             assert isinstance(loss_dict, dict)
@@ -559,8 +579,12 @@ class BaseTrainer(ABC):
             sample_mash.scale(1.0 / self.scale, False)
             sample_mash.translate(self.translate)
 
-        mask_boundary_sample_points, in_mask_sample_points, _ = sample_mash.toSamplePoints()
-        sample_points = torch.vstack([mask_boundary_sample_points, in_mask_sample_points])
+        mask_boundary_sample_points, in_mask_sample_points, _ = (
+            sample_mash.toSamplePoints()
+        )
+        sample_points = torch.vstack(
+            [mask_boundary_sample_points, in_mask_sample_points]
+        )
         return sample_points
 
     def saveMashFile(self, save_mash_file_path: str, overwrite: bool = False) -> bool:
@@ -575,7 +599,9 @@ class BaseTrainer(ABC):
         sample_mash.saveParamsFile(save_mash_file_path, overwrite)
         return True
 
-    def autoSaveMash(self, state_info: str, save_freq: int = 1, add_idx: bool = True) -> bool:
+    def autoSaveMash(
+        self, state_info: str, save_freq: int = 1, add_idx: bool = True
+    ) -> bool:
         if self.save_result_folder_path is None:
             return False
 
@@ -589,17 +615,18 @@ class BaseTrainer(ABC):
 
         save_file_path = (
             self.save_result_folder_path
-            + 'mash/'
+            + "mash/"
             + str(self.save_file_idx)
             + "_"
             + state_info
-            + "_anc-" + str(self.mash.anchor_num)
+            + "_anc-"
+            + str(self.mash.anchor_num)
             + "_mash.npy"
         )
 
         if not self.saveMashFile(save_file_path, True):
-            print('[ERROR][BaseTrainer::autoSaveMash]')
-            print('\t saveMashFile failed!')
+            print("[ERROR][BaseTrainer::autoSaveMash]")
+            print("\t saveMashFile failed!")
             return False
 
         if add_idx:
@@ -622,7 +649,9 @@ class BaseTrainer(ABC):
         save_mash.saveAsPcdFile(save_pcd_file_path, overwrite)
         return True
 
-    def autoSavePcd(self, state_info: str, save_freq: int = 1, add_idx: bool = True) -> bool:
+    def autoSavePcd(
+        self, state_info: str, save_freq: int = 1, add_idx: bool = True
+    ) -> bool:
         if self.save_result_folder_path is None:
             return False
 
@@ -636,7 +665,7 @@ class BaseTrainer(ABC):
 
         save_pcd_file_path = (
             self.save_result_folder_path
-            + 'pcd/'
+            + "pcd/"
             + str(self.save_file_idx)
             + "_"
             + state_info
@@ -644,8 +673,8 @@ class BaseTrainer(ABC):
         )
 
         if not self.saveAsPcdFile(save_pcd_file_path, True):
-            print('[ERROR][BaseTrainer::autoSavePcd]')
-            print('\t saveAsPcdFile failed!')
+            print("[ERROR][BaseTrainer::autoSavePcd]")
+            print("\t saveAsPcdFile failed!")
             return False
 
         if add_idx:
