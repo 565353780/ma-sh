@@ -16,7 +16,7 @@ mash_extra_compile_args = [
     "-O3",
     "-DCMAKE_BUILD_TYPE Release",
     "-D_GLIBCXX_USE_CXX11_ABI=0",
-    "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+    "-DTORCH_USE_CUDA_DSA",
 ]
 
 if SYSTEM == "Darwin":
@@ -30,13 +30,18 @@ if torch.cuda.is_available():
     mash_sources += glob.glob(mash_src_path + "*.cu")
 
     extra_compile_args = {
-        "cxx": mash_extra_compile_args + ["-DUSE_CUDA"],
+        "cxx": mash_extra_compile_args
+        + [
+            "-DUSE_CUDA",
+            "-DTORCH_USE_CUDA_DSA",
+        ],
         "nvcc": [
             "-O3",
             "-Xfatbin",
             "-compress-all",
             "-DUSE_CUDA",
             "-std=c++17",
+            "-DTORCH_USE_CUDA_DSA",
         ],
     }
 
