@@ -364,10 +364,12 @@ class BaseTrainer(ABC):
             return None
 
         loss.backward()
+        torch.cuda.empty_cache()  # 清空反向传播后不再需要的GPU缓存
 
         self.mash.clearNanGrads()
 
         self.optimizer.step()
+        torch.cuda.empty_cache()  # 清空优化器步骤后不再需要的GPU缓存
 
         chamfer_distance = toNumpy(fit_loss) + toNumpy(coverage_loss)
         self.error = chamfer_distance
@@ -473,6 +475,7 @@ class BaseTrainer(ABC):
                     break
 
         self.logger.addScalar("Train/lr", epoch_lr, self.step - 1)
+        torch.cuda.empty_cache()  # 清空整个训练周期后不再需要的GPU缓存
 
         self.epoch += 1
         return True
@@ -559,6 +562,7 @@ class BaseTrainer(ABC):
                     break
 
         self.logger.addScalar("Train/lr", epoch_lr, self.step - 1)
+        torch.cuda.empty_cache()  # 清空整个训练周期后不再需要的GPU缓存
 
         self.epoch += 1
         return True
