@@ -39,18 +39,12 @@ def BoundaryContinuousLoss(
             ).reshape(-1, 3)
         other_points[i] = others.view((anchor_num - 1) * P, 3)  # 赋值到 batch 中
 
-    # 计算 Chamfer 距离（建议使用 batch 版本的 chamfer kernel）
-    try:
-        chamfer_dist = SidedDistances.namedAlgo("cuda")(
-            boundary_points,
-            other_points,  # [A, P, 3] vs [A, (A-1)*P, 3]
-        )
-        dist2 = chamfer_dist[0]  # [A, P]
+    chamfer_dist = SidedDistances.namedAlgo("cuda")(
+        boundary_points,
+        other_points,  # [A, P, 3] vs [A, (A-1)*P, 3]
+    )
+    dist2 = chamfer_dist[0]  # [A, P]
 
-        dist = torch.sqrt(dist2 + EPSILON)
-        loss = dist.mean()
-        return loss
-
-    except Exception as e:
-        print(f"[ERROR] Chamfer distance error: {str(e)}")
-        return torch.zeros(1, dtype=dtype, device=device)
+    dist = torch.sqrt(dist2 + EPSILON)
+    loss = dist.mean()
+    return loss
