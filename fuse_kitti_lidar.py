@@ -1,14 +1,14 @@
 import os
-from os.path import exists
 import pykitti
 import numpy as np
 import open3d as o3d
 
+
 # 读取 calib_imu_to_velo.txt 文件
 def load_imu_to_velo(calib_path):
-    with open(calib_path, 'r') as f:
+    with open(calib_path, "r") as f:
         lines = f.readlines()
-    
+
     # 提取数值部分
     rotation = list(map(float, lines[1].strip().split()[1:]))  # 去掉 "R:" 开头的字符串
     rotation = np.array(rotation).reshape(3, 3)
@@ -19,15 +19,16 @@ def load_imu_to_velo(calib_path):
 
     return T_imu_to_velo
 
+
 # 设定 KITTI 数据集路径
 base_dir = "path/to/KITTI/dataset"  # 替换为你的 KITTI 数据集路径
-base_dir = '/home/chli/chLi/Dataset/KITTI/raw_data/city/'
+base_dir = "/home/chli/chLi/Dataset/KITTI/raw_data/city/"
 date = "2011_09_26"  # 例如 "2011_09_26"
 drive = "0001"  # 例如 "0001"
 
-calib_file = base_dir + date + '/calib_imu_to_velo.txt'
+calib_file = base_dir + date + "/calib_imu_to_velo.txt"
 
-save_trans_pcd_folder_path = '/home/chli/chLi/Dataset/KITTI/trans_pcd/'
+save_trans_pcd_folder_path = "/home/chli/chLi/Dataset/KITTI/trans_pcd/"
 
 os.makedirs(save_trans_pcd_folder_path, exist_ok=True)
 
@@ -44,10 +45,10 @@ all_transformed_points = []
 # 遍历所有帧的 LiDAR 数据
 for i, (velo_data, oxts) in enumerate(zip(dataset.velo, dataset.oxts)):
     # 只取 XYZ，不要强度值
-    points = velo_data[:, :3]  
+    points = velo_data[:, :3]
 
     # 获取该帧的 IMU 到世界坐标系的变换矩阵
-    T_w_i = oxts.T_w_imu  
+    T_w_i = oxts.T_w_imu
 
     # 计算 LiDAR 到世界坐标的变换
     T_i_l = T_imu_to_velo  # IMU 到 LiDAR 变换
@@ -62,9 +63,11 @@ for i, (velo_data, oxts) in enumerate(zip(dataset.velo, dataset.oxts)):
     trans_pcd = o3d.geometry.PointCloud()
     trans_pcd.points = o3d.utility.Vector3dVector(transformed_points)
 
-    o3d.io.write_point_cloud(save_trans_pcd_folder_path + str(i) + '_pcd.ply', trans_pcd)
+    o3d.io.write_point_cloud(
+        save_trans_pcd_folder_path + str(i) + "_pcd.ply", trans_pcd
+    )
 
-    print(f"Processed frame {i+1}")
+    print(f"Processed frame {i + 1}")
 
 # 合并所有点云
 merged_points = np.vstack(all_transformed_points)
@@ -74,6 +77,8 @@ print("Point cloud fusion completed!")
 merged_pcd = o3d.geometry.PointCloud()
 merged_pcd.points = o3d.utility.Vector3dVector(merged_points)
 
-o3d.io.write_point_cloud('./output/merged_kitti_lidar.ply', merged_pcd, write_ascii=True)
+o3d.io.write_point_cloud(
+    "./output/merged_kitti_lidar.ply", merged_pcd, write_ascii=True
+)
 
 # o3d.visualization.draw_geometries([merged_pcd])

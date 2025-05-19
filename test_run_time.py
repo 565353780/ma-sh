@@ -10,7 +10,7 @@ def testSpeed(
     anchor_num: int,
     sample_point_num: int,
 ):
-    #anchor_num = 400
+    # anchor_num = 400
     mask_degree_max = 3
     sh_degree_max = 2
     mask_boundary_sample_num = 90
@@ -66,7 +66,7 @@ def testSpeed(
         save_log_folder_path,
     )
 
-    if gt_mesh_file_path.endswith('.npy'):
+    if gt_mesh_file_path.endswith(".npy"):
         trainer.loadGTPointsFile(gt_mesh_file_path, gt_points_num)
     else:
         trainer.loadMeshFile(gt_mesh_file_path)
@@ -74,18 +74,24 @@ def testSpeed(
     timer = Timer()
     trainer.autoTrainMash(gt_points_num)
 
-    print('finish training, spend time :', timer.now())
+    print("finish training, spend time :", timer.now())
     return True
 
+
 def testSpeedForSampleNum():
-    gt_mesh_file_path = '/home/chli/chLi/Dataset/Famous/bunny.ply'
+    gt_mesh_file_path = "/home/chli/chLi/Dataset/Famous/bunny.ply"
     gt_points_num_list = [1000, 2000, 5000, 10000, 20000, 40000]
     sample_point_num_list = [int(i / 40) for i in gt_points_num_list]
 
     for i in range(len(gt_points_num_list)):
         gt_points_num = gt_points_num_list[i]
         sample_point_num = sample_point_num_list[i]
-        print('start testSpeed on gt_points_num:', gt_points_num, 'sample_point_num:', sample_point_num)
+        print(
+            "start testSpeed on gt_points_num:",
+            gt_points_num,
+            "sample_point_num:",
+            sample_point_num,
+        )
         testSpeed(
             gt_mesh_file_path,
             gt_points_num,
@@ -94,13 +100,14 @@ def testSpeedForSampleNum():
         )
     return True
 
+
 def testSpeedForAnchorNum():
-    gt_points_file_path = '/home/chli/chLi/Dataset/Famous/sample_pcd/bunny.npy'
+    gt_points_file_path = "/home/chli/chLi/Dataset/Famous/sample_pcd/bunny.npy"
     anchor_num_list = [10, 20, 50, 100, 200, 400]
 
     for i in range(len(anchor_num_list)):
         anchor_num = anchor_num_list[i]
-        print('start testSpeed on anchor_num:', anchor_num)
+        print("start testSpeed on anchor_num:", anchor_num)
         testSpeed(
             gt_points_file_path,
             400000,
@@ -109,6 +116,7 @@ def testSpeedForAnchorNum():
         )
     return True
 
-if __name__ == '__main__':
-    #testSpeedForSampleNum()
+
+if __name__ == "__main__":
+    # testSpeedForSampleNum()
     testSpeedForAnchorNum()

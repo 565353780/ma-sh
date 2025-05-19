@@ -1,5 +1,8 @@
 from time import sleep
-from ma_sh.Demo.Convertor.pipeline_convertor import demoToSDFObjaverse, demoToSDFShapeNet
+from ma_sh.Demo.Convertor.pipeline_convertor import (
+    demoToSDFObjaverse,
+    demoToSDFShapeNet,
+)
 
 if __name__ == "__main__":
     keep_alive = False

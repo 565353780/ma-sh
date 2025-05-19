@@ -32,13 +32,24 @@ def demo():
 
     gt_points_num = 400000
 
-    famous_filename_list = ['hand', 'dragon', 'xyzrgb_dragon_clean', 'angel', 'Armadillo', 'bunny', 'Liberty', 'xyzrgb_statuette']
+    famous_filename_list = [
+        "hand",
+        "dragon",
+        "xyzrgb_dragon_clean",
+        "angel",
+        "Armadillo",
+        "bunny",
+        "Liberty",
+        "xyzrgb_statuette",
+    ]
 
     for mesh_name in famous_filename_list:
-        mesh_file_path = '/home/chli/Dataset/Famous/' + mesh_name + '.ply'
+        mesh_file_path = "/home/chli/Dataset/Famous/" + mesh_name + ".ply"
         assert os.path.exists(mesh_file_path)
 
-        normalized_mesh_file_path = '/home/chli/chLi/Dataset/NormalizedMesh/Famous/' + mesh_name + '.ply'
+        normalized_mesh_file_path = (
+            "/home/chli/chLi/Dataset/NormalizedMesh/Famous/" + mesh_name + ".ply"
+        )
         if not os.path.exists(normalized_mesh_file_path):
             createFileFolder(normalized_mesh_file_path)
             mesh = Mesh(mesh_file_path)
@@ -53,21 +64,33 @@ def demo():
 
             mesh.save(normalized_mesh_file_path, True)
 
-        sampled_pcd_file_path = '/home/chli/chLi/Dataset/SampledPcd_Manifold/Famous/' + mesh_name + '.npy'
+        sampled_pcd_file_path = (
+            "/home/chli/chLi/Dataset/SampledPcd_Manifold/Famous/" + mesh_name + ".npy"
+        )
         if not os.path.exists(sampled_pcd_file_path):
             createFileFolder(sampled_pcd_file_path)
             mesh = Mesh(normalized_mesh_file_path)
             points = mesh.toSamplePoints(gt_points_num)
             np.save(sampled_pcd_file_path, points)
 
-        save_result_folder_path = "/home/chli/Nutstore Files/MASH-Materials/teaser_materials/Anc-" + str(anchor_num) + '/' + mesh_name + '/'
+        save_result_folder_path = (
+            "/home/chli/Nutstore Files/MASH-Materials/teaser_materials/Anc-"
+            + str(anchor_num)
+            + "/"
+            + mesh_name
+            + "/"
+        )
         if os.path.exists(save_result_folder_path):
             continue
 
-        save_log_folder_path = "./logs/Anc-" + str(anchor_num) + '/' + mesh_name + '/'
+        save_log_folder_path = "./logs/Anc-" + str(anchor_num) + "/" + mesh_name + "/"
 
-        save_params_file_path = "./output/Anc-" + str(anchor_num) + '/' + mesh_name + ".npy"
-        save_pcd_file_path = "./output/Anc-" + str(anchor_num) + '/' + mesh_name + ".ply"
+        save_params_file_path = (
+            "./output/Anc-" + str(anchor_num) + "/" + mesh_name + ".npy"
+        )
+        save_pcd_file_path = (
+            "./output/Anc-" + str(anchor_num) + "/" + mesh_name + ".ply"
+        )
         overwrite = True
         print_progress = True
 
@@ -95,12 +118,13 @@ def demo():
             save_log_folder_path,
         )
 
-        print('start fitting Famous:', mesh_name)
+        print("start fitting Famous:", mesh_name)
         trainer.loadGTPointsFile(sampled_pcd_file_path)
         trainer.autoTrainMash(gt_points_num)
         trainer.mash.saveParamsFile(save_params_file_path, overwrite)
         trainer.mash.saveAsPcdFile(save_pcd_file_path, overwrite, print_progress)
     return True
+
 
 if __name__ == "__main__":
     demo()

@@ -1,5 +1,6 @@
 import sys
-sys.path.append('../wn-nc/')
+
+sys.path.append("../wn-nc/")
 
 from ma_sh.Test.import_o3d import test as test_import_o3d
 from ma_sh.Test.rotate import test as test_rotate

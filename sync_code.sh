@@ -1,8 +1,8 @@
 sync_code() {
-  rsync -avP --exclude-from=$HOME/github/ASDF/$1/.gitignore --exclude='.git' --checksum --delete $HOME/github/ASDF/$1/ 8gpu:/root/github/$1/
+  rsync -avP --exclude-from=$HOME/github/ASDF/$1/.gitignore --exclude='.git' --checksum --delete $HOME/github/ASDF/$1/ $2:/root/github/$1/
 }
 
-rsync -avP --checksum $HOME/chLi/Dataset/Transformers 8gpu:/root/chLi/Dataset/
+rsync -avP --checksum $HOME/chLi/Dataset/Transformers $2:/root/chLi/Dataset/
 
 sync_code blender-manage
 sync_code mash-diffusion

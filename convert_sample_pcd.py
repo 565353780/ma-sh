@@ -2,7 +2,7 @@ from ma_sh.Config.custom_path import toDatasetRootPath
 from ma_sh.Module.Convertor.sample_pcd import Convertor
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     dataset_root_folder_path = toDatasetRootPath()
     gt_points_num = 4000000000
     gt_points_num = 8192
@@ -10,12 +10,12 @@ if __name__ == '__main__':
     random_weight = 0.0
     noise_weight = 0.0
     need_normalize = False
-    source_data_type = '.obj'
-    target_data_type = '.ply'
+    source_data_type = ".obj"
+    target_data_type = ".ply"
 
     if dataset_root_folder_path is None:
-        print('[ERROR][sample_pcd::demo]')
-        print('\t toDatasetRootPath failed!')
+        print("[ERROR][sample_pcd::demo]")
+        print("\t toDatasetRootPath failed!")
         exit()
 
     convertor = Convertor(

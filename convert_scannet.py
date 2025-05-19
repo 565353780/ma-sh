@@ -32,18 +32,26 @@ def demo():
 
     gt_points_num = 400000
 
-    scannet_dataset_folder_path = '/home/chli/chLi/Dataset/ScanNet/scans/'
+    scannet_dataset_folder_path = "/home/chli/chLi/Dataset/ScanNet/scans/"
 
     scene_name_list = os.listdir(scannet_dataset_folder_path)
     scene_name_list.sort()
 
     for scene_name in scene_name_list:
-        mesh_id = scene_name + '_vh_clean_2'
-        mesh_file_path = scannet_dataset_folder_path + scene_name + '/' + mesh_id + '.ply'
+        mesh_id = scene_name + "_vh_clean_2"
+        mesh_file_path = (
+            scannet_dataset_folder_path + scene_name + "/" + mesh_id + ".ply"
+        )
         if not os.path.exists(mesh_file_path):
             continue
 
-        normalized_mesh_file_path = '/home/chli/chLi/Dataset/NormalizedMesh/ScanNet/' + scene_name + '/' + mesh_id + '.ply'
+        normalized_mesh_file_path = (
+            "/home/chli/chLi/Dataset/NormalizedMesh/ScanNet/"
+            + scene_name
+            + "/"
+            + mesh_id
+            + ".ply"
+        )
         if not os.path.exists(normalized_mesh_file_path):
             createFileFolder(normalized_mesh_file_path)
             mesh = Mesh(mesh_file_path)
@@ -58,21 +66,37 @@ def demo():
 
             mesh.save(normalized_mesh_file_path, True)
 
-        sampled_pcd_file_path = '/home/chli/chLi/Dataset/SampledPcd_Manifold/ScanNet/' + scene_name + '/' + mesh_id + '.npy'
+        sampled_pcd_file_path = (
+            "/home/chli/chLi/Dataset/SampledPcd_Manifold/ScanNet/"
+            + scene_name
+            + "/"
+            + mesh_id
+            + ".npy"
+        )
         if not os.path.exists(sampled_pcd_file_path):
             createFileFolder(sampled_pcd_file_path)
             mesh = Mesh(normalized_mesh_file_path)
             points = mesh.toSamplePoints(gt_points_num)
             np.save(sampled_pcd_file_path, points)
 
-        save_result_folder_path = "/home/chli/Nutstore Files/MASH-Materials/scene_materials/Anc-" + str(anchor_num) + '/' + scene_name + '/'
+        save_result_folder_path = (
+            "/home/chli/Nutstore Files/MASH-Materials/scene_materials/Anc-"
+            + str(anchor_num)
+            + "/"
+            + scene_name
+            + "/"
+        )
         if os.path.exists(save_result_folder_path):
             continue
 
-        save_log_folder_path = "./logs/Anc-" + str(anchor_num) + '/' + scene_name + '/'
+        save_log_folder_path = "./logs/Anc-" + str(anchor_num) + "/" + scene_name + "/"
 
-        save_params_file_path = "./output/Anc-" + str(anchor_num) + '/' + scene_name + ".npy"
-        save_pcd_file_path = "./output/Anc-" + str(anchor_num) + '/' + scene_name + ".ply"
+        save_params_file_path = (
+            "./output/Anc-" + str(anchor_num) + "/" + scene_name + ".npy"
+        )
+        save_pcd_file_path = (
+            "./output/Anc-" + str(anchor_num) + "/" + scene_name + ".ply"
+        )
         overwrite = True
         print_progress = True
 
@@ -100,12 +124,13 @@ def demo():
             save_log_folder_path,
         )
 
-        print('start fitting Famous:', scene_name)
+        print("start fitting Famous:", scene_name)
         trainer.loadGTPointsFile(sampled_pcd_file_path)
         trainer.autoTrainMash(gt_points_num)
         trainer.mash.saveParamsFile(save_params_file_path, overwrite)
         trainer.mash.saveAsPcdFile(save_pcd_file_path, overwrite, print_progress)
     return True
+
 
 if __name__ == "__main__":
     demo()

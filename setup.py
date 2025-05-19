@@ -19,9 +19,9 @@ mash_extra_compile_args = [
     "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
 ]
 
-if SYSTEM == 'Darwin':
+if SYSTEM == "Darwin":
     mash_extra_compile_args.append("-std=c++17")
-elif SYSTEM == 'Linux':
+elif SYSTEM == "Linux":
     mash_extra_compile_args.append("-std=c++17")
 
 if torch.cuda.is_available():
