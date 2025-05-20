@@ -1,11 +1,13 @@
 import sys
 
 sys.path.append("../wn-nc/")
+sys.path.append("../chamfer-distance/")
 sys.path.append("../siggraph-rebuttal/")
 
 import os
 import torch
 import numpy as np
+from pprint import pprint
 
 from siggraph_rebuttal.Method.table import toTableStr
 
@@ -45,12 +47,12 @@ def demoEvalData():
     dataset_root_path = toDatasetRootPath()
     assert dataset_root_path is not None
 
-    gt_data_folder_path = dataset_root_path + "Thingi10K/mesh/"
-    query_data_folder_path = dataset_root_path + "Thingi10K/mesh_mash-1600anc/"
+    gt_data_folder_path = dataset_root_path + "vae-eval/manifold/"
+    query_data_folder_path = dataset_root_path + "vae-eval/manifold_mash-400anc/"
     gt_type = ".obj"
     query_type = ".npy"
     query_mode = "mash"
-    save_metric_file_path = "./output/metrics/Thingi10K_ours.npy"
+    save_metric_file_path = "./output/metrics/vae-eval-400.npy"
     sample_point_num = 50000
     chamfer_order_list = [1.0, 2.0]
     fscore_thresh_list = [0.01, 0.001, 0.0001]
@@ -75,6 +77,10 @@ def demoEvalData():
 
     print("Table:")
     print(table_str)
+
+    metric_dict = np.load(save_metric_file_path, allow_pickle=True).item()
+    print("Full metrics:")
+    pprint(metric_dict)
     return True
 
 
@@ -347,6 +353,9 @@ def createRecordForSetting(setting: str) -> bool:
 
 
 if __name__ == "__main__":
+    demoEvalData()
+    exit()
+
     dataset_root_path = toDatasetRootPath()
     assert dataset_root_path is not None
 
