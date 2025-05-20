@@ -42,24 +42,24 @@ if __name__ == "__main__":
         # demo_convert_mash_to_mesh('SimpleShapes/mesh_mash-4anc/', 'SimpleShapes/mesh_mash_recon-4anc/')
 
         mash2mesh(
-            "/home/chli/chLi/Results/ma-sh/output/fit/fixed/difficult-0/anchor-2400/",
-            "/home/chli/chLi/Results/ma-sh/output/rencon/difficult-0/",
+            "/home/chli/chLi/Results/ma-sh/output/fit/fixed/difficult-0/anchor-4000/",
+            "/home/chli/chLi/Results/ma-sh/output/recon/difficult-0/anchor-4000/",
         )
         mash2mesh(
-            "/home/chli/chLi/Results/ma-sh/output/fit/fixed/difficult-1/anchor-2200/",
-            "/home/chli/chLi/Results/ma-sh/output/rencon/difficult-1/",
+            "/home/chli/chLi/Results/ma-sh/output/fit/fixed/difficult-1/anchor-4000/",
+            "/home/chli/chLi/Results/ma-sh/output/recon/difficult-1/anchor-4000/",
         )
         mash2mesh(
-            "/home/chli/chLi/Results/ma-sh/output/fit/fixed/difficult-2/anchor-2200/",
-            "/home/chli/chLi/Results/ma-sh/output/rencon/difficult-2/",
+            "/home/chli/chLi/Results/ma-sh/output/fit/fixed/difficult-2/anchor-4000/",
+            "/home/chli/chLi/Results/ma-sh/output/recon/difficult-2/anchor-4000/",
         )
         mash2mesh(
-            "/home/chli/chLi/Results/ma-sh/output/fit/fixed/difficult-3/anchor-2200/",
-            "/home/chli/chLi/Results/ma-sh/output/rencon/difficult-3/",
+            "/home/chli/chLi/Results/ma-sh/output/fit/fixed/difficult-3/anchor-4000/",
+            "/home/chli/chLi/Results/ma-sh/output/recon/difficult-3/anchor-4000/",
         )
         mash2mesh(
-            "/home/chli/chLi/Results/ma-sh/output/fit/fixed/difficult-4/anchor-2200/",
-            "/home/chli/chLi/Results/ma-sh/output/rencon/difficult-4/",
+            "/home/chli/chLi/Results/ma-sh/output/fit/fixed/difficult-4/anchor-4000/",
+            "/home/chli/chLi/Results/ma-sh/output/recon/difficult-4/anchor-4000/",
         )
         exit()
 

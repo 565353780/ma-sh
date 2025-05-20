@@ -25,7 +25,7 @@ from ma_sh.Method.path import createFileFolder, removeFile, renameFile
 from ma_sh.Method.rotate import (
     toRegularRotateVectors,
     toOrthoPosesFromRotateVectors,
-    toRotateVectorsFromOrthoPoses
+    toRotateVectorsFromOrthoPoses,
 )
 
 
@@ -58,7 +58,9 @@ class BaseMash(ABC):
         # Pre Load Datas
         self.sample_phis = torch.tensor([0.0], dtype=self.dtype).to(self.device)
         self.sample_base_values = torch.tensor([0.0], dtype=self.dtype).to(self.device)
-        self.mask_boundary_phi_idxs = torch.tensor([0.0], dtype=self.dtype).to(self.device)
+        self.mask_boundary_phi_idxs = torch.tensor([0.0], dtype=self.dtype).to(
+            self.device
+        )
 
         self.reset()
         return
@@ -74,11 +76,12 @@ class BaseMash(ABC):
         idx_dtype=None,
         dtype=None,
         device: Union[str, None] = None,
-        ):
-
+    ):
         mash = cls(
             anchor_num if anchor_num is not None else target_mash.anchor_num,
-            mask_degree_max if mask_degree_max is not None else target_mash.mask_degree_max,
+            mask_degree_max
+            if mask_degree_max is not None
+            else target_mash.mask_degree_max,
             sh_degree_max if sh_degree_max is not None else target_mash.sh_degree_max,
             use_inv if use_inv is not None else target_mash.use_inv,
             idx_dtype if idx_dtype is not None else target_mash.idx_dtype,
@@ -142,7 +145,9 @@ class BaseMash(ABC):
     def clone(self):
         return deepcopy(self)
 
-    def setGradState(self, need_grad: bool, anchor_mask: Union[torch.Tensor, None] = None) -> bool:
+    def setGradState(
+        self, need_grad: bool, anchor_mask: Union[torch.Tensor, None] = None
+    ) -> bool:
         if anchor_mask is None:
             self.mask_params.requires_grad_(need_grad)
             self.sh_params.requires_grad_(need_grad)
@@ -169,11 +174,15 @@ class BaseMash(ABC):
             return True
 
         if self.mask_params[anchor_mask].grad is not None:
-            self.mask_params[anchor_mask].grad = edit_fn(self.mask_params[anchor_mask].grad)
+            self.mask_params[anchor_mask].grad = edit_fn(
+                self.mask_params[anchor_mask].grad
+            )
         if self.sh_params[anchor_mask].grad is not None:
             self.sh_params[anchor_mask].grad = edit_fn(self.sh_params[anchor_mask].grad)
         if self.rotate_vectors[anchor_mask].grad is not None:
-            self.rotate_vectors[anchor_mask].grad = edit_fn(self.rotate_vectors[anchor_mask].grad)
+            self.rotate_vectors[anchor_mask].grad = edit_fn(
+                self.rotate_vectors[anchor_mask].grad
+            )
         if self.positions[anchor_mask].grad is not None:
             self.positions[anchor_mask].grad = edit_fn(self.positions[anchor_mask].grad)
         return True
@@ -181,6 +190,7 @@ class BaseMash(ABC):
     def clearGrads(self, anchor_mask: Union[torch.Tensor, None] = None) -> bool:
         def edit_fn(grad: torch.Tensor) -> None:
             return None
+
         return self.editGrads(edit_fn, anchor_mask)
 
     def clearNanGrads(self, anchor_mask: Union[torch.Tensor, None] = None) -> bool:
@@ -188,6 +198,7 @@ class BaseMash(ABC):
             nan_mask = torch.isnan(grad)
             grad[nan_mask] = 0
             return grad
+
         return self.editGrads(edit_fn, anchor_mask)
 
     def initParams(self) -> bool:
@@ -208,7 +219,9 @@ class BaseMash(ABC):
 
     def regularRotateVectors(self) -> bool:
         regular_rotate_vectors = toRegularRotateVectors(self.rotate_vectors)
-        self.rotate_vectors.data = regular_rotate_vectors.detach().clone().type(self.dtype).to(self.device)
+        self.rotate_vectors.data = (
+            regular_rotate_vectors.detach().clone().type(self.dtype).to(self.device)
+        )
         return True
 
     def loadParams(
@@ -320,27 +333,27 @@ class BaseMash(ABC):
         return True
 
     def loadParamsDict(self, params_dict: dict) -> bool:
-        if 'mask_params' not in params_dict.keys():
+        if "mask_params" not in params_dict.keys():
             print("[ERROR][Mash::loadParamsDict]")
             print("\t mask_params not in params dict!")
             return False
 
-        if 'sh_params' not in params_dict.keys():
+        if "sh_params" not in params_dict.keys():
             print("[ERROR][Mash::loadParamsDict]")
             print("\t sh_params not in params dict!")
             return False
 
-        if 'rotate_vectors' not in params_dict.keys():
+        if "rotate_vectors" not in params_dict.keys():
             print("[ERROR][Mash::loadParamsDict]")
             print("\t rotate_vectors not in params dict!")
             return False
 
-        if 'positions' not in params_dict.keys():
+        if "positions" not in params_dict.keys():
             print("[ERROR][Mash::loadParamsDict]")
             print("\t positions not in params dict!")
             return False
 
-        if 'use_inv' not in params_dict.keys():
+        if "use_inv" not in params_dict.keys():
             print("[ERROR][Mash::loadParamsDict]")
             print("\t use_inv not in params dict!")
             return False
@@ -351,7 +364,9 @@ class BaseMash(ABC):
         positions = params_dict["positions"]
         use_inv = params_dict["use_inv"]
 
-        if not self.loadParams(mask_params, sh_params, rotate_vectors, positions, use_inv):
+        if not self.loadParams(
+            mask_params, sh_params, rotate_vectors, positions, use_inv
+        ):
             print("[ERROR][Mash::loadParamsDict]")
             print("\t loadParams failed!")
             return False
@@ -376,24 +391,28 @@ class BaseMash(ABC):
 
     def mergeMash(self, mash) -> bool:
         if self.mask_degree_max != mash.mask_degree_max:
-            print('[ERROR][BaseMash::mergeMash]')
-            print('\t mask degree max not matched!')
-            print('\t ', self.mask_degree_max, '!=', mash.mask_degree_max)
+            print("[ERROR][BaseMash::mergeMash]")
+            print("\t mask degree max not matched!")
+            print("\t ", self.mask_degree_max, "!=", mash.mask_degree_max)
             return False
 
         if self.sh_degree_max != mash.sh_degree_max:
-            print('[ERROR][BaseMash::mergeMash]')
-            print('\t sh degree max not matched!')
-            print('\t ', self.sh_degree_max, '!=', mash.sh_degree_max)
+            print("[ERROR][BaseMash::mergeMash]")
+            print("\t sh degree max not matched!")
+            print("\t ", self.sh_degree_max, "!=", mash.sh_degree_max)
             return False
 
         self.setGradState(False)
 
         self.anchor_num += mash.anchor_num
-        self.mask_params = torch.vstack([self.mask_params, mash.mask_params.detach().clone()])
+        self.mask_params = torch.vstack(
+            [self.mask_params, mash.mask_params.detach().clone()]
+        )
         self.sh_params = torch.vstack([self.sh_params, mash.sh_params.detach().clone()])
         self.positions = torch.vstack([self.positions, mash.positions.detach().clone()])
-        self.rotate_vectors = torch.vstack([self.rotate_vectors, mash.rotate_vectors.detach().clone()])
+        self.rotate_vectors = torch.vstack(
+            [self.rotate_vectors, mash.rotate_vectors.detach().clone()]
+        )
 
         self.updatePreLoadDatas()
 
@@ -413,14 +432,12 @@ class BaseMash(ABC):
 
         self.anchor_num = anchor_num
 
-        new_mask_params, new_sh_params, new_rotate_vectors, new_positions = (
-            toParams(
-                self.anchor_num,
-                self.mask_degree_max,
-                self.sh_degree_max,
-                self.dtype,
-                self.device,
-            )
+        new_mask_params, new_sh_params, new_rotate_vectors, new_positions = toParams(
+            self.anchor_num,
+            self.mask_degree_max,
+            self.sh_degree_max,
+            self.dtype,
+            self.device,
         )
 
         new_mask_params[:copy_dim, :] = self.mask_params[:copy_dim, :]
@@ -451,9 +468,9 @@ class BaseMash(ABC):
 
         new_dim = 2 * self.mask_degree_max + 1
 
-        new_mask_params = torch.zeros(
-            [self.anchor_num, new_dim], dtype=self.dtype
-        ).to(self.device)
+        new_mask_params = torch.zeros([self.anchor_num, new_dim], dtype=self.dtype).to(
+            self.device
+        )
 
         copy_dim = min(new_dim, self.mask_params.shape[1])
 
@@ -478,9 +495,9 @@ class BaseMash(ABC):
 
         new_dim = (self.sh_degree_max + 1) ** 2
 
-        new_sh_params = torch.zeros(
-            [self.anchor_num, new_dim], dtype=self.dtype
-        ).to(self.device)
+        new_sh_params = torch.zeros([self.anchor_num, new_dim], dtype=self.dtype).to(
+            self.device
+        )
 
         copy_dim = min(new_dim, self.sh_params.shape[1])
 
@@ -502,7 +519,9 @@ class BaseMash(ABC):
         if isinstance(move_position, np.ndarray):
             move_position = torch.from_numpy(move_position)
 
-        move_position = move_position.type(self.positions.dtype).to(self.positions.device)
+        move_position = move_position.type(self.positions.dtype).to(
+            self.positions.device
+        )
 
         grad_state = self.positions.requires_grad
 
@@ -537,42 +556,103 @@ class BaseMash(ABC):
         return ortho6d_poses
 
     def toFaceToPoints(self) -> torch.Tensor:
-        face_to_points = mash_cpp.toFaceToPoints(self.mask_degree_max, self.sh_degree_max, self.sh_params, self.rotate_vectors, self.positions, self.use_inv)
+        face_to_points = mash_cpp.toFaceToPoints(
+            self.mask_degree_max,
+            self.sh_degree_max,
+            self.sh_params,
+            self.rotate_vectors,
+            self.positions,
+            self.use_inv,
+        )
         return face_to_points
 
-    def toWeightedSamplePoints(self, sample_phis: torch.Tensor, sample_theta_weights: torch.Tensor, sample_idxs: torch.Tensor, sample_base_values: torch.Tensor=torch.Tensor()) -> torch.Tensor:
+    def toWeightedSamplePoints(
+        self,
+        sample_phis: torch.Tensor,
+        sample_theta_weights: torch.Tensor,
+        sample_idxs: torch.Tensor,
+        sample_base_values: torch.Tensor = torch.Tensor(),
+    ) -> torch.Tensor:
         weighted_sample_points = mash_cpp.toWeightedSamplePoints(
-            self.mask_degree_max, self.sh_degree_max, self.mask_params, self.sh_params, self.rotate_vectors,
-            self.positions, sample_phis, sample_theta_weights,
-            sample_idxs, self.use_inv, sample_base_values)
+            self.mask_degree_max,
+            self.sh_degree_max,
+            self.mask_params,
+            self.sh_params,
+            self.rotate_vectors,
+            self.positions,
+            sample_phis,
+            sample_theta_weights,
+            sample_idxs,
+            self.use_inv,
+            sample_base_values,
+        )
 
         return weighted_sample_points
 
-    def toForceSamplePoints(self, sample_phis: torch.Tensor, sample_thetas: torch.Tensor, sample_idxs: torch.Tensor, sample_base_values: torch.Tensor=torch.Tensor()) -> torch.Tensor:
+    def toForceSamplePoints(
+        self,
+        sample_phis: torch.Tensor,
+        sample_thetas: torch.Tensor,
+        sample_idxs: torch.Tensor,
+        sample_base_values: torch.Tensor = torch.Tensor(),
+    ) -> torch.Tensor:
         sample_points = mash_cpp.toSamplePoints(
-            self.mask_degree_max, self.sh_degree_max, self.sh_params, self.rotate_vectors, self.positions,
-            sample_phis, sample_thetas, sample_idxs, self.use_inv,
-            sample_base_values)
+            self.mask_degree_max,
+            self.sh_degree_max,
+            self.sh_params,
+            self.rotate_vectors,
+            self.positions,
+            sample_phis,
+            sample_thetas,
+            sample_idxs,
+            self.use_inv,
+            sample_base_values,
+        )
         return sample_points
 
-    def toFPSPointIdxs(self, sample_points: torch.Tensor, sample_idxs: torch.Tensor, sample_point_scale: float) -> torch.Tensor:
+    def toFPSPointIdxs(
+        self,
+        sample_points: torch.Tensor,
+        sample_idxs: torch.Tensor,
+        sample_point_scale: float,
+    ) -> torch.Tensor:
         fps_sample_point_idxs = mash_cpp.toFPSPointIdxs(
             sample_points, sample_idxs, sample_point_scale, self.anchor_num
         )
         return fps_sample_point_idxs
 
     @abstractmethod
-    def toSamplePointsWithNormals(self, refine_normals: bool=False, fps_sample_scale: float = -1) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    def toSamplePointsWithNormals(
+        self, refine_normals: bool = False, fps_sample_scale: float = -1
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         pass
 
     @abstractmethod
-    def toSamplePoints(self, with_normals: bool = False, refine_normals: bool = False, fps_sample_scale: float = -1) -> Union[Tuple[torch.Tensor, torch.Tensor, torch.Tensor], Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]]:
+    def toSamplePoints(
+        self,
+        with_normals: bool = False,
+        refine_normals: bool = False,
+        fps_sample_scale: float = -1,
+    ) -> Union[
+        Tuple[torch.Tensor, torch.Tensor, torch.Tensor],
+        Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor],
+    ]:
         pass
 
-    def toSamplePcdWithNormals(self, refine_normals: bool = False, fps_sample_scale: float = -1) -> o3d.geometry.PointCloud:
-        mask_boundary_sample_points, in_mask_sample_points, in_mask_sample_point_idxs, mask_boundary_normals, in_mask_normals = self.toSamplePointsWithNormals(refine_normals, fps_sample_scale)
+    def toSamplePcdWithNormals(
+        self, refine_normals: bool = False, fps_sample_scale: float = -1
+    ) -> o3d.geometry.PointCloud:
+        (
+            mask_boundary_sample_points,
+            in_mask_sample_points,
+            in_mask_sample_point_idxs,
+            mask_boundary_normals,
+            in_mask_normals,
+        ) = self.toSamplePointsWithNormals(refine_normals, fps_sample_scale)
 
-        sample_points = torch.vstack([mask_boundary_sample_points, in_mask_sample_points])
+        sample_points = torch.vstack(
+            [mask_boundary_sample_points, in_mask_sample_points]
+        )
         sample_normals = torch.vstack([mask_boundary_normals, in_mask_normals])
 
         sample_points_array = toNumpy(sample_points)
@@ -581,14 +661,20 @@ class BaseMash(ABC):
         sample_pcd = getPointCloud(sample_points_array, sample_normals_array)
         return sample_pcd
 
-
-    def toSamplePcd(self, with_normals: bool = False, refine_normals: bool = False, fps_sample_scale: float = -1) -> o3d.geometry.PointCloud:
+    def toSamplePcd(
+        self,
+        with_normals: bool = False,
+        refine_normals: bool = False,
+        fps_sample_scale: float = -1,
+    ) -> o3d.geometry.PointCloud:
         if with_normals:
             return self.toSamplePcdWithNormals(refine_normals, fps_sample_scale)
 
         mask_boundary_sample_points, in_mask_sample_points = self.toSamplePoints()[:2]
 
-        sample_points = torch.vstack([mask_boundary_sample_points, in_mask_sample_points])
+        sample_points = torch.vstack(
+            [mask_boundary_sample_points, in_mask_sample_points]
+        )
 
         sample_points_array = toNumpy(sample_points)
 
@@ -596,8 +682,8 @@ class BaseMash(ABC):
         return sample_pcd
 
     def toSamplePcdWithWNNCNormals(self) -> o3d.geometry.PointCloud:
-        save_xyz_file_path = './tmp/mash_1_xyz.xyz'
-        save_wnnc_xyz_file_path = './tmp/mash_2_wnnc_xyz.xyz'
+        save_xyz_file_path = "./tmp/mash_1_xyz.xyz"
+        save_wnnc_xyz_file_path = "./tmp/mash_2_wnnc_xyz.xyz"
 
         createFileFolder(save_xyz_file_path)
 
@@ -607,13 +693,14 @@ class BaseMash(ABC):
         WNNCReconstructor.estimateNormal(
             save_xyz_file_path,
             save_wnnc_xyz_file_path,
-            width_tag='l1',
+            width_tag="l0",
             wsmin=0.01,
             wsmax=0.04,
             iters=40,
             use_gpu=True,
             print_progress=True,
-            overwrite=True)
+            overwrite=True,
+        )
 
         data = np.loadtxt(save_wnnc_xyz_file_path)
 
@@ -627,10 +714,10 @@ class BaseMash(ABC):
         return wnnc_pcd
 
     def toWNNCMesh(self, need_smooth: bool = True) -> Mesh:
-        save_xyz_file_path = './tmp/mash_1_xyz.xyz'
-        save_wnnc_xyz_file_path = './tmp/mash_2_wnnc_xyz.xyz'
-        save_wnnc_mesh_file_path = './tmp/mash_3_wnnc_mesh.ply'
-        save_wnnc_smooth_mesh_file_path = './tmp/mash_4_wnnc_smooth_mesh.ply'
+        save_xyz_file_path = "./tmp/mash_1_xyz.xyz"
+        save_wnnc_xyz_file_path = "./tmp/mash_2_wnnc_xyz.xyz"
+        save_wnnc_mesh_file_path = "./tmp/mash_3_wnnc_mesh.ply"
+        save_wnnc_smooth_mesh_file_path = "./tmp/mash_4_wnnc_smooth_mesh.ply"
 
         createFileFolder(save_xyz_file_path)
 
@@ -641,13 +728,14 @@ class BaseMash(ABC):
             save_xyz_file_path,
             save_wnnc_xyz_file_path,
             save_wnnc_mesh_file_path,
-            width_tag='l1',
+            width_tag="l0",
             wsmin=0.01,
             wsmax=0.04,
             iters=40,
             use_gpu=True,
             print_progress=True,
-            overwrite=True)
+            overwrite=True,
+        )
 
         if need_smooth:
             MeshSmoother.smoothMesh(
@@ -657,13 +745,19 @@ class BaseMash(ABC):
                 pass_band=0.01,
                 edge_angle=15.0,
                 feature_angle=45.0,
-                overwrite=True)
+                overwrite=True,
+            )
 
             return Mesh(save_wnnc_smooth_mesh_file_path)
 
         return Mesh(save_wnnc_mesh_file_path)
 
-    def toMeshFile(self, save_mesh_file_path: str, need_smooth: bool = True, overwrite: bool = False) -> bool:
+    def toMeshFile(
+        self,
+        save_mesh_file_path: str,
+        need_smooth: bool = True,
+        overwrite: bool = False,
+    ) -> bool:
         if os.path.exists(save_mesh_file_path):
             if not overwrite:
                 return True
@@ -674,10 +768,10 @@ class BaseMash(ABC):
 
         save_base_path = save_mesh_file_path[:-4]
 
-        save_xyz_file_path = save_base_path + '_1_xyz.xyz'
-        save_wnnc_xyz_file_path = save_base_path + '_2_wnnc_xyz.xyz'
-        save_wnnc_mesh_file_path = save_base_path + '_3_wnnc_mesh.ply'
-        save_wnnc_smooth_mesh_file_path = save_base_path + '_4_wnnc_smooth_mesh.ply'
+        save_xyz_file_path = save_base_path + "_1_xyz.xyz"
+        save_wnnc_xyz_file_path = save_base_path + "_2_wnnc_xyz.xyz"
+        save_wnnc_mesh_file_path = save_base_path + "_3_wnnc_mesh.ply"
+        save_wnnc_smooth_mesh_file_path = save_base_path + "_4_wnnc_smooth_mesh.ply"
 
         mash_pcd = self.toSamplePcd()
         o3d.io.write_point_cloud(save_xyz_file_path, mash_pcd, write_ascii=True)
@@ -686,13 +780,14 @@ class BaseMash(ABC):
             save_xyz_file_path,
             save_wnnc_xyz_file_path,
             save_wnnc_mesh_file_path,
-            width_tag='l1',
+            width_tag="l0",
             wsmin=0.01,
             wsmax=0.04,
             iters=40,
             use_gpu=True,
             print_progress=True,
-            overwrite=True)
+            overwrite=True,
+        )
 
         if need_smooth:
             MeshSmoother.smoothMesh(
@@ -702,21 +797,24 @@ class BaseMash(ABC):
                 pass_band=0.01,
                 edge_angle=15.0,
                 feature_angle=45.0,
-                overwrite=True)
+                overwrite=True,
+            )
 
-            #copyfile(save_wnnc_smooth_mesh_file_path, save_mesh_file_path)
-        #else:
-            #copyfile(save_wnnc_mesh_file_path, save_mesh_file_path)
+            # copyfile(save_wnnc_smooth_mesh_file_path, save_mesh_file_path)
+        # else:
+        # copyfile(save_wnnc_mesh_file_path, save_mesh_file_path)
 
         return True
 
-    def renderSamplePointsWithNormals(self, refine_normals: bool = False, fps_sample_scale: float = -1) -> bool:
+    def renderSamplePointsWithNormals(
+        self, refine_normals: bool = False, fps_sample_scale: float = -1
+    ) -> bool:
         (
             mask_boundary_sample_points,
             in_mask_sample_points,
             in_mask_sample_point_idxs,
             valid_mask_boundary_normals,
-            valid_in_mask_normals
+            valid_in_mask_normals,
         ) = self.toSamplePointsWithNormals(refine_normals, fps_sample_scale)
 
         boundary_pts = toNumpy(mask_boundary_sample_points)
@@ -728,8 +826,14 @@ class BaseMash(ABC):
         print("boundary_pts:", boundary_pts.shape, boundary_pts.dtype)
         print("inner_pts:", inner_pts.shape, inner_pts.dtype)
         print("inner_anchor_idxs:", inner_anchor_idxs.shape, inner_anchor_idxs.dtype)
-        print('valid boundary_normals num:', torch.where(torch.norm(valid_mask_boundary_normals, dim=1) == 0)[0].shape)
-        print('valid inner_normals num:', torch.where(torch.norm(valid_in_mask_normals, dim=1) == 0)[0].shape)
+        print(
+            "valid boundary_normals num:",
+            torch.where(torch.norm(valid_mask_boundary_normals, dim=1) == 0)[0].shape,
+        )
+        print(
+            "valid inner_normals num:",
+            torch.where(torch.norm(valid_in_mask_normals, dim=1) == 0)[0].shape,
+        )
 
         if False:
             render_pcd_list = []
@@ -744,7 +848,9 @@ class BaseMash(ABC):
                 anchor_inner_normals = inner_normals[inner_mask]
 
                 anchor_pts = np.vstack([anchor_boundary_pts, anchor_inner_pts])
-                anchor_normals = np.vstack([anchor_boundary_normals, anchor_inner_normals]) * -1.0
+                anchor_normals = (
+                    np.vstack([anchor_boundary_normals, anchor_inner_normals]) * -1.0
+                )
 
                 center = np.mean(anchor_pts, axis=0)
 
@@ -756,18 +862,25 @@ class BaseMash(ABC):
 
                 render_pcd_list.append(pcd)
 
-            renderGeometries(render_pcd_list, 'Mash Anchor Sample Points With Normals', True)
+            renderGeometries(
+                render_pcd_list, "Mash Anchor Sample Points With Normals", True
+            )
             exit()
 
         sample_pts = np.vstack([inner_pts, boundary_pts])
         sample_normals = np.vstack([inner_normals, boundary_normals])
         sample_pts = inner_pts
-        sample_normals = inner_normals 
+        sample_normals = inner_normals
         pcd = getPointCloud(sample_pts, sample_normals)
-        renderGeometries(pcd, 'Mash Sample Points With Normals', True)
+        renderGeometries(pcd, "Mash Sample Points With Normals", True)
         return True
 
-    def renderSamplePoints(self, with_normals: bool = False, refine_normals: bool = False, fps_sample_scale: float = -1) -> bool:
+    def renderSamplePoints(
+        self,
+        with_normals: bool = False,
+        refine_normals: bool = False,
+        fps_sample_scale: float = -1,
+    ) -> bool:
         if with_normals:
             return self.renderSamplePointsWithNormals(refine_normals, fps_sample_scale)
 
@@ -922,7 +1035,9 @@ class BaseMash(ABC):
             print("[INFO][Mash::saveAsPcdFile]")
             print("\t start save as pcd file...")
 
-        tmp_save_pcd_file_path = save_pcd_file_path[:-4] + "_tmp" + save_pcd_file_path[-4:]
+        tmp_save_pcd_file_path = (
+            save_pcd_file_path[:-4] + "_tmp" + save_pcd_file_path[-4:]
+        )
 
         o3d.io.write_point_cloud(
             tmp_save_pcd_file_path, pcd, write_ascii=True, print_progress=print_progress
@@ -944,7 +1059,7 @@ class BaseMash(ABC):
         print("[INFO][Mash::saveAsAnchorPcdFiles]")
         print("\t start save as anchor pcd files...")
         for i in trange(self.anchor_num):
-            save_pcd_file_path = save_pcd_folder_path + str(i) + '_pcd.ply'
+            save_pcd_file_path = save_pcd_folder_path + str(i) + "_pcd.ply"
             if os.path.exists(save_pcd_file_path):
                 if not overwrite:
                     continue
@@ -957,18 +1072,22 @@ class BaseMash(ABC):
             anchor_boundary_pts = boundary_pts[boundary_mask]
             anchor_inner_pts = inner_pts[inner_mask]
 
-            anchor_pts = torch.vstack([anchor_boundary_pts, anchor_inner_pts]).cpu().numpy()
+            anchor_pts = (
+                torch.vstack([anchor_boundary_pts, anchor_inner_pts]).cpu().numpy()
+            )
 
             pcd = getPointCloud(anchor_pts)
 
-            tmp_save_pcd_file_path = save_pcd_file_path[:-4] + "_tmp" + save_pcd_file_path[-4:]
+            tmp_save_pcd_file_path = (
+                save_pcd_file_path[:-4] + "_tmp" + save_pcd_file_path[-4:]
+            )
 
             o3d.io.write_point_cloud(tmp_save_pcd_file_path, pcd, write_ascii=True)
 
             if not os.path.exists(tmp_save_pcd_file_path):
                 print("[ERROR][Mash::saveAsAnchorPcdFiles]")
                 print("\t write_point_cloud failed!")
-                print('\t save_pcd_file_path:', save_pcd_file_path)
+                print("\t save_pcd_file_path:", save_pcd_file_path)
                 continue
 
             renameFile(tmp_save_pcd_file_path, save_pcd_file_path)

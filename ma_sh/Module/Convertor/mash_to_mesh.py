@@ -1,5 +1,7 @@
 import sys
-sys.path.append('../wn-nc')
+
+sys.path.append("../wn-nc")
+sys.path.append("../chamfer-distance")
 
 import torch
 
@@ -24,7 +26,7 @@ class Convertor(BaseConvertor):
             sample_point_scale=0.8,
             idx_dtype=torch.int64,
             dtype=torch.float64,
-            device='cuda',
+            device="cuda",
         )
 
         if not mash.toMeshFile(target_path, overwrite=False):
