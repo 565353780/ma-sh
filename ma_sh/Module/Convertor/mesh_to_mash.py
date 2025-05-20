@@ -1,15 +1,15 @@
-import os
 import torch
-from typing import Union
+from time import time
 
-from ma_sh.Method.path import createFileFolder
 from ma_sh.Module.trainer import Trainer
+from ma_sh.Module.Convertor.base_convertor import BaseConvertor
 
 
-class Convertor(object):
+class Convertor(BaseConvertor):
     def __init__(
         self,
-        dataset_root_folder_path: str,
+        source_root_folder_path: str,
+        target_root_folder_path: str,
         gt_points_num: int = 400000,
         anchor_num: int = 400,
         mask_degree_max: int = 3,
@@ -27,9 +27,8 @@ class Convertor(object):
         warmup_epoch: int = 4,
         factor: float = 0.8,
         patience: int = 2,
-        force_start: bool = False,
     ) -> None:
-        self.dataset_root_folder_path = dataset_root_folder_path
+        super().__init__(source_root_folder_path, target_root_folder_path)
 
         self.gt_points_num = gt_points_num
 
@@ -51,18 +50,9 @@ class Convertor(object):
         self.factor = factor
         self.patience = patience
 
-        self.force_start = force_start
-
-        self.normalized_mesh_folder_path = self.dataset_root_folder_path + "ManifoldMesh/"
-        self.mash_folder_path = self.dataset_root_folder_path + "MashV4_" + str(self.gt_points_num) + "/"
-        self.tag_folder_path = self.dataset_root_folder_path + "Tag/MashV4_" + str(self.gt_points_num) + "/"
         return
 
-    def createTrainer(
-        self,
-        save_result_folder_path: Union[str, None] = None,
-        save_log_folder_path: Union[str, None] = None,
-    ) -> Trainer:
+    def createTrainer(self) -> Trainer:
         trainer = Trainer(
             self.anchor_num,
             self.mask_degree_max,
@@ -83,85 +73,39 @@ class Convertor(object):
             False,
             1,
             False,
-            save_result_folder_path,
-            save_log_folder_path,
+            -1,
+            None,
+            None,
         )
 
         return trainer
 
-    def convertOneShape(
-        self, dataset_name: str, class_name: str, model_id: str
-    ) -> bool:
-        rel_file_path = dataset_name + "/" + class_name + "/" + model_id
+    def convertData(self, source_path: str, target_path: str) -> bool:
+        start = time()
 
-        normalized_mesh_file_path = self.normalized_mesh_folder_path + rel_file_path + ".obj"
+        trainer = self.createTrainer()
 
-        if not os.path.exists(normalized_mesh_file_path):
-            print("[ERROR][Convertor::convertOneShape]")
-            print("\t shape file not exist!")
-            print("\t normalized_mesh_file_path:", normalized_mesh_file_path)
+        try:
+            if not trainer.loadMeshFile(source_path):
+                print("[ERROR][Convertor::convertData]")
+                print("\t loadGTPointsFile failed!")
+                return False
+        except KeyboardInterrupt:
+            print("[INFO][Convertor::convertData]")
+            print("\t program interrupted by the user (Ctrl+C).")
+            exit()
+        except:
+            print("[ERROR][Convertor::convertData]")
+            print("\t loadGTPointsFile raise Error!")
             return False
 
-        finish_tag_file_path = self.tag_folder_path + rel_file_path + "/finish.txt"
+        if not trainer.autoTrainMash(self.gt_points_num):
+            print("[ERROR][Convertor::convertData]")
+            print("\t autoTrainMash failed!")
+            return False
 
-        if os.path.exists(finish_tag_file_path):
-            return True
+        trainer.saveMashFile(target_path, True)
 
-        start_tag_file_path = self.tag_folder_path + rel_file_path + "/start.txt"
-
-        if os.path.exists(start_tag_file_path):
-            if not self.force_start:
-                return True
-
-        createFileFolder(start_tag_file_path)
-
-        with open(start_tag_file_path, "w") as f:
-            f.write("\n")
-
-        mash_file_path = self.mash_folder_path + rel_file_path + ".npy"
-
-        createFileFolder(mash_file_path)
-
-        if False:
-            trainer = self.createTrainer(
-                "./output/" + rel_file_path + "/",
-                "./logs/" + rel_file_path + "/",
-            )
-        else:
-            trainer = self.createTrainer()
-
-        trainer.loadMeshFile(normalized_mesh_file_path)
-        trainer.autoTrainMash(self.gt_points_num)
-        trainer.mash.saveParamsFile(mash_file_path, True)
-
-        with open(finish_tag_file_path, "w") as f:
-            f.write("\n")
-        return True
-
-    def convertAll(self) -> bool:
-        print("[INFO][Convertor::convertAll]")
-        print("\t start convert all shapes to mashes...")
-        solved_shape_num = 0
-
-        dataset_folder_path = self.normalized_mesh_folder_path + "ShapeNet/"
-
-        classname_list = os.listdir(dataset_folder_path)
-        classname_list.sort()
-        first_solve_class = ['03001627', '02691156', '02958343']
-        for classname in classname_list:
-            if classname != first_solve_class[0]:
-                continue
-
-            class_folder_path = dataset_folder_path + classname + "/"
-
-            modelid_list = os.listdir(class_folder_path)
-            modelid_list.sort()
-
-            for model_file_name in modelid_list:
-                modelid = model_file_name.split(".obj")[0]
-
-                self.convertOneShape("ShapeNet", classname, modelid)
-
-                solved_shape_num += 1
-                print("solved shape num:", solved_shape_num)
+        print("[INFO][Convertor::convertData]")
+        print("\t convert to mash spend time:", time() - start)
         return True

@@ -1,5 +1,7 @@
 import sys
-sys.path.append('../wn-nc')
+
+sys.path.append("../wn-nc")
+sys.path.append("../chamfer-distance")
 
 import torch
 
@@ -12,7 +14,7 @@ def demo(
     pcd_rel_folder_path: str,
     save_mash_rel_folder_path: str,
 ):
-    print('==== ' + save_mash_rel_folder_path + ' ====')
+    print("==== " + save_mash_rel_folder_path + " ====")
 
     dataset_root_folder_path = toDatasetRootPath()
     gt_points_num = 400000
@@ -32,12 +34,12 @@ def demo(
     warmup_epoch = 4
     factor = 0.8
     patience = 4
-    source_data_type = '.npy'
-    target_data_type = '.npy'
+    source_data_type = ".npy"
+    target_data_type = ".npy"
 
     if dataset_root_folder_path is None:
-        print('[ERROR][sample_pcd_objaverse::demo]')
-        print('\t dataset not found!')
+        print("[ERROR][sample_pcd_objaverse::demo]")
+        print("\t dataset not found!")
         return False
 
     convertor = Convertor(
