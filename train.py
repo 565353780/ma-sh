@@ -96,62 +96,13 @@ def trainOnDataset():
     return True
 
 
-def trainOnMesh():
+def trainOnMesh(
+    shape_id: str,
+    gt_mesh_file_path,
+    normalized_mesh_file_path,
+    gt_points_file_path,
+):
     gt_points_num = 400000
-
-    shape_data_dict = {
-        "XiaomiSU7": [
-            "/home/chli/chLi/Dataset/XiaomiSU7/Xiaomi_SU7_2024_low_mesh.obj",
-            "/home/chli/chLi/Dataset/XiaomiSU7/normalized_mesh/Xiaomi_SU7_2024_low_mesh.ply",
-            "/home/chli/chLi/Dataset/XiaomiSU7/sample_pcd/Xiaomi_SU7_2024_low_mesh.npy",
-        ],
-        "RobotArm": [
-            "/home/chli/chLi/Dataset/RobotArm/Rmk3.obj",
-            "/home/chli/chLi/Dataset/RobotArm/normalized_mesh/Rmk3.ply",
-            "/home/chli/chLi/Dataset/RobotArm/sample_pcd/Rmk3.npy",
-        ],
-        "Washer": [
-            "/home/chli/chLi/Dataset/Washer/BOSCH_WLG.obj",
-            "/home/chli/chLi/Dataset/Washer/normalized_mesh/BOSCH_WLG.ply",
-            "/home/chli/chLi/Dataset/Washer/sample_pcd/BOSCH_WLG.npy",
-        ],
-        "bunny": [
-            "/home/chli/chLi/Dataset/Famous/bunny.ply",
-            "/home/chli/chLi/Dataset/Famous/normalized_mesh/bunny.ply",
-            "/home/chli/chLi/Dataset/Famous/sample_pcd/bunny.npy",
-        ],
-        "difficult-0": [
-            "/home/chli/chLi/Dataset/vae-eval/manifold/000.obj",
-            "/home/chli/chLi/Dataset/vae-eval/manifold/000.obj",
-            "/home/chli/chLi/Dataset/vae-eval/manifold_pcd/000.npy",
-        ],
-        "difficult-1": [
-            "/home/chli/chLi/Dataset/vae-eval/manifold/001.obj",
-            "/home/chli/chLi/Dataset/vae-eval/manifold/001.obj",
-            "/home/chli/chLi/Dataset/vae-eval/manifold_pcd/001.npy",
-        ],
-        "difficult-2": [
-            "/home/chli/chLi/Dataset/vae-eval/manifold/002.obj",
-            "/home/chli/chLi/Dataset/vae-eval/manifold/002.obj",
-            "/home/chli/chLi/Dataset/vae-eval/manifold_pcd/002.npy",
-        ],
-        "difficult-3": [
-            "/home/chli/chLi/Dataset/vae-eval/manifold/003.obj",
-            "/home/chli/chLi/Dataset/vae-eval/manifold/003.obj",
-            "/home/chli/chLi/Dataset/vae-eval/manifold_pcd/003.npy",
-        ],
-        "difficult-4": [
-            "/home/chli/chLi/Dataset/vae-eval/manifold/004.obj",
-            "/home/chli/chLi/Dataset/vae-eval/manifold/004.obj",
-            "/home/chli/chLi/Dataset/vae-eval/manifold_pcd/004.npy",
-        ],
-    }
-
-    shape_id = "difficult-2"
-
-    gt_mesh_file_path = shape_data_dict[shape_id][0]
-    normalized_mesh_file_path = shape_data_dict[shape_id][1]
-    gt_points_file_path = shape_data_dict[shape_id][2]
 
     anchor_num_list = [10, 20, 50, 100, 200, 400]
     anchor_num_list = [4000]
@@ -222,6 +173,73 @@ def trainOnMesh():
     return True
 
 
+def trainOnMeshID(
+    shape_id: str,
+    file_path_list: list,
+):
+    gt_mesh_file_path = file_path_list[0]
+    normalized_mesh_file_path = file_path_list[1]
+    gt_points_file_path = file_path_list[2]
+    return trainOnMesh(
+        shape_id, gt_mesh_file_path, normalized_mesh_file_path, gt_points_file_path
+    )
+
+
+def trainOnMeshIDList(
+    shape_id_list: list,
+):
+    shape_data_dict = {
+        "XiaomiSU7": [
+            "/home/chli/chLi/Dataset/XiaomiSU7/Xiaomi_SU7_2024_low_mesh.obj",
+            "/home/chli/chLi/Dataset/XiaomiSU7/normalized_mesh/Xiaomi_SU7_2024_low_mesh.ply",
+            "/home/chli/chLi/Dataset/XiaomiSU7/sample_pcd/Xiaomi_SU7_2024_low_mesh.npy",
+        ],
+        "RobotArm": [
+            "/home/chli/chLi/Dataset/RobotArm/Rmk3.obj",
+            "/home/chli/chLi/Dataset/RobotArm/normalized_mesh/Rmk3.ply",
+            "/home/chli/chLi/Dataset/RobotArm/sample_pcd/Rmk3.npy",
+        ],
+        "Washer": [
+            "/home/chli/chLi/Dataset/Washer/BOSCH_WLG.obj",
+            "/home/chli/chLi/Dataset/Washer/normalized_mesh/BOSCH_WLG.ply",
+            "/home/chli/chLi/Dataset/Washer/sample_pcd/BOSCH_WLG.npy",
+        ],
+        "bunny": [
+            "/home/chli/chLi/Dataset/Famous/bunny.ply",
+            "/home/chli/chLi/Dataset/Famous/normalized_mesh/bunny.ply",
+            "/home/chli/chLi/Dataset/Famous/sample_pcd/bunny.npy",
+        ],
+        "difficult-0": [
+            "/home/chli/chLi/Dataset/vae-eval/manifold/000.obj",
+            "/home/chli/chLi/Dataset/vae-eval/manifold/000.obj",
+            "/home/chli/chLi/Dataset/vae-eval/manifold_pcd/000.npy",
+        ],
+        "difficult-1": [
+            "/home/chli/chLi/Dataset/vae-eval/manifold/001.obj",
+            "/home/chli/chLi/Dataset/vae-eval/manifold/001.obj",
+            "/home/chli/chLi/Dataset/vae-eval/manifold_pcd/001.npy",
+        ],
+        "difficult-2": [
+            "/home/chli/chLi/Dataset/vae-eval/manifold/002.obj",
+            "/home/chli/chLi/Dataset/vae-eval/manifold/002.obj",
+            "/home/chli/chLi/Dataset/vae-eval/manifold_pcd/002.npy",
+        ],
+        "difficult-3": [
+            "/home/chli/chLi/Dataset/vae-eval/manifold/003.obj",
+            "/home/chli/chLi/Dataset/vae-eval/manifold/003.obj",
+            "/home/chli/chLi/Dataset/vae-eval/manifold_pcd/003.npy",
+        ],
+        "difficult-4": [
+            "/home/chli/chLi/Dataset/vae-eval/manifold/004.obj",
+            "/home/chli/chLi/Dataset/vae-eval/manifold/004.obj",
+            "/home/chli/chLi/Dataset/vae-eval/manifold_pcd/004.npy",
+        ],
+    }
+
+    for shape_id in shape_id_list:
+        trainOnMeshID(shape_id, shape_data_dict[shape_id])
+
+
 def trainOnPcd():
     shape_id = "000-091/9df219962230449caa4c95a60feb0c9e"
     pcd_file_path = (
@@ -279,5 +297,7 @@ if __name__ == "__main__":
     """
 
     # trainOnDataset()
-    trainOnMesh()
+    trainOnMeshIDList(
+        ["difficult-0", "difficult-1", "difficult-2", "difficult-3", "difficult-4"]
+    )
     # trainOnPcd()

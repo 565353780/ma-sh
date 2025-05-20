@@ -9,6 +9,7 @@ from abc import ABC, abstractmethod
 
 from chamfer_distance.Module.cukd_searcher import CUKDSearcher
 from chamfer_distance.Module.sided_distances import SidedDistances
+from chamfer_distance.Module.chamfer_distances import ChamferDistances
 
 from ma_sh.Config.weights import W0
 from ma_sh.Config.constant import EPSILON
@@ -320,12 +321,18 @@ class BaseTrainer(ABC):
         if fit_loss_weight > 0 or coverage_loss_weight > 0:
             mash_pts = torch.vstack([boundary_pts, inner_pts]).unsqueeze(0)
 
+            """
             if self.searcher.gt_points is None:
                 self.searcher.addPoints(gt_points)
 
             fit_dists2 = self.searcher.query(mash_pts)[0]
 
             coverage_dists2 = SidedDistances.namedAlgo("cukd")(gt_points, mash_pts)[0]
+            """
+
+            fit_dists2, coverage_dists2 = ChamferDistances.namedAlgo("triton")(
+                mash_pts, gt_points
+            )[:2]
 
             fit_dists = torch.sqrt(fit_dists2 + EPSILON)
             coverage_dists = torch.sqrt(coverage_dists2 + EPSILON)
