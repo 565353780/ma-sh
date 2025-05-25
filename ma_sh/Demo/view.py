@@ -1,5 +1,7 @@
 import sys
-sys.path.append('../wn-nc/')
+
+sys.path.append("../wn-nc/")
+sys.path.append("../chamfer-distance/")
 
 import os
 import torch
@@ -24,13 +26,11 @@ def compare(str_a: str, str_b: str) -> int:
         return 0
     return -1
 
+
 def view_single_mash():
-    mash_file_path = '/home/chli/chLi/Results/ma-sh/output/fit/fixed/bunny/anchor-50/mash/578_final_anc-50_mash.npy'
+    mash_file_path = "/home/chli/chLi/Dataset/Objaverse_82K/test/mash/000-000/0000ecca9a234cae994be239f6fec552.npy"
 
-    mash = Mash.fromParamsFile(mash_file_path, 9000, 100000, 0.8, device="cuda")
-
-    mash.saveAsAnchorPcdFiles('/home/chli/chLi/Results/ma-sh/output/anchors_pcd/bunny_50anc_super-high-res/')
-    return True
+    mash = Mash.fromParamsFile(mash_file_path, 90, 1000, 0.8, device="cuda")
 
     mash_pcd = mash.toSamplePcd()
 
@@ -39,14 +39,17 @@ def view_single_mash():
 
     return True
 
+
 def view_anchors_pcd():
-    anchors_pcd_folder_path = '/home/chli/chLi/Results/ma-sh/output/anchors_pcd/bunny_50anc/'
+    anchors_pcd_folder_path = (
+        "/home/chli/chLi/Results/ma-sh/output/anchors_pcd/bunny_50anc/"
+    )
 
     anchor_pcd_file_name_list = os.listdir(anchors_pcd_folder_path)
 
     anchor_pcd_list = []
     for anchor_pcd_file_name in anchor_pcd_file_name_list:
-        if anchor_pcd_file_name.split('.')[-1] not in ['ply', 'obj']:
+        if anchor_pcd_file_name.split(".")[-1] not in ["ply", "obj"]:
             continue
 
         anchor_pcd_file_path = anchors_pcd_folder_path + anchor_pcd_file_name
@@ -58,6 +61,7 @@ def view_anchors_pcd():
     o3d.visualization.draw_geometries(anchor_pcd_list)
 
     return True
+
 
 def demo():
     view_single_mash()
@@ -72,43 +76,47 @@ def demo():
         # mash_dataset_folder_path = dataset_root_folder_path + 'Objaverse_82K/manifold_mash/'
         #'02828884', # 6: bench
         #'04256520', # 47: sofa
-        mash_dataset_folder_path = dataset_root_folder_path + 'MashV4/ShapeNet/02828884/'
+        mash_dataset_folder_path = (
+            dataset_root_folder_path + "MashV4/ShapeNet/02828884/"
+        )
 
         mash_file_path_list = []
 
         for root, _, files in os.walk(mash_dataset_folder_path):
             for file in files:
-                if not file.endswith('.npy') or file.endswith('_tmp.npy'):
+                if not file.endswith(".npy") or file.endswith("_tmp.npy"):
                     continue
 
-                mash_file_path = root + '/' + file
+                mash_file_path = root + "/" + file
 
                 mash_file_path_list.append(mash_file_path)
 
-        shuffle(mash_file_path_list) 
+        shuffle(mash_file_path_list)
 
         for mash_file_path in mash_file_path_list:
             mash = Mash.fromParamsFile(mash_file_path, device="cuda:0")
 
-            print('mash:', mash_file_path)
+            print("mash:", mash_file_path)
             mash.renderSamplePoints()
 
     # view part mash folder
     if True:
         mash_folder_path = "/home/chli/chLi/Results/ma-sh/output/part_mash/"
-        dataset_folder_path = '/home/chli/chLi/Dataset/MashV4/ShapeNet/'
+        dataset_folder_path = "/home/chli/chLi/Dataset/MashV4/ShapeNet/"
 
         for root, _, files in os.walk(mash_folder_path):
             for file in files:
-                if not file.endswith('.npy'):
+                if not file.endswith(".npy"):
                     continue
 
                 mash_rel_file_path = os.path.relpath(root, mash_folder_path)
 
-                part_mash_file_path = root + '/' + file
-                mash_file_path = dataset_folder_path + mash_rel_file_path + '.npy'
+                part_mash_file_path = root + "/" + file
+                mash_file_path = dataset_folder_path + mash_rel_file_path + ".npy"
 
-                part_mash = Mash.fromParamsFile(part_mash_file_path, 90, 1000, 0.8, device="cuda")
+                part_mash = Mash.fromParamsFile(
+                    part_mash_file_path, 90, 1000, 0.8, device="cuda"
+                )
                 mash = Mash.fromParamsFile(mash_file_path, 90, 1000, 0.8, device="cuda")
 
                 part_mash_pcd = part_mash.toSamplePcd()
