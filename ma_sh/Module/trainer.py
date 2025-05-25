@@ -7,7 +7,8 @@ from ma_sh.Model.mash import Mash
 from ma_sh.Model.simple_mash import SimpleMash
 from ma_sh.Module.base_trainer import BaseTrainer
 
-mode = 'mash'
+mode = "mash"
+
 
 class Trainer(BaseTrainer):
     def __init__(
@@ -39,7 +40,7 @@ class Trainer(BaseTrainer):
         self.warmup_epoch = warmup_epoch
         self.factor = factor
 
-        if mode == 'mash':
+        if mode == "mash":
             self.mash = Mash(
                 anchor_num,
                 mask_degree_max,
@@ -52,7 +53,7 @@ class Trainer(BaseTrainer):
                 dtype,
                 device,
             )
-        elif mode == 'simple_mash':
+        elif mode == "simple_mash":
             self.mash = SimpleMash(
                 anchor_num,
                 mask_degree_max,
@@ -125,9 +126,11 @@ class Trainer(BaseTrainer):
 
         print("[INFO][Trainer::autoTrainMash]")
         print("\t start warmUpEpoch...")
-        if not self.warmUpEpoch(self.lr, gt_points, 1.0, 0.5, 0.0, self.warmup_step_num):
-            print('[ERROR][Trainer::autoTrainMash]')
-            print('\t warmUpEpoch failed!')
+        if not self.warmUpEpoch(
+            self.lr, gt_points, 1.0, 0.5, 0.0, self.warmup_step_num
+        ):
+            print("[ERROR][Trainer::autoTrainMash]")
+            print("\t warmUpEpoch failed!")
             return False
 
         print("[INFO][Trainer::autoTrainMash]")
@@ -149,8 +152,8 @@ class Trainer(BaseTrainer):
                 coverage_loss_weight,
                 boundary_connect_loss_weight,
             ):
-                print('[ERROR][Trainer::autoTrainMash]')
-                print('\t trainEpoch failed!')
+                print("[ERROR][Trainer::autoTrainMash]")
+                print("\t trainEpoch failed!")
                 return False
 
         print("[INFO][Trainer::autoTrainMash]")
@@ -185,8 +188,8 @@ class Trainer(BaseTrainer):
             if current_lr == self.min_lr:
                 break
 
-        self.autoSavePcd('final', add_idx=False)
-        self.autoSaveMash('final')
+        self.autoSavePcd("final", add_idx=False)
+        self.autoSaveMash("final")
 
         """
             if self.upperSHDegree():
@@ -218,14 +221,14 @@ class Trainer(BaseTrainer):
 
         total_time = time() - self.start_time
 
-        print('[INFO][Trainer::autoTrainMash]')
-        print('\t training finished! metrics:')
-        print('\t surface sampling:', self.sample_mash_time)
-        print('\t fit loss:', self.fit_loss_time)
-        print('\t coverage loss:', self.coverage_loss_time)
-        print('\t boundary connect loss:', self.boundary_connect_loss_time)
-        print('\t total:', total_time)
-        print('\t error:', self.error)
+        print("[INFO][Trainer::autoTrainMash]")
+        print("\t training finished! metrics:")
+        print("\t surface sampling:", self.sample_mash_time)
+        print("\t fit loss:", self.fit_loss_time)
+        print("\t coverage loss:", self.coverage_loss_time)
+        print("\t boundary connect loss:", self.boundary_connect_loss_time)
+        print("\t total:", total_time)
+        print("\t error:", self.error)
 
         if self.o3d_viewer is not None:
             self.o3d_viewer.run()

@@ -87,25 +87,26 @@ class Convertor(BaseConvertor):
 
         try:
             if not trainer.loadGTPointsFile(source_path, self.gt_points_num):
-                print('[ERROR][Convertor::convertData]')
-                print('\t loadGTPointsFile failed!')
+                print("[ERROR][Convertor::convertData]")
+                print("\t loadGTPointsFile failed!")
                 return False
         except KeyboardInterrupt:
-            print('[INFO][Convertor::convertData]')
-            print('\t program interrupted by the user (Ctrl+C).')
+            print("[INFO][Convertor::convertData]")
+            print("\t program interrupted by the user (Ctrl+C).")
             exit()
-        except:
-            print('[ERROR][Convertor::convertData]')
-            print('\t loadGTPointsFile raise Error!')
+        except Exception as e:
+            print("[ERROR][Convertor::convertData]")
+            print("\t loadGTPointsFile raise Error!")
+            print(e)
             return False
 
         if not trainer.autoTrainMash(self.gt_points_num):
-            print('[ERROR][Convertor::convertData]')
-            print('\t autoTrainMash failed!')
+            print("[ERROR][Convertor::convertData]")
+            print("\t autoTrainMash failed!")
             return False
 
         trainer.saveMashFile(target_path, True)
 
-        print('[INFO][Convertor::convertData]')
-        print('\t convert to mash spend time:', time() - start)
+        print("[INFO][Convertor::convertData]")
+        print("\t convert to mash spend time:", time() - start)
         return True

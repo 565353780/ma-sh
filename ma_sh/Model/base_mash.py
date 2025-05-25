@@ -219,6 +219,7 @@ class BaseMash(ABC):
 
     def regularRotateVectors(self) -> bool:
         regular_rotate_vectors = toRegularRotateVectors(self.rotate_vectors)
+
         self.rotate_vectors.data = (
             regular_rotate_vectors.detach().clone().type(self.dtype).to(self.device)
         )

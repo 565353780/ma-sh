@@ -134,11 +134,14 @@ const torch::Tensor toRotateVectors(const torch::Tensor &rotate_matrixs) {
 
   const torch::Tensor traces = torch::hstack(traces_vec);
 
-  const torch::Tensor thetas = torch::acos((traces - 1.0) * 0.5);
+  torch::Tensor acos_input = (traces - 1.0) * 0.5;
+  acos_input = torch::clamp(acos_input, -1.0, 1.0);
+
+  const torch::Tensor thetas = torch::acos(acos_input);
 
   const torch::Tensor sin_thetas = torch::sin(thetas);
 
-  const torch::Tensor valid_sin_thetas_mask = sin_thetas != 0.0;
+  const torch::Tensor valid_sin_thetas_mask = torch::abs(sin_thetas) > 1e-6;
 
   const torch::TensorOptions opts = torch::TensorOptions()
                                         .dtype(rotate_matrixs.dtype())
