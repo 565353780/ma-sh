@@ -25,7 +25,9 @@ elif SYSTEM == "Linux":
     mash_extra_compile_args.append("-std=c++17")
 
 if torch.cuda.is_available():
-    os.environ["TORCH_CUDA_ARCH_LIST"] = "6.0;6.1;6.2;7.0;7.5;8.0;8.6;8.9"
+    cc = torch.cuda.get_device_capability()
+    arch_str = f"{cc[0]}.{cc[1]}"
+    os.environ["TORCH_CUDA_ARCH_LIST"] = arch_str
 
     mash_sources += glob.glob(mash_src_path + "*.cu")
 
