@@ -6,15 +6,19 @@ from typing import Union
 from ma_sh.Data.abb import ABB
 
 
-def getPointCloud(pts: np.ndarray, normals: Union[np.ndarray, None]=None, colors: Union[np.ndarray, None]=None):
+def getPointCloud(
+    pts: np.ndarray,
+    normals: Union[np.ndarray, None] = None,
+    colors: Union[np.ndarray, None] = None,
+):
     pcd = o3d.geometry.PointCloud()
-    pcd.points = o3d.utility.Vector3dVector(pts)
+    pcd.points = o3d.utility.Vector3dVector(pts.astype(np.float64))
     if normals is not None:
         if normals.shape[0] == pts.shape[0]:
-            pcd.normals = o3d.utility.Vector3dVector(normals)
+            pcd.normals = o3d.utility.Vector3dVector(normals.astype(np.float64))
     if colors is not None:
         if colors.shape[0] == pts.shape[0]:
-            pcd.colors = o3d.utility.Vector3dVector(colors)
+            pcd.colors = o3d.utility.Vector3dVector(colors.astype(np.float64))
     return pcd
 
 
@@ -28,8 +32,8 @@ def downSample(pcd, sample_point_num, try_fps_first: bool = True):
         try:
             down_sample_pcd = pcd.farthest_point_down_sample(sample_point_num)
         except KeyboardInterrupt:
-            print('[INFO][pcd::downSample]')
-            print('\t program interrupted by the user (Ctrl+C).')
+            print("[INFO][pcd::downSample]")
+            print("\t program interrupted by the user (Ctrl+C).")
             exit()
         except:
             every_k_points = ceil(np.asarray(pcd.points).shape[0] / sample_point_num)
@@ -46,6 +50,7 @@ def getCropPointCloud(
 ) -> o3d.geometry.PointCloud:
     o3d_abb = abb.toOpen3DABB()
     return pcd.crop(o3d_abb)
+
 
 def toMergedPcd(
     pcd_1: o3d.geometry.PointCloud,
