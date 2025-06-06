@@ -655,7 +655,7 @@ class BaseTrainer(ABC):
             save_mash.scale(1.0 / self.scale, False)
             save_mash.translate(self.translate)
 
-        save_mash.saveAsPcdFile(save_pcd_file_path, overwrite)
+        save_mash.saveAsPcdFile(save_pcd_file_path, overwrite=overwrite)
         return True
 
     def autoSavePcd(
@@ -681,7 +681,7 @@ class BaseTrainer(ABC):
             + "_pcd.ply"
         )
 
-        if not self.saveAsPcdFile(save_pcd_file_path, True):
+        if not self.saveAsPcdFile(save_pcd_file_path, overwrite=True):
             print("[ERROR][BaseTrainer::autoSavePcd]")
             print("\t saveAsPcdFile failed!")
             return False

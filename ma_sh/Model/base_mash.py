@@ -682,7 +682,9 @@ class BaseMash(ABC):
         sample_pcd = getPointCloud(sample_points_array)
         return sample_pcd
 
-    def toSamplePcdWithWNNCNormals(self) -> o3d.geometry.PointCloud:
+    def toSamplePcdWithWNNCNormals(
+        self, use_gpu: bool = True
+    ) -> o3d.geometry.PointCloud:
         save_xyz_file_path = "./tmp/mash_1_xyz.xyz"
         save_wnnc_xyz_file_path = "./tmp/mash_2_wnnc_xyz.xyz"
 
@@ -698,7 +700,7 @@ class BaseMash(ABC):
             wsmin=0.01,
             wsmax=0.04,
             iters=40,
-            use_gpu=True,
+            use_gpu=use_gpu,
             print_progress=True,
             overwrite=True,
         )
@@ -714,7 +716,7 @@ class BaseMash(ABC):
 
         return wnnc_pcd
 
-    def toWNNCMesh(self, need_smooth: bool = True) -> Mesh:
+    def toWNNCMesh(self, need_smooth: bool = True, use_gpu: bool = True) -> Mesh:
         save_xyz_file_path = "./tmp/mash_1_xyz.xyz"
         save_wnnc_xyz_file_path = "./tmp/mash_2_wnnc_xyz.xyz"
         save_wnnc_mesh_file_path = "./tmp/mash_3_wnnc_mesh.ply"
@@ -733,7 +735,7 @@ class BaseMash(ABC):
             wsmin=0.01,
             wsmax=0.04,
             iters=40,
-            use_gpu=True,
+            use_gpu=use_gpu,
             print_progress=True,
             overwrite=True,
         )
@@ -757,6 +759,7 @@ class BaseMash(ABC):
         self,
         save_mesh_file_path: str,
         need_smooth: bool = True,
+        use_gpu: bool = True,
         overwrite: bool = False,
     ) -> bool:
         if os.path.exists(save_mesh_file_path):
@@ -785,7 +788,7 @@ class BaseMash(ABC):
             wsmin=0.01,
             wsmax=0.04,
             iters=40,
-            use_gpu=True,
+            use_gpu=use_gpu,
             print_progress=True,
             overwrite=True,
         )
@@ -1019,6 +1022,8 @@ class BaseMash(ABC):
     def saveAsPcdFile(
         self,
         save_pcd_file_path: str,
+        need_normal: bool = False,
+        use_gpu: bool = True,
         overwrite: bool = False,
         print_progress: bool = False,
     ) -> bool:
@@ -1030,7 +1035,10 @@ class BaseMash(ABC):
 
         createFileFolder(save_pcd_file_path)
 
-        pcd = self.toSamplePcd()
+        if need_normal:
+            pcd = self.toSamplePcdWithWNNCNormals(use_gpu)
+        else:
+            pcd = self.toSamplePcd()
 
         if print_progress:
             print("[INFO][Mash::saveAsPcdFile]")

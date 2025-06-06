@@ -33,12 +33,14 @@ def view_single_mash():
         "/Users/chli/Downloads/Dataset/MashAutoencoder/vae-eval_000_mash.npy"
     )
 
+    # mash_file_path = "/Users/chli/Downloads/Dataset/Mash/fit/707_final_anc-400_mash.npy"
+
     mash = Mash.fromParamsFile(mash_file_path, 90, 1000, 0.8, device="cpu")
 
-    mash_pcd = mash.toSamplePcd()
+    # mash.saveAsPcdFile(pcd_file_path, True, False, True)
 
     print("start show mash:", mash_file_path)
-    o3d.visualization.draw_geometries([mash_pcd])
+    mash.renderSamplePoints()
 
     return True
 

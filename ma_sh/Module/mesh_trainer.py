@@ -135,7 +135,7 @@ class MeshTrainer(BaseTrainer):
         fit_loss = torch.tensor(0.0).type(gt_points.dtype).to(gt_points.device)
         coverage_loss = torch.zeros_like(fit_loss)
 
-        fit_dists2, coverage_dists2 = ChamferDistances.namedAlgo("triton")(
+        fit_dists2, coverage_dists2 = ChamferDistances.namedAlgo("cuda")(
             mash_pts, gt_points
         )[:2]
 

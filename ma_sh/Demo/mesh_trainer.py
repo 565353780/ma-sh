@@ -29,7 +29,7 @@ def demo(
     use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float32
-    device = "cuda:0"
+    device = "cuda:7"
 
     lr = 2e-3
     min_lr = 1e-3
