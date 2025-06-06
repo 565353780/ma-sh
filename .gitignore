@@ -13,3 +13,7 @@ dist
 logs
 output
 results
+
+# script
+sync.sh
+sync_code.sh
