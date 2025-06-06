@@ -29,8 +29,11 @@ def compare(str_a: str, str_b: str) -> int:
 
 def view_single_mash():
     mash_file_path = "/home/chli/chLi/Dataset/Objaverse_82K/test/mash/000-000/0000ecca9a234cae994be239f6fec552.npy"
+    mash_file_path = (
+        "/Users/chli/Downloads/Dataset/MashAutoencoder/vae-eval_000_mash.npy"
+    )
 
-    mash = Mash.fromParamsFile(mash_file_path, 90, 1000, 0.8, device="cuda")
+    mash = Mash.fromParamsFile(mash_file_path, 90, 1000, 0.8, device="cpu")
 
     mash_pcd = mash.toSamplePcd()
 

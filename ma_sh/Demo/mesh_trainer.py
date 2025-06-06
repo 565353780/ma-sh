@@ -2,28 +2,30 @@ import sys
 
 sys.path.append("../wn-nc/")
 sys.path.append("../chamfer-distance/")
+sys.path.append("../diff-curvature")
+sys.path.append("../mesh-graph-cut")
 
 import torch
 from typing import Union
 
-from ma_sh.Module.trainer import Trainer
+from ma_sh.Module.mesh_trainer import MeshTrainer
 from ma_sh.Module.timer import Timer
 
 
 def demo(
-    gt_points_file_path: str,
+    mesh_file_path: str,
     anchor_num: int = 400,
+    mask_degree_max: int = 3,
     sh_degree_max: int = 2,
     save_freq: int = 1,
     save_log_folder_path: Union[str, None] = "auto",
     save_result_folder_path: Union[str, None] = "auto",
 ):
     # anchor_num = 400
-    mask_degree_max = 3
+    # mask_degree_max = 3
     # sh_degree_max = 2
-    mask_boundary_sample_num = 90
-    sample_point_num = 1000
-    sample_point_scale = 0.8
+    sample_phi_num = 40
+    sample_theta_num = 40
     use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float32
@@ -41,21 +43,12 @@ def demo(
     render_init_only = False
     # save_freq = 1
 
-    gt_points_num = 400000
-
-    # save_result_folder_path = None
-    # save_log_folder_path = None
-
-    # save_result_folder_path = 'auto'
-    # save_log_folder_path = 'auto'
-
-    trainer = Trainer(
+    trainer = MeshTrainer(
         anchor_num,
         mask_degree_max,
         sh_degree_max,
-        mask_boundary_sample_num,
-        sample_point_num,
-        sample_point_scale,
+        sample_phi_num,
+        sample_theta_num,
         use_inv,
         idx_dtype,
         dtype,
@@ -74,28 +67,12 @@ def demo(
         save_log_folder_path,
     )
 
-    print("start load GT data...")
-    if False:
-        trainer.loadMeshFile(mesh_file_path)
-    else:
-        """
-        mesh_id = 0
-        mesh_name_list = [
-            '03001627/1016f4debe988507589aae130c1f06fb',
-            '02691156/1066b65c30d153e04c3a35cee92bb95b',
-            "04090263/22d2782aa73ea40960abd8a115f9899",
-            "03001627/46e1939ce6ee14d6a4689f3cf5c22e6",
-            "03001627/1b8e84935fdc3ec82be289de70e8db31",
-            "03001627/e71d05f223d527a5f91663a74ccd2338",
-        ]
-        gt_points_file_path = '/home/chli/chLi2/Dataset/SampledPcd_Manifold/ShapeNet/' + mesh_name_list[mesh_id] + '.npy'
-        """
-
-        trainer.loadGTPointsFile(gt_points_file_path, gt_points_num)
+    print("start load GT mesh...")
+    trainer.loadMeshFile(mesh_file_path)
 
     timer = Timer()
     print("start optimizing MASH...")
-    trainer.autoTrainMash(gt_points_num)
+    trainer.autoTrainMash()
 
     print("finish training, spend time :", timer.now())
     return True
