@@ -12,7 +12,7 @@ from random import shuffle
 from ma_sh.Config.custom_path import toDatasetRootPath
 from ma_sh.Method.data import toNumpy
 from ma_sh.Method.pcd import getPointCloud
-from ma_sh.Model.mash import Mash
+from ma_sh.Model.simple_mash import SimpleMash
 from ma_sh.Module.o3d_viewer import O3DViewer
 
 
@@ -33,9 +33,11 @@ def view_single_mash():
         "/Users/chli/Downloads/Dataset/MashAutoencoder/vae-eval_000_mash.npy"
     )
 
+    mash_file_path = "/Users/chli/Downloads/Dataset/Mash/MeshTrainer/results/difficult-0/mash/0_final_anc-4000_mash.npy"
+
     # mash_file_path = "/Users/chli/Downloads/Dataset/Mash/fit/707_final_anc-400_mash.npy"
 
-    mash = Mash.fromParamsFile(mash_file_path, 90, 1000, 0.8, device="cpu")
+    mash = SimpleMash.fromParamsFile(mash_file_path, 40, 40, device="cpu")
 
     # mash.saveAsPcdFile(pcd_file_path, True, False, True)
 

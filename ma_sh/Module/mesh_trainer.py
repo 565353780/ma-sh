@@ -255,7 +255,7 @@ class MeshTrainer(BaseTrainer):
             if current_lr == self.min_lr:
                 break
 
-        self.autoSavePcd("final", add_idx=False)
+        # self.autoSavePcd("final", add_idx=False)
         self.autoSaveMash("final")
 
         total_time = time() - self.start_time

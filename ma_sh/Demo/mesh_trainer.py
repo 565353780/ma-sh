@@ -14,9 +14,13 @@ from ma_sh.Module.timer import Timer
 
 def demo(
     mesh_file_path: str,
-    anchor_num: int = 400,
+    points_per_submesh: int = 1024,
+    anchor_num: int = 4000,
     mask_degree_max: int = 3,
     sh_degree_max: int = 2,
+    sample_phi_num: int = 40,
+    sample_theta_num: int = 40,
+    device: str = "cuda:0",
     save_freq: int = 1,
     save_log_folder_path: Union[str, None] = "auto",
     save_result_folder_path: Union[str, None] = "auto",
@@ -24,12 +28,12 @@ def demo(
     # anchor_num = 400
     # mask_degree_max = 3
     # sh_degree_max = 2
-    sample_phi_num = 40
-    sample_theta_num = 40
+    # sample_phi_num = 40
+    # sample_theta_num = 40
     use_inv = True
     idx_dtype = torch.int64
     dtype = torch.float32
-    device = "cuda:7"
+    # device = "cuda:7"
 
     lr = 2e-3
     min_lr = 1e-3
@@ -68,7 +72,7 @@ def demo(
     )
 
     print("start load GT mesh...")
-    trainer.loadMeshFile(mesh_file_path)
+    trainer.loadMeshFile(mesh_file_path, points_per_submesh)
 
     timer = Timer()
     print("start optimizing MASH...")
