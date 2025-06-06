@@ -6,6 +6,9 @@ from torch.optim import AdamW
 
 from mesh_graph_cut.Module.mesh_graph_cutter import MeshGraphCutter
 
+from chamfer_distance.Module.chamfer_distances import ChamferDistances
+
+from ma_sh.Config.weights import W0
 from ma_sh.Config.constant import EPSILON
 from ma_sh.Method.data import toNumpy
 from ma_sh.Model.simple_mash import SimpleMash
@@ -170,8 +173,6 @@ class MeshTrainer(BaseTrainer):
         self.error = chamfer_distance
 
         loss_dict = {
-            "State/boundary_pts": boundary_pts.shape[0],
-            "State/inner_pts": inner_pts.shape[0],
             "Train/epoch": self.epoch,
             "Train/fit_loss": toNumpy(fit_loss),
             "Train/coverage_loss": toNumpy(coverage_loss),
