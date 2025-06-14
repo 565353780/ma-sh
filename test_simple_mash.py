@@ -11,17 +11,13 @@ if __name__ == "__main__":
 
     mash.setGradState(True)
 
-    print(mash.sample_phis)
-    print(mash.sample_thetas)
-    print(mash.sample_phi_theta_mat)
-    print(mash.sample_phi_theta_mat.shape)
-
-    print(mash.sample_phi_theta_mat[:, :, 1])
-
     mask_thetas = mash.toMaskThetas()
     print(mask_thetas)
 
-    mean = mask_thetas.mean()
+    weighted_sample_phi_theta_mat = mash.toWeightedSamplePhiThetaMat()
+    print(weighted_sample_phi_theta_mat)
+
+    mean = weighted_sample_phi_theta_mat.mean()
     mean.backward()
 
     print(mash.mask_params.grad)

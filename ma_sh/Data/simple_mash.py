@@ -90,3 +90,17 @@ class SimpleMash(object):
         mask_thetas = torch.sigmoid(mask_thetas)
 
         return mask_thetas
+
+    def toWeightedSamplePhiThetaMat(self) -> torch.Tensor:
+        weighted_sample_phi_theta_mat = self.sample_phi_theta_mat.unsqueeze(0).repeat(
+            self.anchor_num, 1, 1, 1
+        )
+
+        theta_weights = self.toMaskThetas().unsqueeze(-1)
+
+        weights = torch.ones_like(weighted_sample_phi_theta_mat)
+        weights[:, :, :, 1] = theta_weights
+
+        weighted_sample_phi_theta_mat = weighted_sample_phi_theta_mat * weights
+
+        return weighted_sample_phi_theta_mat
