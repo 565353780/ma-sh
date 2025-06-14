@@ -58,14 +58,19 @@ class SimpleMash(BaseMash):
         idx_dtype=None,
         dtype=None,
         device: Union[str, None] = None,
-        ):
-
+    ):
         mash = SimpleMash(
             anchor_num if anchor_num is not None else target_mash.anchor_num,
-            mask_degree_max if mask_degree_max is not None else target_mash.mask_degree_max,
+            mask_degree_max
+            if mask_degree_max is not None
+            else target_mash.mask_degree_max,
             sh_degree_max if sh_degree_max is not None else target_mash.sh_degree_max,
-            sample_phi_num if sample_phi_num is not None else target_mash.sample_phi_num,
-            sample_theta_num if sample_theta_num is not None else target_mash.sample_theta_num,
+            sample_phi_num
+            if sample_phi_num is not None
+            else target_mash.sample_phi_num,
+            sample_theta_num
+            if sample_theta_num is not None
+            else target_mash.sample_theta_num,
             use_inv if use_inv is not None else target_mash.use_inv,
             idx_dtype if idx_dtype is not None else target_mash.idx_dtype,
             dtype if dtype is not None else target_mash.dtype,
@@ -129,9 +134,22 @@ class SimpleMash(BaseMash):
         )
 
     def updatePreLoadDatas(self) -> bool:
-        self.sample_phis = 2.0 * np.pi / self.sample_phi_num * torch.arange(self.sample_phi_num, dtype=self.dtype).to(self.device)
-        self.sample_base_values = mash_cpp.toMaskBaseValues(self.sample_phis, self.mask_degree_max)
-        self.mask_boundary_phi_idxs = torch.arange(self.anchor_num, dtype=self.idx_dtype).to(self.device).repeat(self.sample_phi_num, 1).permute(1, 0).reshape(-1)
+        self.sample_phis = (
+            2.0
+            * np.pi
+            / self.sample_phi_num
+            * torch.arange(self.sample_phi_num, dtype=self.dtype).to(self.device)
+        )
+        self.sample_base_values = mash_cpp.toMaskBaseValues(
+            self.sample_phis, self.mask_degree_max
+        )
+        self.mask_boundary_phi_idxs = (
+            torch.arange(self.anchor_num, dtype=self.idx_dtype)
+            .to(self.device)
+            .repeat(self.sample_phi_num, 1)
+            .permute(1, 0)
+            .reshape(-1)
+        )
         return True
 
     def toSimpleSamplePoints(self) -> torch.Tensor:
@@ -146,14 +164,16 @@ class SimpleMash(BaseMash):
             self.sample_phis,
             self.sample_base_values,
             self.sample_theta_num,
-            self.use_inv
+            self.use_inv,
         )
 
         return simple_sample_points
 
-    def toSamplePointsWithNormals(self, refine_normals: bool=False, fps_sample_scale: float = -1) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-        print('[ERROR][SimpleMash::toSamplePointsWithNormals]')
-        print('\t this function has not been implemented!')
+    def toSamplePointsWithNormals(
+        self, refine_normals: bool = False, fps_sample_scale: float = -1
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        print("[ERROR][SimpleMash::toSamplePointsWithNormals]")
+        print("\t this function has not been implemented!")
         return (
             torch.empty([0], dtype=self.dtype, device=self.device),
             torch.empty([0], dtype=self.dtype, device=self.device),
@@ -165,16 +185,29 @@ class SimpleMash(BaseMash):
     def toSamplePoints(self) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         simple_sample_points = self.toSimpleSamplePoints()
 
-        single_anchor_in_mask_point_num = 1 + self.sample_phi_num * (self.sample_theta_num - 1)
+        single_anchor_in_mask_point_num = 1 + self.sample_phi_num * (
+            self.sample_theta_num - 1
+        )
         single_anchor_point_num = single_anchor_in_mask_point_num + self.sample_phi_num
 
-        mask_boundary_point_mask = torch.zeros(simple_sample_points.shape[0], dtype=torch.bool)
+        mask_boundary_point_mask = torch.zeros(
+            simple_sample_points.shape[0], dtype=torch.bool
+        )
         for i in range(self.anchor_num):
-            mask_boundary_point_mask[i * single_anchor_point_num + single_anchor_in_mask_point_num: (i + 1) * single_anchor_point_num] = True
+            mask_boundary_point_mask[
+                i * single_anchor_point_num + single_anchor_in_mask_point_num : (i + 1)
+                * single_anchor_point_num
+            ] = True
 
         in_mask_points = simple_sample_points[~mask_boundary_point_mask]
         mask_boundary_points = simple_sample_points[mask_boundary_point_mask]
-        in_mask_point_idxs = torch.arange(self.anchor_num, dtype=self.idx_dtype).to(self.device).repeat(single_anchor_in_mask_point_num, 1).permute(1, 0).reshape(-1)
+        in_mask_point_idxs = (
+            torch.arange(self.anchor_num, dtype=self.idx_dtype)
+            .to(self.device)
+            .repeat(single_anchor_in_mask_point_num, 1)
+            .permute(1, 0)
+            .reshape(-1)
+        )
 
         return mask_boundary_points, in_mask_points, in_mask_point_idxs
 
@@ -182,8 +215,8 @@ class SimpleMash(BaseMash):
         simple_sample_triangles = []
 
         if self.anchor_num == 0:
-            print('[ERROR][SimpleMash::toSimpleSampleTriangles]')
-            print('\t anchor is empty!')
+            print("[ERROR][SimpleMash::toSimpleSampleTriangles]")
+            print("\t anchor is empty!")
             return np.asarray(simple_sample_triangles)
 
         single_anchor_point_num = 1 + self.sample_phi_num * self.sample_theta_num
@@ -203,13 +236,23 @@ class SimpleMash(BaseMash):
             for j in range(self.sample_phi_num):
                 point_idx = point_idx_start + j
                 next_point_idx = point_idx_start + (j + 1) % self.sample_phi_num
-                single_anchor_triangles.append([point_idx, point_idx + self.sample_phi_num, next_point_idx + self.sample_phi_num])
-                single_anchor_triangles.append([point_idx, next_point_idx + self.sample_phi_num, next_point_idx])
+                single_anchor_triangles.append(
+                    [
+                        point_idx,
+                        point_idx + self.sample_phi_num,
+                        next_point_idx + self.sample_phi_num,
+                    ]
+                )
+                single_anchor_triangles.append(
+                    [point_idx, next_point_idx + self.sample_phi_num, next_point_idx]
+                )
 
         single_anchor_triangles = np.asarray(single_anchor_triangles, dtype=np.int64)
 
         for i in range(self.anchor_num):
-            simple_sample_triangles.append(i * single_anchor_point_num + single_anchor_triangles)
+            simple_sample_triangles.append(
+                i * single_anchor_point_num + single_anchor_triangles
+            )
 
         return np.vstack(simple_sample_triangles, dtype=np.int64)
 
@@ -227,7 +270,9 @@ class SimpleMash(BaseMash):
         points = self.toSimpleSamplePoints()
         triangles = self.toSimpleSampleTriangles()
 
-        centers, axis_lengths, triangle_rotate_matrixs = toOuterEllipses(points, triangles)
+        centers, axis_lengths, triangle_rotate_matrixs = toOuterEllipses(
+            points, triangles
+        )
 
         return centers, axis_lengths, triangle_rotate_matrixs
 
@@ -271,6 +316,8 @@ class SimpleMash(BaseMash):
 
     def toSampleMesh(self) -> Mesh:
         sample_mesh = Mesh()
-        sample_mesh.vertices = self.toSimpleSamplePoints().detach().clone().cpu().numpy()
+        sample_mesh.vertices = (
+            self.toSimpleSamplePoints().detach().clone().cpu().numpy()
+        )
         sample_mesh.triangles = self.toSimpleSampleTriangles()
         return sample_mesh
