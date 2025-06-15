@@ -90,12 +90,7 @@ class SimpleMash(torch.nn.Module):
         self.positions = torch.nn.Parameter(
             torch.zeros([anchor_num, 3], dtype=self.dtype, device=self.device)
         )
-
-        with torch.no_grad():
-            self.mask_params[:, 0] = -0.4
-            self.sh_params[:, 0] = 1.0
-            self.ortho_poses[:, 0] = 1.0
-            self.ortho_poses[:, 4] = 1.0
+        return
 
     def setGradState(
         self, need_grad: bool, anchor_mask: Optional[torch.Tensor] = None

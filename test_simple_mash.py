@@ -1,16 +1,11 @@
 import os
-import sys
-
-sys.path.append("../wn-nc")
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "7"
 
 import torch
 from tqdm import trange
 
-from ma_sh.Data.simple_mash import SimpleMash
-from ma_sh.Model.simple_mash import SimpleMash as SMash
-from ma_sh.Method.rotate import toOrthoPosesFromRotateVectors
+from ma_sh.Model.simple_mash import SimpleMash
 from ma_sh.Method.render import renderPoints
 
 if __name__ == "__main__":
@@ -39,36 +34,6 @@ if __name__ == "__main__":
         print_grad = True
         render = True
 
-    smash = SMash(
-        anchor_num=anchor_num,
-        mask_degree_max=mask_degree_max,
-        sh_degree_max=sh_degree_max,
-        sample_phi_num=sample_phi_num,
-        sample_theta_num=sample_theta_num,
-        use_inv=False,
-        dtype=dtype,
-        device=device,
-    )
-
-    smash.rotate_vectors[:, 0] = 3.0
-    smash.rotate_vectors[:, 0] = 2.0
-    smash.rotate_vectors[:, 0] = 1.0
-
-    smash.positions[:, 0] = 1.0
-    smash.positions[:, 1] = 2.0
-    smash.positions[:, 2] = 3.0
-
-    smash.setGradState(True)
-
-    if test_speed:
-        for _ in trange(iter_num):
-            sample_points2 = smash.toSimpleSamplePoints()
-
-        mean2 = sample_points2.mean()
-        mean2.backward()
-    else:
-        sample_points2 = smash.toSimpleSamplePoints()
-
     mash = SimpleMash(
         anchor_num=anchor_num,
         mask_degree_max=mask_degree_max,
@@ -79,17 +44,21 @@ if __name__ == "__main__":
         device=device,
     )
 
-    # mash = torch.jit.script(mash)
-
     with torch.no_grad():
-        mash.mask_params.copy_(smash.mask_params.detach().clone())
-        mash.sh_params.copy_(smash.sh_params.detach().clone())
-        mash.ortho_poses.copy_(
-            toOrthoPosesFromRotateVectors(smash.rotate_vectors).detach().clone()
-        )
-        mash.positions.copy_(smash.positions.detach().clone())
+        mash.mask_params[:, 0] = -0.4
+        mash.sh_params[:, 0] = 1.0
+
+        mash.ortho_poses[:, 0] = 3.0
+        mash.ortho_poses[:, 2] = 2.0
+        mash.ortho_poses[:, 4] = 1.0
+
+        mash.positions[:, 0] = 1.0
+        mash.positions[:, 1] = 2.0
+        mash.positions[:, 2] = 3.0
 
     mash.setGradState(True)
+
+    # mash = torch.jit.script(mash)
 
     for _ in trange(iter_num):
         sample_points = mash()
@@ -104,8 +73,4 @@ if __name__ == "__main__":
         print(mash.positions.grad)
 
     if device == "cpu" and render:
-        renderPoints(sample_points2)
         renderPoints(sample_points)
-
-        merge_points = torch.vstack([sample_points2, sample_points.reshape(-1, 3)])
-        renderPoints(merge_points)

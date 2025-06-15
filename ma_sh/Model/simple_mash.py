@@ -1,18 +1,13 @@
+import math
 import torch
-import numpy as np
-from tqdm import trange
-from math import sqrt
-from typing import Union, Tuple
+from typing import Optional
 
 import mash_cpp
 
-from ma_sh.Data.mesh import Mesh
-from ma_sh.Model.base_mash import BaseMash
-from ma_sh.Method.outer import toOuterCircles, toOuterEllipses
-from ma_sh.Method.render import getCircle, getEllipse
+from ma_sh.Method.rotate import compute_rotation_matrix_from_ortho6d
 
 
-class SimpleMash(BaseMash):
+class SimpleMash(torch.nn.Module):
     def __init__(
         self,
         anchor_num: int = 400,
@@ -20,304 +15,184 @@ class SimpleMash(BaseMash):
         sh_degree_max: int = 2,
         sample_phi_num: int = 10,
         sample_theta_num: int = 10,
-        use_inv: bool = True,
-        idx_dtype=torch.int64,
         dtype=torch.float32,
-        device: str = "cpu",
+        device: str = "cuda" if torch.cuda.is_available() else "cpu",
     ) -> None:
+        super().__init__()
+
         # Super Params
-        self.sample_phi_num = sample_phi_num
-        self.sample_theta_num = sample_theta_num
+        self.anchor_num: int = anchor_num
+        self.mask_degree_max: int = mask_degree_max
+        self.sh_degree_max: int = sh_degree_max
+        self.sample_phi_num: int = sample_phi_num
+        self.sample_theta_num: int = sample_theta_num
+        self.dtype = dtype
+        self.device: str = device
 
-        # Pre Load Datas
-        self.sample_phis = torch.tensor([0.0], dtype=dtype).to(device)
-        self.sample_base_values = torch.tensor([0.0], dtype=dtype).to(device)
-        self.mask_boundary_phi_idxs = torch.tensor([0.0], dtype=dtype).to(device)
+        self._two_pi = 2.0 * math.pi
+        self._pi = math.pi
 
-        super().__init__(
-            anchor_num,
-            mask_degree_max,
-            sh_degree_max,
-            use_inv,
-            idx_dtype,
-            dtype,
-            device,
+        sample_phis = torch.linspace(
+            self._two_pi / self.sample_phi_num,
+            self._two_pi,
+            self.sample_phi_num,
+            dtype=self.dtype,
+            device=self.device,
         )
-        return
-
-    @classmethod
-    def fromMash(
-        cls,
-        target_mash,
-        anchor_num: Union[int, None] = None,
-        mask_degree_max: Union[int, None] = None,
-        sh_degree_max: Union[int, None] = None,
-        sample_phi_num: Union[int, None] = None,
-        sample_theta_num: Union[int, None] = None,
-        use_inv: Union[bool, None] = None,
-        idx_dtype=None,
-        dtype=None,
-        device: Union[str, None] = None,
-    ):
-        mash = SimpleMash(
-            anchor_num if anchor_num is not None else target_mash.anchor_num,
-            mask_degree_max
-            if mask_degree_max is not None
-            else target_mash.mask_degree_max,
-            sh_degree_max if sh_degree_max is not None else target_mash.sh_degree_max,
-            sample_phi_num
-            if sample_phi_num is not None
-            else target_mash.sample_phi_num,
-            sample_theta_num
-            if sample_theta_num is not None
-            else target_mash.sample_theta_num,
-            use_inv if use_inv is not None else target_mash.use_inv,
-            idx_dtype if idx_dtype is not None else target_mash.idx_dtype,
-            dtype if dtype is not None else target_mash.dtype,
-            device if device is not None else target_mash.device,
-        )
-        return mash
-
-    @classmethod
-    def fromParamsDict(
-        cls,
-        params_dict: dict,
-        sample_phi_num: int = 10,
-        sample_theta_num: int = 10,
-        idx_dtype=torch.int64,
-        dtype=torch.float32,
-        device: str = "cpu",
-    ):
-        mask_params = params_dict["mask_params"]
-        sh_params = params_dict["sh_params"]
-        use_inv = params_dict["use_inv"]
-
-        anchor_num = mask_params.shape[0]
-        mask_degree_max = int((mask_params.shape[1] - 1) / 2)
-        sh_degree_max = int(sqrt(sh_params.shape[1] - 1))
-
-        mash = cls(
-            anchor_num,
-            mask_degree_max,
-            sh_degree_max,
-            sample_phi_num,
-            sample_theta_num,
-            use_inv,
-            idx_dtype,
-            dtype,
-            device,
+        sample_thetas = torch.linspace(
+            self._pi / self.sample_theta_num,
+            self._pi,
+            self.sample_theta_num,
+            dtype=self.dtype,
+            device=self.device,
         )
 
-        mash.loadParamsDict(params_dict)
+        self.register_buffer("sample_phis", sample_phis)
+        self.register_buffer("sample_thetas", sample_thetas)
 
-        return mash
+        phi_grid, theta_grid = torch.meshgrid(sample_phis, sample_thetas, indexing="ij")
+        sample_phi_theta_mat = torch.stack([phi_grid, theta_grid], dim=-1)
 
-    @classmethod
-    def fromParamsFile(
-        cls,
-        params_file_path: str,
-        sample_phi_num: int = 10,
-        sample_theta_num: int = 10,
-        idx_dtype=torch.int64,
-        dtype=torch.float32,
-        device: str = "cpu",
-    ):
-        params_dict = np.load(params_file_path, allow_pickle=True).item()
-
-        return cls.fromParamsDict(
-            params_dict,
-            sample_phi_num,
-            sample_theta_num,
-            idx_dtype,
-            dtype,
-            device,
+        expanded_sample_phi_theta_mat = sample_phi_theta_mat.unsqueeze(0).expand(
+            self.anchor_num, -1, -1, -1
+        )
+        self.register_buffer(
+            "expanded_sample_phi_theta_mat", expanded_sample_phi_theta_mat
         )
 
-    def updatePreLoadDatas(self) -> bool:
-        self.sample_phis = (
-            2.0
-            * np.pi
-            / self.sample_phi_num
-            * torch.arange(self.sample_phi_num, dtype=self.dtype).to(self.device)
+        if self.mask_degree_max > 0:
+            degrees = torch.arange(
+                1, self.mask_degree_max + 1, dtype=self.dtype, device=self.device
+            )
+            angles = degrees.unsqueeze(1) * sample_phis.unsqueeze(0)
+            cos_terms = torch.cos(angles)
+            sin_terms = torch.sin(angles)
+            self.register_buffer("cos_terms", cos_terms)
+            self.register_buffer("sin_terms", sin_terms)
+
+        self.mask_params = torch.nn.Parameter(
+            torch.zeros(
+                [anchor_num, 2 * mask_degree_max + 1],
+                dtype=self.dtype,
+                device=self.device,
+            )
         )
-        self.sample_base_values = mash_cpp.toMaskBaseValues(
-            self.sample_phis, self.mask_degree_max
+        self.sh_params = torch.nn.Parameter(
+            torch.zeros(
+                [anchor_num, (sh_degree_max + 1) ** 2],
+                dtype=self.dtype,
+                device=self.device,
+            )
         )
-        self.mask_boundary_phi_idxs = (
-            torch.arange(self.anchor_num, dtype=self.idx_dtype)
-            .to(self.device)
-            .repeat(self.sample_phi_num, 1)
-            .permute(1, 0)
-            .reshape(-1)
+        self.ortho_poses = torch.nn.Parameter(
+            torch.zeros([anchor_num, 6], dtype=self.dtype, device=self.device)
         )
+        self.positions = torch.nn.Parameter(
+            torch.zeros([anchor_num, 3], dtype=self.dtype, device=self.device)
+        )
+
+        with torch.no_grad():
+            self.mask_params[:, 0] = -0.4
+            self.sh_params[:, 0] = 1.0
+            self.ortho_poses[:, 0] = 1.0
+            self.ortho_poses[:, 4] = 1.0
+
+    def setGradState(
+        self, need_grad: bool, anchor_mask: Optional[torch.Tensor] = None
+    ) -> bool:
+        if anchor_mask is None:
+            for param in [
+                self.mask_params,
+                self.sh_params,
+                self.ortho_poses,
+                self.positions,
+            ]:
+                param.requires_grad_(need_grad)
+        else:
+            with torch.no_grad():
+                if need_grad:
+                    self.mask_params[anchor_mask].requires_grad_(True)
+                    self.sh_params[anchor_mask].requires_grad_(True)
+                    self.ortho_poses[anchor_mask].requires_grad_(True)
+                    self.positions[anchor_mask].requires_grad_(True)
+                else:
+                    self.mask_params[anchor_mask].requires_grad_(False)
+                    self.sh_params[anchor_mask].requires_grad_(False)
+                    self.ortho_poses[anchor_mask].requires_grad_(False)
+                    self.positions[anchor_mask].requires_grad_(False)
         return True
 
-    def toSimpleSamplePoints(self) -> torch.Tensor:
-        simple_sample_points = mash_cpp.toSimpleMashSamplePoints(
-            self.anchor_num,
-            self.mask_degree_max,
-            self.sh_degree_max,
-            self.mask_params,
-            self.sh_params,
-            self.rotate_vectors,
-            self.positions,
-            self.sample_phis,
-            self.sample_base_values,
-            self.sample_theta_num,
-            self.use_inv,
-        )
+    def toMaskThetas(self) -> torch.Tensor:
+        mask_thetas = self.mask_params[:, 0:1].expand(-1, self.sample_phi_num)
 
-        return simple_sample_points
+        if self.mask_degree_max > 0:
+            cos_params = self.mask_params[:, 1::2]
+            sin_params = self.mask_params[:, 2::2]
 
-    def toSamplePointsWithNormals(
-        self, refine_normals: bool = False, fps_sample_scale: float = -1
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-        print("[ERROR][SimpleMash::toSamplePointsWithNormals]")
-        print("\t this function has not been implemented!")
-        return (
-            torch.empty([0], dtype=self.dtype, device=self.device),
-            torch.empty([0], dtype=self.dtype, device=self.device),
-            torch.empty([0], dtype=self.dtype, device=self.device),
-            torch.empty([0], dtype=self.dtype, device=self.device),
-            torch.empty([0], dtype=self.dtype, device=self.device),
-        )
+            mask_thetas = torch.addmm(mask_thetas, cos_params, self.cos_terms)
+            mask_thetas = torch.addmm(mask_thetas, sin_params, self.sin_terms)
 
-    def toSamplePoints(self) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        simple_sample_points = self.toSimpleSamplePoints()
+        return torch.sigmoid(mask_thetas)
 
-        single_anchor_in_mask_point_num = 1 + self.sample_phi_num * (
-            self.sample_theta_num - 1
-        )
-        single_anchor_point_num = single_anchor_in_mask_point_num + self.sample_phi_num
+    def toWeightedSamplePhiThetaMat(self) -> torch.Tensor:
+        theta_weights = self.toMaskThetas()
 
-        mask_boundary_point_mask = torch.zeros(
-            simple_sample_points.shape[0], dtype=torch.bool
-        )
-        for i in range(self.anchor_num):
-            mask_boundary_point_mask[
-                i * single_anchor_point_num + single_anchor_in_mask_point_num : (i + 1)
-                * single_anchor_point_num
-            ] = True
+        phis = self.expanded_sample_phi_theta_mat[..., 0]
+        thetas = self.expanded_sample_phi_theta_mat[..., 1]
 
-        in_mask_points = simple_sample_points[~mask_boundary_point_mask]
-        mask_boundary_points = simple_sample_points[mask_boundary_point_mask]
-        in_mask_point_idxs = (
-            torch.arange(self.anchor_num, dtype=self.idx_dtype)
-            .to(self.device)
-            .repeat(single_anchor_in_mask_point_num, 1)
-            .permute(1, 0)
-            .reshape(-1)
-        )
+        weighted_thetas = thetas * theta_weights.unsqueeze(-1)
 
-        return mask_boundary_points, in_mask_points, in_mask_point_idxs
+        weighted_sample_phi_theta_mat = torch.stack([phis, weighted_thetas], dim=-1)
 
-    def toSimpleSampleTriangles(self) -> np.ndarray:
-        simple_sample_triangles = []
+        return weighted_sample_phi_theta_mat
 
-        if self.anchor_num == 0:
-            print("[ERROR][SimpleMash::toSimpleSampleTriangles]")
-            print("\t anchor is empty!")
-            return np.asarray(simple_sample_triangles)
+    def toDirections(self, phis: torch.Tensor, thetas: torch.Tensor) -> torch.Tensor:
+        sin_theta, cos_theta = torch.sin(thetas), torch.cos(thetas)
+        sin_phi, cos_phi = torch.sin(phis), torch.cos(phis)
 
-        single_anchor_point_num = 1 + self.sample_phi_num * self.sample_theta_num
+        x = sin_theta * cos_phi
+        y = sin_theta * sin_phi
+        z = cos_theta
 
-        single_anchor_triangles = []
+        return torch.stack([x, y, z], dim=-1)
 
-        for point_idx in range(1, self.sample_phi_num + 1):
-            next_point_idx = point_idx % self.sample_phi_num + 1
-            single_anchor_triangles.append([0, point_idx, next_point_idx])
+    def toDistances(self, phis: torch.Tensor, thetas: torch.Tensor) -> torch.Tensor:
+        base_values = mash_cpp.toSHBaseValues(phis, thetas, self.sh_degree_max)
+        base_values = base_values.transpose(1, 0)
 
-        for cycle_idx in range(self.sample_theta_num - 1):
-            if cycle_idx == 0:
-                continue
-
-            point_idx_start = 1 + self.sample_phi_num * cycle_idx
-
-            for j in range(self.sample_phi_num):
-                point_idx = point_idx_start + j
-                next_point_idx = point_idx_start + (j + 1) % self.sample_phi_num
-                single_anchor_triangles.append(
-                    [
-                        point_idx,
-                        point_idx + self.sample_phi_num,
-                        next_point_idx + self.sample_phi_num,
-                    ]
-                )
-                single_anchor_triangles.append(
-                    [point_idx, next_point_idx + self.sample_phi_num, next_point_idx]
-                )
-
-        single_anchor_triangles = np.asarray(single_anchor_triangles, dtype=np.int64)
-
-        for i in range(self.anchor_num):
-            simple_sample_triangles.append(
-                i * single_anchor_point_num + single_anchor_triangles
+        if base_values.dim() == 2:
+            sample_distances = torch.sum(self.sh_params * base_values, dim=1)
+        else:
+            sample_distances = torch.einsum(
+                "bn,bn...->b...", self.sh_params, base_values
             )
 
-        return np.vstack(simple_sample_triangles, dtype=np.int64)
+        return sample_distances
 
-    def toSimpleSampleCircles(self) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        points = self.toSimpleSamplePoints()
-        triangles = self.toSimpleSampleTriangles()
+    def toSamplePoints(self) -> torch.Tensor:
+        weighted_sample_phi_theta_mat = self.toWeightedSamplePhiThetaMat()
 
-        centers, radius = toOuterCircles(points, triangles)
+        phis, thetas = weighted_sample_phi_theta_mat.split(1, dim=-1)
+        phis = phis.squeeze(-1)
+        thetas = thetas.squeeze(-1)
 
-        triangle_rotate_matrixs = toTriangleRotateMatrixs(points, triangles)
+        sample_directions = self.toDirections(phis, thetas)
+        sample_distances = self.toDistances(phis, thetas)
 
-        return centers, radius, triangle_rotate_matrixs
+        sample_move_vectors = sample_directions * sample_distances.unsqueeze(-1)
 
-    def toSimpleSampleEllipses(self) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        points = self.toSimpleSamplePoints()
-        triangles = self.toSimpleSampleTriangles()
+        rotate_mats = compute_rotation_matrix_from_ortho6d(self.ortho_poses)
 
-        centers, axis_lengths, triangle_rotate_matrixs = toOuterEllipses(
-            points, triangles
+        rotated_sample_move_vectors = torch.einsum(
+            "b...i,bij->b...j", sample_move_vectors, rotate_mats
         )
 
-        return centers, axis_lengths, triangle_rotate_matrixs
-
-    def toSimpleSampleO3DCircles(self) -> list:
-        centers, radius, triangle_rotate_matrixs = self.toSimpleSampleCircles()
-
-        centers = centers.detach().clone().cpu().numpy()
-        radius = radius.detach().clone().cpu().numpy()
-        triangle_rotate_matrixs = triangle_rotate_matrixs.detach().clone().cpu().numpy()
-
-        circles = []
-
-        for i in trange(centers.shape[0]):
-            circle = getCircle(radius[i], 10)
-
-            circle.rotate(triangle_rotate_matrixs[i])
-            circle.translate(centers[i])
-
-            circles.append(circle)
-
-        return circles
-
-    def toSimpleSampleO3DEllipses(self) -> list:
-        centers, axis_lengths, rotate_matrixs = self.toSimpleSampleEllipses()
-
-        centers = centers.detach().clone().cpu().numpy()
-        axis_lengths = axis_lengths.detach().clone().cpu().numpy()
-        rotate_matrixs = rotate_matrixs.detach().clone().cpu().numpy()
-
-        ellipses = []
-
-        for i in trange(centers.shape[0]):
-            ellipse = getEllipse(axis_lengths[i][0], axis_lengths[i][1], 10)
-
-            ellipse.rotate(rotate_matrixs[i])
-            ellipse.translate(centers[i])
-
-            ellipses.append(ellipse)
-
-        return ellipses
-
-    def toSampleMesh(self) -> Mesh:
-        sample_mesh = Mesh()
-        sample_mesh.vertices = (
-            self.toSimpleSamplePoints().detach().clone().cpu().numpy()
+        positions_expanded = self.positions.view(
+            self.anchor_num, *((1,) * (sample_move_vectors.dim() - 2)), 3
         )
-        sample_mesh.triangles = self.toSimpleSampleTriangles()
-        return sample_mesh
+        sample_points = positions_expanded + rotated_sample_move_vectors
+
+        return sample_points
+
+    def forward(self) -> torch.Tensor:
+        return self.toSamplePoints()
