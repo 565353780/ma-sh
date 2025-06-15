@@ -1,6 +1,9 @@
+import torch
 import numpy as np
 import open3d as o3d
 from typing import Union
+
+from ma_sh.Method.pcd import getPointCloud
 
 
 def translateGeometries(
@@ -62,7 +65,10 @@ def getMaskConeMesh(
     mask_cone_mesh.compute_triangle_normals()
     return mask_cone_mesh
 
-def getEllipse(long_axis: float = 1.0, short_axis: float = 1.0, resolution: int =10) -> o3d.geometry.LineSet:
+
+def getEllipse(
+    long_axis: float = 1.0, short_axis: float = 1.0, resolution: int = 10
+) -> o3d.geometry.LineSet:
     t = np.linspace(0, 2 * np.pi, resolution)
     x = long_axis * np.cos(t)
     y = short_axis * np.sin(t)
@@ -81,17 +87,27 @@ def getEllipse(long_axis: float = 1.0, short_axis: float = 1.0, resolution: int 
 
     return line_set
 
-def getCircle(radius: float=1.0, resolution: int=10) -> o3d.geometry.LineSet:
+
+def getCircle(radius: float = 1.0, resolution: int = 10) -> o3d.geometry.LineSet:
     return getEllipse(radius, radius, resolution)
 
-def renderGeometries(geometry_list, window_name="Geometry List", point_show_normal: bool = False):
+
+def renderGeometries(
+    geometry_list, window_name="Geometry List", point_show_normal: bool = False
+):
     if not isinstance(geometry_list, list):
         geometry_list = [geometry_list]
 
-    o3d.visualization.draw_geometries(geometry_list, window_name, point_show_normal=point_show_normal)
+    o3d.visualization.draw_geometries(
+        geometry_list, window_name, point_show_normal=point_show_normal
+    )
     return True
 
-def renderPoints(points: np.ndarray, window_name="Points", point_show_normal: bool = False):
-    pcd = o3d.geometry.PointCloud()
-    pcd.points = o3d.utility.Vector3dVector(points)
+
+def renderPoints(
+    points: Union[np.ndarray, torch.Tensor],
+    window_name="Points",
+    point_show_normal: bool = False,
+):
+    pcd = getPointCloud(points)
     return renderGeometries(pcd, window_name, point_show_normal)

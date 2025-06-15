@@ -1,6 +1,10 @@
 import torch
 from typing import Union
 
+import mash_cpp
+
+from ma_sh.Method.rotate import compute_rotation_matrix_from_ortho6d
+
 
 class SimpleMash(object):
     def __init__(
@@ -10,8 +14,7 @@ class SimpleMash(object):
         sh_degree_max: int = 2,
         sample_phi_num: int = 10,
         sample_theta_num: int = 10,
-        idx_dtype=torch.int64,
-        dtype=torch.float32,
+        dtype=torch.float64,
         device: str = "cpu",
     ) -> None:
         # Super Params
@@ -20,23 +23,33 @@ class SimpleMash(object):
         self.sh_degree_max = sh_degree_max
         self.sample_phi_num = sample_phi_num
         self.sample_theta_num = sample_theta_num
-        self.idx_dtype = idx_dtype
         self.dtype = dtype
         self.device = device
 
         # Processed Data
         self.sample_phis = torch.linspace(
-            0, 2 * torch.pi, self.sample_phi_num, dtype=self.dtype, device=self.device
+            2 * torch.pi / self.sample_phi_num,
+            2 * torch.pi,
+            self.sample_phi_num,
+            dtype=self.dtype,
+            device=self.device,
         )
         self.sample_thetas = torch.linspace(
-            0, torch.pi, self.sample_theta_num, dtype=self.dtype, device=self.device
+            torch.pi / self.sample_theta_num,
+            torch.pi,
+            self.sample_theta_num,
+            dtype=self.dtype,
+            device=self.device,
         )
         self.sample_phi_theta_mat = torch.stack(
             torch.meshgrid(self.sample_phis, self.sample_thetas, indexing="ij"), dim=-1
         )
+        self.repeat_sample_phi_theta_mat = self.sample_phi_theta_mat.unsqueeze(
+            0
+        ).repeat(self.anchor_num, 1, 1, 1)
 
         # Diff Params
-        self.mask_params = torch.ones(
+        self.mask_params = torch.zeros(
             [anchor_num, 2 * mask_degree_max + 1],
             dtype=self.dtype,
         ).to(self.device)
@@ -48,6 +61,12 @@ class SimpleMash(object):
             self.device
         )
         self.positions = torch.zeros([anchor_num, 3], dtype=self.dtype).to(self.device)
+
+        # tmp
+        self.mask_params[:, 0] = -0.4
+        self.sh_params[:, 0] = 1.0
+        self.ortho_poses[:, 0] = 1.0
+        self.ortho_poses[:, 4] = 1.0
         return
 
     def setGradState(
@@ -92,15 +111,63 @@ class SimpleMash(object):
         return mask_thetas
 
     def toWeightedSamplePhiThetaMat(self) -> torch.Tensor:
-        weighted_sample_phi_theta_mat = self.sample_phi_theta_mat.unsqueeze(0).repeat(
-            self.anchor_num, 1, 1, 1
-        )
-
         theta_weights = self.toMaskThetas().unsqueeze(-1)
 
-        weights = torch.ones_like(weighted_sample_phi_theta_mat)
-        weights[:, :, :, 1] = theta_weights
+        weights = torch.ones_like(self.repeat_sample_phi_theta_mat)
+        weights[..., 1] = theta_weights
 
-        weighted_sample_phi_theta_mat = weighted_sample_phi_theta_mat * weights
+        weighted_sample_phi_theta_mat = self.repeat_sample_phi_theta_mat * weights
 
         return weighted_sample_phi_theta_mat
+
+    def toDirections(self, weighted_sample_phi_theta_mat: torch.Tensor) -> torch.Tensor:
+        weighted_sample_phi_theta_mat = self.toWeightedSamplePhiThetaMat()
+
+        phi = weighted_sample_phi_theta_mat[..., 0]
+        theta = weighted_sample_phi_theta_mat[..., 1]
+
+        sin_theta = torch.sin(theta)
+        x = sin_theta * torch.cos(phi)
+        y = sin_theta * torch.sin(phi)
+        z = torch.cos(theta)
+
+        sampled_directions = torch.stack([x, y, z], dim=-1)
+
+        return sampled_directions
+
+    def toDistances(self, weighted_sample_phi_theta_mat: torch.Tensor) -> torch.Tensor:
+        phi = weighted_sample_phi_theta_mat[..., 0]
+        theta = weighted_sample_phi_theta_mat[..., 1]
+
+        base_values = mash_cpp.toSHBaseValues(phi, theta, self.sh_degree_max)
+        base_values = base_values.transpose(1, 0)
+
+        sample_distances = torch.einsum("bn,bn...->b...", self.sh_params, base_values)
+
+        return sample_distances
+
+    def toSamplePoints(self) -> torch.Tensor:
+        weighted_sample_phi_theta_mat = self.toWeightedSamplePhiThetaMat()
+
+        sample_directions = self.toDirections(weighted_sample_phi_theta_mat)
+
+        sample_distances = self.toDistances(weighted_sample_phi_theta_mat)
+
+        sample_move_vectors = sample_directions * sample_distances[..., None]
+
+        uniform_sample_points = (
+            self.positions.view(
+                self.anchor_num, *((1,) * (sample_move_vectors.dim() - 2)), 3
+            )
+            + sample_move_vectors
+        )
+
+        rotate_mats = compute_rotation_matrix_from_ortho6d(self.ortho_poses)
+
+        print(rotate_mats)
+
+        sample_points = torch.einsum(
+            "b...i,bij->b...j", uniform_sample_points, rotate_mats
+        )
+
+        return sample_points

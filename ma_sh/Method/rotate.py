@@ -1,7 +1,47 @@
 import torch
 import numpy as np
+import torch.nn.functional as F
 
 import mash_cpp
+
+
+def quaternion_to_rotation_matrix(q: torch.Tensor, eps=1e-8) -> torch.Tensor:
+    """
+    Convert quaternion(s) to rotation matrix.
+
+    Args:
+        q: Tensor of shape [..., 4], quaternion in [w, x, y, z] format.
+
+    Returns:
+        rot: Tensor of shape [..., 3, 3], rotation matrix
+    """
+    # Normalize to ensure unit quaternion
+    norm = q.norm(dim=-1, keepdim=True)
+    norm = torch.where(norm < eps, torch.ones_like(norm), norm)
+    q = q / norm
+
+    w, x, y, z = q.unbind(dim=-1)
+
+    ww, xx, yy, zz = w * w, x * x, y * y, z * z
+    wx, wy, wz = w * x, w * y, w * z
+    xy, xz, yz = x * y, x * z, y * z
+
+    rot = torch.stack(
+        [
+            ww + xx - yy - zz,
+            2 * (xy - wz),
+            2 * (xz + wy),
+            2 * (xy + wz),
+            ww - xx + yy - zz,
+            2 * (yz - wx),
+            2 * (xz - wy),
+            2 * (yz + wx),
+            ww - xx - yy + zz,
+        ],
+        dim=-1,
+    )
+
+    return rot.view(*q.shape[:-1], 3, 3)
 
 
 def toTriangleRotateMatrixs(
@@ -34,6 +74,7 @@ def normalize_vector(v):
         v_mag, torch.autograd.Variable(torch.FloatTensor([1e-8]).to(v.device))
     )
     v_mag = v_mag.view(batch, 1).expand(batch, v.shape[1])
+
     v = v / v_mag
     return v
 
@@ -53,16 +94,12 @@ def compute_rotation_matrix_from_ortho6d(poses):
     x_raw = poses[:, 0:3]
     y_raw = poses[:, 3:6]
 
-    x = normalize_vector(x_raw)
-    z = cross_product(x, y_raw)
-    z = normalize_vector(z)
-    y = cross_product(z, x)
+    x = F.normalize(x_raw)
+    y = F.normalize(y_raw - (x * y_raw).sum(dim=-1, keepdim=True) * x)
+    z = torch.cross(x, y)
+    R = torch.stack([x, y, z], dim=-1)
 
-    x = x.view(-1, 3, 1)
-    y = y.view(-1, 3, 1)
-    z = z.view(-1, 3, 1)
-    matrix = torch.cat((x, y, z), 2)
-    return matrix
+    return R
 
 
 def toRegularRotateVectors(rotate_vectors: torch.Tensor) -> torch.Tensor:

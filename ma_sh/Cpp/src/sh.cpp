@@ -291,7 +291,7 @@ const torch::Tensor toSHBaseValues(const torch::Tensor &phis,
     }
   }
 
-  const torch::Tensor base_values = torch::vstack(base_values_vec);
+  const torch::Tensor base_values = torch::stack(base_values_vec, 0);
 
   return base_values;
 }

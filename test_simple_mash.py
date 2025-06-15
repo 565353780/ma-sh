@@ -1,23 +1,27 @@
 from ma_sh.Data.simple_mash import SimpleMash
+from ma_sh.Method.render import renderPoints
 
 if __name__ == "__main__":
     mash = SimpleMash(
-        anchor_num=3,
-        mask_degree_max=2,
-        sh_degree_max=1,
-        sample_phi_num=3,
-        sample_theta_num=2,
+        anchor_num=1,
+        mask_degree_max=3,
+        sh_degree_max=2,
+        sample_phi_num=100,
+        sample_theta_num=100,
     )
 
     mash.setGradState(True)
 
-    mask_thetas = mash.toMaskThetas()
-    print(mask_thetas)
+    sample_points = mash.toSamplePoints()
+    print("sample_points")
+    print(sample_points.shape)
 
-    weighted_sample_phi_theta_mat = mash.toWeightedSamplePhiThetaMat()
-    print(weighted_sample_phi_theta_mat)
-
-    mean = weighted_sample_phi_theta_mat.mean()
+    mean = sample_points.mean()
     mean.backward()
 
+    renderPoints(sample_points)
+
     print(mash.mask_params.grad)
+    print(mash.sh_params.grad)
+    print(mash.ortho_poses.grad)
+    print(mash.positions.grad)
