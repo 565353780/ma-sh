@@ -135,10 +135,14 @@ class SimpleMash(torch.nn.Module):
         return torch.sigmoid(mask_thetas)
 
     def toWeightedSamplePhiThetaMat(self) -> torch.Tensor:
-        theta_weights = self.toMaskThetas().unsqueeze(-1)
+        theta_weights = self.toMaskThetas()
 
-        weighted_sample_phi_theta_mat = self.expanded_sample_phi_theta_mat.clone()
-        weighted_sample_phi_theta_mat[..., 1] *= theta_weights
+        phis = self.expanded_sample_phi_theta_mat[..., 0]
+        thetas = self.expanded_sample_phi_theta_mat[..., 1]
+
+        weighted_thetas = thetas * theta_weights.unsqueeze(-1)
+
+        weighted_sample_phi_theta_mat = torch.stack([phis, weighted_thetas], dim=-1)
 
         return weighted_sample_phi_theta_mat
 
