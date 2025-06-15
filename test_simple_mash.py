@@ -14,7 +14,7 @@ from ma_sh.Method.rotate import toOrthoPosesFromRotateVectors
 from ma_sh.Method.render import renderPoints
 
 if __name__ == "__main__":
-    test_speed = False
+    test_speed = True
 
     if test_speed:
         anchor_num = 4000
@@ -79,17 +79,20 @@ if __name__ == "__main__":
         device=device,
     )
 
-    mash.mask_params = smash.mask_params.detach().clone()
-    mash.sh_params = smash.sh_params.detach().clone()
-    mash.ortho_poses = (
-        toOrthoPosesFromRotateVectors(smash.rotate_vectors).detach().clone()
-    )
-    mash.positions = smash.positions.detach().clone()
+    # mash = torch.jit.script(mash)
+
+    with torch.no_grad():
+        mash.mask_params.copy_(smash.mask_params.detach().clone())
+        mash.sh_params.copy_(smash.sh_params.detach().clone())
+        mash.ortho_poses.copy_(
+            toOrthoPosesFromRotateVectors(smash.rotate_vectors).detach().clone()
+        )
+        mash.positions.copy_(smash.positions.detach().clone())
 
     mash.setGradState(True)
 
     for _ in trange(iter_num):
-        sample_points = mash.toSamplePoints()
+        sample_points = mash()
 
     mean = sample_points.mean()
     mean.backward()
