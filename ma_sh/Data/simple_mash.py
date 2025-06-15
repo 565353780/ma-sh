@@ -120,26 +120,18 @@ class SimpleMash(object):
 
         return weighted_sample_phi_theta_mat
 
-    def toDirections(self, weighted_sample_phi_theta_mat: torch.Tensor) -> torch.Tensor:
-        weighted_sample_phi_theta_mat = self.toWeightedSamplePhiThetaMat()
-
-        phi = weighted_sample_phi_theta_mat[..., 0]
-        theta = weighted_sample_phi_theta_mat[..., 1]
-
-        sin_theta = torch.sin(theta)
-        x = sin_theta * torch.cos(phi)
-        y = sin_theta * torch.sin(phi)
-        z = torch.cos(theta)
+    def toDirections(self, phis: torch.Tensor, thetas: torch.Tensor) -> torch.Tensor:
+        sin_theta = torch.sin(thetas)
+        x = sin_theta * torch.cos(phis)
+        y = sin_theta * torch.sin(phis)
+        z = torch.cos(thetas)
 
         sampled_directions = torch.stack([x, y, z], dim=-1)
 
         return sampled_directions
 
-    def toDistances(self, weighted_sample_phi_theta_mat: torch.Tensor) -> torch.Tensor:
-        phi = weighted_sample_phi_theta_mat[..., 0]
-        theta = weighted_sample_phi_theta_mat[..., 1]
-
-        base_values = mash_cpp.toSHBaseValues(phi, theta, self.sh_degree_max)
+    def toDistances(self, phis: torch.Tensor, thetas: torch.Tensor) -> torch.Tensor:
+        base_values = mash_cpp.toSHBaseValues(phis, thetas, self.sh_degree_max)
         base_values = base_values.transpose(1, 0)
 
         sample_distances = torch.einsum("bn,bn...->b...", self.sh_params, base_values)
@@ -149,9 +141,11 @@ class SimpleMash(object):
     def toSamplePoints(self) -> torch.Tensor:
         weighted_sample_phi_theta_mat = self.toWeightedSamplePhiThetaMat()
 
-        sample_directions = self.toDirections(weighted_sample_phi_theta_mat)
+        phis = weighted_sample_phi_theta_mat[..., 0]
+        thetas = weighted_sample_phi_theta_mat[..., 1]
 
-        sample_distances = self.toDistances(weighted_sample_phi_theta_mat)
+        sample_directions = self.toDirections(phis, thetas)
+        sample_distances = self.toDistances(phis, thetas)
 
         sample_move_vectors = sample_directions * sample_distances[..., None]
 
