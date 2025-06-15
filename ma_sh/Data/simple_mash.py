@@ -155,17 +155,17 @@ class SimpleMash(object):
 
         sample_move_vectors = sample_directions * sample_distances[..., None]
 
-        uniform_sample_points = (
+        rotate_mats = compute_rotation_matrix_from_ortho6d(self.ortho_poses)
+
+        rotated_sample_move_vectors = torch.einsum(
+            "b...i,bij->b...j", sample_move_vectors, rotate_mats
+        )
+
+        sample_points = (
             self.positions.view(
                 self.anchor_num, *((1,) * (sample_move_vectors.dim() - 2)), 3
             )
-            + sample_move_vectors
-        )
-
-        rotate_mats = compute_rotation_matrix_from_ortho6d(self.ortho_poses)
-
-        sample_points = torch.einsum(
-            "b...i,bij->b...j", uniform_sample_points, rotate_mats
+            + rotated_sample_move_vectors
         )
 
         return sample_points
