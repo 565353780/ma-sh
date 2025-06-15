@@ -58,8 +58,8 @@ if __name__ == "__main__":
 
     mash.setGradState(True)
 
-    # mash = torch.jit.script(mash)
-
+    for _ in range(20):
+        sample_points = mash()
     for _ in trange(iter_num):
         sample_points = mash()
 
