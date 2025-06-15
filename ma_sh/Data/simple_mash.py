@@ -18,13 +18,13 @@ class SimpleMash(object):
         device: str = "cpu",
     ) -> None:
         # Super Params
-        self.anchor_num = anchor_num
-        self.mask_degree_max = mask_degree_max
-        self.sh_degree_max = sh_degree_max
-        self.sample_phi_num = sample_phi_num
-        self.sample_theta_num = sample_theta_num
+        self.anchor_num: int = anchor_num
+        self.mask_degree_max: int = mask_degree_max
+        self.sh_degree_max: int = sh_degree_max
+        self.sample_phi_num: int = sample_phi_num
+        self.sample_theta_num: int = sample_theta_num
         self.dtype = dtype
-        self.device = device
+        self.device: str = device
 
         # Processed Data
         self.sample_phis = torch.linspace(
@@ -44,7 +44,7 @@ class SimpleMash(object):
         self.sample_phi_theta_mat = torch.stack(
             torch.meshgrid(self.sample_phis, self.sample_thetas, indexing="ij"), dim=-1
         )
-        self.repeat_sample_phi_theta_mat = self.sample_phi_theta_mat.unsqueeze(
+        self.expanded_sample_phi_theta_mat = self.sample_phi_theta_mat.unsqueeze(
             0
         ).repeat(self.anchor_num, 1, 1, 1)
 
@@ -92,19 +92,14 @@ class SimpleMash(object):
             device=self.device,
         )
 
-        mask_thetas = mask_thetas + self.mask_params[:, 0].unsqueeze(1)
+        mask_thetas += self.mask_params[:, 0].unsqueeze(1)
 
         for degree in range(1, self.mask_degree_max + 1):
             cos_term = torch.cos(degree * self.sample_phis)
             sin_term = torch.sin(degree * self.sample_phis)
 
-            mask_thetas = (
-                mask_thetas
-                + self.mask_params[:, 2 * degree - 1].unsqueeze(1) * cos_term
-            )
-            mask_thetas = (
-                mask_thetas + self.mask_params[:, 2 * degree].unsqueeze(1) * sin_term
-            )
+            mask_thetas += self.mask_params[:, 2 * degree - 1].unsqueeze(1) * cos_term
+            mask_thetas += self.mask_params[:, 2 * degree].unsqueeze(1) * sin_term
 
         mask_thetas = torch.sigmoid(mask_thetas)
 
@@ -113,10 +108,10 @@ class SimpleMash(object):
     def toWeightedSamplePhiThetaMat(self) -> torch.Tensor:
         theta_weights = self.toMaskThetas().unsqueeze(-1)
 
-        weights = torch.ones_like(self.repeat_sample_phi_theta_mat)
+        weights = torch.ones_like(self.expanded_sample_phi_theta_mat)
         weights[..., 1] = theta_weights
 
-        weighted_sample_phi_theta_mat = self.repeat_sample_phi_theta_mat * weights
+        weighted_sample_phi_theta_mat = self.expanded_sample_phi_theta_mat * weights
 
         return weighted_sample_phi_theta_mat
 
