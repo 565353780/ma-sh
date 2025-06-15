@@ -96,7 +96,7 @@ def compute_rotation_matrix_from_ortho6d(poses):
 
     x = F.normalize(x_raw)
     y = F.normalize(y_raw - (x * y_raw).sum(dim=-1, keepdim=True) * x)
-    z = torch.cross(x, y)
+    z = torch.linalg.cross(x, y)
     R = torch.stack([x, y, z], dim=-1)
 
     return R

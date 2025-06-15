@@ -164,8 +164,6 @@ class SimpleMash(object):
 
         rotate_mats = compute_rotation_matrix_from_ortho6d(self.ortho_poses)
 
-        print(rotate_mats)
-
         sample_points = torch.einsum(
             "b...i,bij->b...j", uniform_sample_points, rotate_mats
         )
