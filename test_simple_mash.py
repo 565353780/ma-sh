@@ -14,17 +14,24 @@ from ma_sh.Method.rotate import toOrthoPosesFromRotateVectors
 from ma_sh.Method.render import renderPoints
 
 if __name__ == "__main__":
-    device = "cuda:0"
-    iter_num = 20
+    anchor_num = 4
+    mask_degree_max = 3
+    sh_degree_max = 2
+    sample_phi_num = 3
+    sample_theta_num = 2
+    dtype = torch.float32
+    device = "cpu"
+    iter_num = 1
+    render = False
 
     smash = SMash(
-        anchor_num=4000,
-        mask_degree_max=3,
-        sh_degree_max=2,
-        sample_phi_num=40,
-        sample_theta_num=40,
+        anchor_num=anchor_num,
+        mask_degree_max=mask_degree_max,
+        sh_degree_max=sh_degree_max,
+        sample_phi_num=sample_phi_num,
+        sample_theta_num=sample_theta_num,
         use_inv=False,
-        dtype=torch.float32,
+        dtype=dtype,
         device=device,
     )
 
@@ -45,12 +52,12 @@ if __name__ == "__main__":
     mean2.backward()
 
     mash = SimpleMash(
-        anchor_num=4000,
-        mask_degree_max=3,
-        sh_degree_max=2,
-        sample_phi_num=40,
-        sample_theta_num=40,
-        dtype=torch.float32,
+        anchor_num=anchor_num,
+        mask_degree_max=mask_degree_max,
+        sh_degree_max=sh_degree_max,
+        sample_phi_num=sample_phi_num,
+        sample_theta_num=sample_theta_num,
+        dtype=dtype,
         device=device,
     )
 
@@ -69,10 +76,14 @@ if __name__ == "__main__":
     mean = sample_points.mean()
     mean.backward()
 
-    merge_points = torch.vstack([sample_points2, sample_points.reshape(-1, 3)])
+    print(mash.mask_params.grad)
+    print(mash.sh_params.grad)
+    print(mash.ortho_poses.grad)
+    print(mash.positions.grad)
 
-    if device == "cpu":
+    if device == "cpu" and render:
         renderPoints(sample_points2)
         renderPoints(sample_points)
 
+        merge_points = torch.vstack([sample_points2, sample_points.reshape(-1, 3)])
         renderPoints(merge_points)
