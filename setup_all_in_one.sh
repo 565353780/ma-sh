@@ -40,6 +40,9 @@ pip install -e .
 cd ../../../chamfer-distance
 pip install -e .
 
+cd ../mesh-graph-cut
+pip install -e .
+
 cd ../ma-sh
 
 ./compile.sh

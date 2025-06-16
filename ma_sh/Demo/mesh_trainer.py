@@ -30,10 +30,8 @@ def demo(
     # sh_degree_max = 2
     # sample_phi_num = 40
     # sample_theta_num = 40
-    use_inv = True
-    idx_dtype = torch.int64
     dtype = torch.float32
-    # device = "cuda:7"
+    # device = "cuda:0"
 
     lr = 2e-3
     min_lr = 1e-3
@@ -53,8 +51,6 @@ def demo(
         sh_degree_max,
         sample_phi_num,
         sample_theta_num,
-        use_inv,
-        idx_dtype,
         dtype,
         device,
         lr,

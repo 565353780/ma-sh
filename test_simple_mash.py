@@ -59,9 +59,9 @@ if __name__ == "__main__":
     mash.setGradState(True)
 
     for _ in range(20):
-        sample_points = mash()
+        sample_points = mash.toSamplePoints()
     for _ in trange(iter_num):
-        sample_points = mash()
+        sample_points = mash.toSamplePoints()
 
     mean = sample_points.mean()
     mean.backward()

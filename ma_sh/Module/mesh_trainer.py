@@ -23,8 +23,6 @@ class MeshTrainer(BaseTrainer):
         sh_degree_max: int = 2,
         sample_phi_num: int = 40,
         sample_theta_num: int = 40,
-        use_inv: bool = True,
-        idx_dtype=torch.int64,
         dtype=torch.float32,
         device: str = "cuda",
         lr: float = 2e-3,
@@ -50,8 +48,6 @@ class MeshTrainer(BaseTrainer):
             sh_degree_max,
             sample_phi_num,
             sample_theta_num,
-            use_inv,
-            idx_dtype,
             dtype,
             device,
         )
@@ -60,7 +56,7 @@ class MeshTrainer(BaseTrainer):
             [
                 self.mash.mask_params,
                 self.mash.sh_params,
-                self.mash.rotate_vectors,
+                self.mash.ortho_poses,
                 self.mash.positions,
             ],
             lr=lr,
@@ -127,8 +123,7 @@ class MeshTrainer(BaseTrainer):
         self.optimizer.zero_grad()
 
         start = time()
-        # boundary_pts, inner_pts = self.mash.toSamplePoints()[:2]
-        mash_pts = self.mash.toSimpleSamplePoints().reshape(self.mash.anchor_num, -1, 3)
+        mash_pts = self.mash.toSamplePoints().reshape(self.mash.anchor_num, -1, 3)
         self.sample_mash_time += time() - start
 
         start = time()

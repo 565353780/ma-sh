@@ -7,7 +7,7 @@ import mash_cpp
 from ma_sh.Method.rotate import compute_rotation_matrix_from_ortho6d
 
 
-class SimpleMash(torch.nn.Module):
+class SimpleMash(object):
     def __init__(
         self,
         anchor_num: int = 400,
@@ -18,8 +18,6 @@ class SimpleMash(torch.nn.Module):
         dtype=torch.float32,
         device: str = "cuda" if torch.cuda.is_available() else "cpu",
     ) -> None:
-        super().__init__()
-
         # Super Params
         self.anchor_num: int = anchor_num
         self.mask_degree_max: int = mask_degree_max
@@ -47,17 +45,11 @@ class SimpleMash(torch.nn.Module):
             device=self.device,
         )
 
-        self.register_buffer("sample_phis", sample_phis)
-        self.register_buffer("sample_thetas", sample_thetas)
-
         phi_grid, theta_grid = torch.meshgrid(sample_phis, sample_thetas, indexing="ij")
         sample_phi_theta_mat = torch.stack([phi_grid, theta_grid], dim=-1)
 
-        expanded_sample_phi_theta_mat = sample_phi_theta_mat.unsqueeze(0).expand(
+        self.expanded_sample_phi_theta_mat = sample_phi_theta_mat.unsqueeze(0).expand(
             self.anchor_num, -1, -1, -1
-        )
-        self.register_buffer(
-            "expanded_sample_phi_theta_mat", expanded_sample_phi_theta_mat
         )
 
         if self.mask_degree_max > 0:
@@ -65,37 +57,34 @@ class SimpleMash(torch.nn.Module):
                 1, self.mask_degree_max + 1, dtype=self.dtype, device=self.device
             )
             angles = degrees.unsqueeze(1) * sample_phis.unsqueeze(0)
-            cos_terms = torch.cos(angles)
-            sin_terms = torch.sin(angles)
-            self.register_buffer("cos_terms", cos_terms)
-            self.register_buffer("sin_terms", sin_terms)
+            self.cos_terms = torch.cos(angles)
+            self.sin_terms = torch.sin(angles)
 
-        self.mask_params = torch.nn.Parameter(
-            torch.zeros(
-                [anchor_num, 2 * mask_degree_max + 1],
-                dtype=self.dtype,
-                device=self.device,
-            )
+        self.mask_params = torch.zeros(
+            [anchor_num, 2 * mask_degree_max + 1],
+            dtype=self.dtype,
+            device=self.device,
         )
-        self.sh_params = torch.nn.Parameter(
-            torch.zeros(
-                [anchor_num, (sh_degree_max + 1) ** 2],
-                dtype=self.dtype,
-                device=self.device,
-            )
+        self.sh_params = torch.zeros(
+            [anchor_num, (sh_degree_max + 1) ** 2],
+            dtype=self.dtype,
+            device=self.device,
         )
-        self.ortho_poses = torch.nn.Parameter(
-            torch.zeros([anchor_num, 6], dtype=self.dtype, device=self.device)
+        self.ortho_poses = torch.zeros(
+            [anchor_num, 6], dtype=self.dtype, device=self.device
         )
-        self.positions = torch.nn.Parameter(
-            torch.zeros([anchor_num, 3], dtype=self.dtype, device=self.device)
+        self.positions = torch.zeros(
+            [anchor_num, 3], dtype=self.dtype, device=self.device
         )
 
+        """
         with torch.no_grad():
             self.mask_params[:, 0] = -0.4
             self.sh_params[:, 0] = 1.0
             self.ortho_poses[:, 0] = 1.0
             self.ortho_poses[:, 4] = 1.0
+        """
+        return
 
     def setGradState(
         self, need_grad: bool, anchor_mask: Optional[torch.Tensor] = None
@@ -193,6 +182,3 @@ class SimpleMash(torch.nn.Module):
         sample_points = positions_expanded + rotated_sample_move_vectors
 
         return sample_points
-
-    def forward(self) -> torch.Tensor:
-        return self.toSamplePoints()

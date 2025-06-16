@@ -9,6 +9,7 @@ git clone git@github.com:565353780/distribution-manage.git
 git clone git@github.com:565353780/wn-nc.git
 git clone git@github.com:565353780/siggraph-rebuttal.git
 git clone git@github.com:565353780/chamfer-distance.git
+git clone git@github.com:565353780/mesh-graph-cut.git
 
 cd sdf-generate
 ./dev_setup.sh
@@ -38,6 +39,9 @@ cd ../siggraph-rebuttal
 ./dev_setup.sh
 
 cd ../chamfer-distance
+./dev_setup.sh
+
+cd ../mesh-graph-cut
 ./dev_setup.sh
 
 cd ../ma-sh
