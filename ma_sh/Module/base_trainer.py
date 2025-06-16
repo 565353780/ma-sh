@@ -8,7 +8,6 @@ from typing import Union
 from abc import ABC, abstractmethod
 
 from chamfer_distance.Module.cukd_searcher import CUKDSearcher
-from chamfer_distance.Module.sided_distances import SidedDistances
 from chamfer_distance.Module.chamfer_distances import ChamferDistances
 
 from ma_sh.Config.weights import W0
@@ -325,9 +324,7 @@ class BaseTrainer(ABC):
             if self.searcher.gt_points is None:
                 self.searcher.addPoints(gt_points)
 
-            fit_dists2 = self.searcher.query(mash_pts)[0]
-
-            coverage_dists2 = SidedDistances.namedAlgo("cukd")(gt_points, mash_pts)[0]
+            fit_dists2, coverage_dists2 = self.searcher.query(mash_pts)[:2]
             """
 
             fit_dists2, coverage_dists2 = ChamferDistances.namedAlgo("triton")(
@@ -371,12 +368,12 @@ class BaseTrainer(ABC):
             return None
 
         loss.backward()
-        torch.cuda.empty_cache()  # 清空反向传播后不再需要的GPU缓存
+        # torch.cuda.empty_cache()  # 清空反向传播后不再需要的GPU缓存
 
         self.mash.clearNanGrads()
 
         self.optimizer.step()
-        torch.cuda.empty_cache()  # 清空优化器步骤后不再需要的GPU缓存
+        # torch.cuda.empty_cache()  # 清空优化器步骤后不再需要的GPU缓存
 
         chamfer_distance = toNumpy(fit_loss) + toNumpy(coverage_loss)
         self.error = chamfer_distance
@@ -482,7 +479,7 @@ class BaseTrainer(ABC):
                     break
 
         self.logger.addScalar("Train/lr", epoch_lr, self.step - 1)
-        torch.cuda.empty_cache()  # 清空整个训练周期后不再需要的GPU缓存
+        # torch.cuda.empty_cache()  # 清空整个训练周期后不再需要的GPU缓存
 
         self.epoch += 1
         return True
@@ -569,7 +566,7 @@ class BaseTrainer(ABC):
                     break
 
         self.logger.addScalar("Train/lr", epoch_lr, self.step - 1)
-        torch.cuda.empty_cache()  # 清空整个训练周期后不再需要的GPU缓存
+        # torch.cuda.empty_cache()  # 清空整个训练周期后不再需要的GPU缓存
 
         self.epoch += 1
         return True

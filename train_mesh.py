@@ -1,5 +1,7 @@
 import os
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "6"
+
 from ma_sh.Demo.mesh_trainer import demo as demo_train_mesh
 
 
@@ -27,7 +29,7 @@ if __name__ == "__main__":
         sh_degree_max=2,
         sample_phi_num=40,
         sample_theta_num=40,
-        device="cuda:7",
+        device="cuda:0",
         save_freq=-1,
         save_log_folder_path=save_root_folder_path + "logs/difficult-0/",
         save_result_folder_path=save_root_folder_path + "results/difficult-0/",

@@ -1,6 +1,6 @@
 import torch
 
-from chamfer_distance.Module.sided_distances import SidedDistances
+from chamfer_distance.Module.chamfer_distances import ChamferDistances
 
 from ma_sh.Config.constant import EPSILON
 
@@ -39,12 +39,11 @@ def BoundaryContinuousLoss(
             ).reshape(-1, 3)
         other_points[i] = others.view((anchor_num - 1) * P, 3)  # 赋值到 batch 中
 
-    chamfer_dist = SidedDistances.namedAlgo("cuda")(
+    dist1 = ChamferDistances.namedAlgo("cuda")(
         boundary_points,
         other_points,  # [A, P, 3] vs [A, (A-1)*P, 3]
-    )
-    dist2 = chamfer_dist[0]  # [A, P]
+    )[0]
 
-    dist = torch.sqrt(dist2 + EPSILON)
+    dist = torch.sqrt(dist1 + EPSILON)
     loss = dist.mean()
     return loss

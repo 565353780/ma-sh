@@ -157,12 +157,12 @@ class MeshTrainer(BaseTrainer):
             return None
 
         loss.backward()
-        torch.cuda.empty_cache()  # 清空反向传播后不再需要的GPU缓存
+        # torch.cuda.empty_cache()  # 清空反向传播后不再需要的GPU缓存
 
         self.mash.clearNanGrads()
 
         self.optimizer.step()
-        torch.cuda.empty_cache()  # 清空优化器步骤后不再需要的GPU缓存
+        # torch.cuda.empty_cache()  # 清空优化器步骤后不再需要的GPU缓存
 
         chamfer_distance = toNumpy(fit_loss) + toNumpy(coverage_loss)
         self.error = chamfer_distance
