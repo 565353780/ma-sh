@@ -427,24 +427,21 @@ class SimpleMash(object):
     def toInvSampleMoveVectors(self) -> torch.Tensor:
         sample_move_vectors = self.toSampleMoveVectors().view(self.anchor_num, -1, 3)
 
-        inv_radius = self.w0 * self.sh_params[:, 0]
+        inv_radius = (self.w0 * self.sh_params[:, 0]).view(-1, 1, 1)
 
         inv_centers = torch.zeros_like(self.positions)
-        inv_centers[:, 2] = -inv_radius
+        inv_centers[:, 2] = -inv_radius.view(-1)
+        inv_centers = inv_centers.unsqueeze(1)
 
-        in_inv_points = sample_move_vectors - inv_centers.unsqueeze(1)
+        in_inv_points = sample_move_vectors - inv_centers
 
-        in_inv_point_weights = (1.0 / torch.norm(in_inv_points, dim=2)).unsqueeze(-1)
+        in_inv_point_norms = torch.norm(in_inv_points, dim=2, keepdim=True)
+        in_inv_point_weights = 1.0 / in_inv_point_norms
+        in_inv_point_directions = in_inv_points * in_inv_point_weights
 
-        in_inv_point_directions = in_inv_point_weights * in_inv_points
+        in_inv_point_lengths = 4.0 * (inv_radius**2) * in_inv_point_weights
 
-        in_inv_point_lengths = (4.0 * inv_radius**2).view(
-            -1, 1, 1
-        ) * in_inv_point_weights
-
-        inv_points = (
-            inv_centers.unsqueeze(1) + in_inv_point_lengths * in_inv_point_directions
-        )
+        inv_points = inv_centers + in_inv_point_lengths * in_inv_point_directions
 
         return inv_points
 

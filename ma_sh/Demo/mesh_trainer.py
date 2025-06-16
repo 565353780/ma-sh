@@ -67,10 +67,10 @@ def demo(
         save_log_folder_path,
     )
 
+    timer = Timer()
     print("start load GT mesh...")
     trainer.loadMeshFile(mesh_file_path, points_per_submesh)
 
-    timer = Timer()
     print("start optimizing MASH...")
     trainer.autoTrainMash()
 
