@@ -35,7 +35,22 @@ if [ -d "../distribution-manage/" ]; then
   git pull
 fi
 
+if [ -d "../wn-nc/" ]; then
+  cd ../wn-nc/
+  git pull
+fi
+
+if [ -d "../siggraph-rebuttal/" ]; then
+  cd ../siggraph-rebuttal/
+  git pull
+fi
+
 if [ -d "../chamfer-distance/" ]; then
   cd ../chamfer-distance/
+  git pull
+fi
+
+if [ -d "../mesh-graph-cut/" ]; then
+  cd ../mesh-graph-cut/
   git pull
 fi
