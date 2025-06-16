@@ -21,16 +21,19 @@ if __name__ == "__main__":
 
     save_root_folder_path = home + "/chLi/Results/ma-sh/MeshTrainer/"
 
-    demo_train_mesh(
-        shape_data_dict["difficult-0"],
-        points_per_submesh=1600,
-        anchor_num=4000,
-        mask_degree_max=3,
-        sh_degree_max=2,
-        sample_phi_num=40,
-        sample_theta_num=40,
-        device="cuda:0",
-        save_freq=1,
-        save_log_folder_path=save_root_folder_path + "logs/difficult-0/",
-        save_result_folder_path=save_root_folder_path + "results/difficult-0/",
-    )
+    for i in range(5):
+        shape_id = "difficult-" + str(i)
+
+        demo_train_mesh(
+            shape_data_dict[shape_id],
+            points_per_submesh=4096,
+            anchor_num=4096,
+            mask_degree_max=3,
+            sh_degree_max=2,
+            sample_phi_num=64,
+            sample_theta_num=64,
+            device="cuda:0",
+            save_freq=1,
+            save_log_folder_path=save_root_folder_path + "logs/" + shape_id + "/",
+            save_result_folder_path=save_root_folder_path + "results/" + shape_id + "/",
+        )
