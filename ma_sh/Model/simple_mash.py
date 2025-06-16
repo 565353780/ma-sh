@@ -8,6 +8,7 @@ from typing import Union, Optional
 
 import mash_cpp
 
+from ma_sh.Config.weights import W0
 from ma_sh.Method.data import toNumpy
 from ma_sh.Method.check import checkShape
 from ma_sh.Method.pcd import getPointCloud
@@ -38,6 +39,7 @@ class SimpleMash(object):
 
         self._two_pi = 2.0 * math.pi
         self._pi = math.pi
+        self.w0 = W0[0]
 
         sample_phis = torch.linspace(
             self._two_pi / self.sample_phi_num,
@@ -409,7 +411,7 @@ class SimpleMash(object):
 
         return sample_distances
 
-    def toSamplePoints(self) -> torch.Tensor:
+    def toSampleMoveVectors(self) -> torch.Tensor:
         weighted_sample_phi_theta_mat = self.toWeightedSamplePhiThetaMat()
 
         phis, thetas = weighted_sample_phi_theta_mat.split(1, dim=-1)
@@ -420,6 +422,34 @@ class SimpleMash(object):
         sample_distances = self.toDistances(phis, thetas)
 
         sample_move_vectors = sample_directions * sample_distances.unsqueeze(-1)
+        return sample_move_vectors
+
+    def toInvSampleMoveVectors(self) -> torch.Tensor:
+        sample_move_vectors = self.toSampleMoveVectors().view(self.anchor_num, -1, 3)
+
+        inv_radius = self.w0 * self.sh_params[:, 0]
+
+        inv_centers = torch.zeros_like(self.positions)
+        inv_centers[:, 2] = -inv_radius
+
+        in_inv_points = sample_move_vectors - inv_centers.unsqueeze(1)
+
+        in_inv_point_weights = (1.0 / torch.norm(in_inv_points, dim=2)).unsqueeze(-1)
+
+        in_inv_point_directions = in_inv_point_weights * in_inv_points
+
+        in_inv_point_lengths = (4.0 * inv_radius**2).view(
+            -1, 1, 1
+        ) * in_inv_point_weights
+
+        inv_points = (
+            inv_centers.unsqueeze(1) + in_inv_point_lengths * in_inv_point_directions
+        )
+
+        return inv_points
+
+    def toSamplePoints(self) -> torch.Tensor:
+        sample_move_vectors = self.toInvSampleMoveVectors()
 
         rotate_mats = compute_rotation_matrix_from_ortho6d(self.ortho_poses)
 
