@@ -17,7 +17,7 @@ git clone https://github.com/facebookresearch/pytorch3d.git
 # sudo apt install libc++-dev libc++abi-dev libcgal-dev libomp-dev bear \
 #   cmake libgl1-mesa-glx libgl1-mesa-dev -y
 
-conda install cmake
+conda install cmake -y
 
 export CC=$(which gcc)
 export CXX=$(which g++)
@@ -31,10 +31,6 @@ pip install -U tqdm trimesh scikit-image open3d numpy gradio plotly \
 pip install pyvista==0.44.1
 
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
-#pip install torch==2.7.0 torchvision==0.20.1 torchaudio==2.5.1 \
-#--index-url https://download.pytorch.org/whl/cu124
-
-# pip install "git+https://github.com/facebookresearch/pytorch3d.git"
 
 pip install torch-scatter -f https://data.pyg.org/whl/torch-2.7.1+cu128.html
 
