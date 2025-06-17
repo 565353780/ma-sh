@@ -73,7 +73,7 @@ class BaseTrainer(ABC):
         # tmp
         self.translate = None
         self.scale = None
-        self.surface_dist = 0.001
+        self.surface_dist = 1e-4
 
         self.sample_mash_time = 0
         self.fit_loss_time = 0

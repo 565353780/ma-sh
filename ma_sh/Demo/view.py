@@ -32,17 +32,7 @@ def view_single_mash():
 
     mash_file_path = (
         home
-        + "/chLi/Dataset/Objaverse_82K/test/mash/000-000/0000ecca9a234cae994be239f6fec552.npy"
-    )
-    mash_file_path = home + "/Downloads/Dataset/MashAutoencoder/vae-eval_000_mash.npy"
-
-    mash_file_path = (
-        home
-        + "/Downloads/Dataset/Mash/MeshTrainer/results/difficult-0/mash/0_final_anc-4000_mash.npy"
-    )
-    mash_file_path = (
-        home
-        + "/chLi/Results/ma-sh/MeshTrainer/results/difficult-0/mash/0_final_anc-4000_mash.npy"
+        + "/chLi/Results/ma-sh/MeshTrainer/results/difficult-0/mash/0_final_anc-4096_mash.npy"
     )
 
     mash = SimpleMash.fromParamsFile(mash_file_path, 40, 40, device="cpu")

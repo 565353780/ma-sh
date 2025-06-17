@@ -324,7 +324,7 @@ class SimpleMash(object):
 
             rotate_matrixs = mash_cpp.toRotateMatrixs(rotate_vectors)
 
-            ortho_poses = rotate_matrixs[:, :, :2].reshape(-1, 6)
+            ortho_poses = rotate_matrixs[:, :2, :].view(-1, 6)
 
             self.ortho_poses.data = (
                 ortho_poses.detach().clone().type(self.dtype).to(self.device)

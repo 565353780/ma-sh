@@ -33,7 +33,7 @@ if __name__ == "__main__":
             sample_phi_num=64,
             sample_theta_num=64,
             device="cuda:0",
-            save_freq=1,
+            save_freq=-1,
             save_log_folder_path=save_root_folder_path + "logs/" + shape_id + "/",
             save_result_folder_path=save_root_folder_path + "results/" + shape_id + "/",
         )
