@@ -1,11 +1,11 @@
 import os
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "7"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 import torch
 from tqdm import trange
 
-from ma_sh.Model.simple_mash import SimpleMash
+from ma_sh.Model.mash import Mash
 from ma_sh.Method.render import renderPoints
 
 if __name__ == "__main__":
@@ -34,7 +34,7 @@ if __name__ == "__main__":
         print_grad = True
         render = True
 
-    mash = SimpleMash(
+    mash = Mash(
         anchor_num=anchor_num,
         mask_degree_max=mask_degree_max,
         sh_degree_max=sh_degree_max,

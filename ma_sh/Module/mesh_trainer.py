@@ -1,6 +1,8 @@
 import os
 import torch
+import numpy as np
 from time import time
+from tqdm import tqdm
 from typing import Union
 from torch.optim import AdamW
 
@@ -8,14 +10,17 @@ from mesh_graph_cut.Module.mesh_graph_cutter import MeshGraphCutter
 
 from chamfer_distance.Module.chamfer_distances import ChamferDistances
 
-from ma_sh.Config.weights import W0
-from ma_sh.Config.constant import EPSILON
+from ma_sh.Config.constant import W0, EPSILON, MAX_MASK_DEGREE, MAX_SH_DEGREE
 from ma_sh.Method.data import toNumpy
-from ma_sh.Model.simple_mash import SimpleMash
-from ma_sh.Module.base_trainer import BaseTrainer
+from ma_sh.Method.pcd import getPointCloud
+from ma_sh.Method.time import getCurrentTime
+from ma_sh.Method.path import createFileFolder, removeFile
+from ma_sh.Model.mash import Mash
+from ma_sh.Module.logger import Logger
+from ma_sh.Module.o3d_viewer import O3DViewer
 
 
-class MeshTrainer(BaseTrainer):
+class MeshTrainer(object):
     def __init__(
         self,
         anchor_num: int = 400,
@@ -38,11 +43,32 @@ class MeshTrainer(BaseTrainer):
         save_result_folder_path: Union[str, None] = None,
         save_log_folder_path: Union[str, None] = None,
     ) -> None:
+        self.lr = lr
+        self.min_lr = min_lr
         self.warmup_step_num = warmup_step_num
         self.warmup_epoch = warmup_epoch
         self.factor = factor
+        self.patience = patience
 
-        self.mash = SimpleMash(
+        self.epoch = 0
+        self.step = 0
+        self.loss_min = float("inf")
+
+        self.best_params_dict = {}
+
+        self.render = render
+        self.render_freq = render_freq
+        self.render_init_only = render_init_only
+        self.save_freq = save_freq
+
+        self.save_result_folder_path = save_result_folder_path
+        self.save_log_folder_path = save_log_folder_path
+        self.save_file_idx = 0
+        self.logger = Logger()
+
+        self.gt_points = None
+
+        self.mash = Mash(
             anchor_num,
             mask_degree_max,
             sh_degree_max,
@@ -62,18 +88,41 @@ class MeshTrainer(BaseTrainer):
             lr=lr,
         )
 
-        super().__init__(
-            lr,
-            min_lr,
-            patience,
-            render,
-            render_freq,
-            render_init_only,
-            save_freq,
-            save_result_folder_path,
-            save_log_folder_path,
-        )
+        self.initRecords()
+
+        self.o3d_viewer = None
+        if self.render:
+            self.o3d_viewer = O3DViewer()
+            self.o3d_viewer.createWindow()
+
+        self.min_lr_reach_time = 0
+
+        # tmp
+        self.surface_dist = 1e-4
+
+        self.sample_mash_time = 0
+        self.fit_loss_time = 0
+        self.coverage_loss_time = 0
+        self.boundary_connect_loss_time = 0
+        self.start_time = time()
+        self.error = 0
         return
+
+    def initRecords(self) -> bool:
+        self.save_file_idx = 0
+
+        current_time = getCurrentTime()
+
+        if self.save_result_folder_path == "auto":
+            self.save_result_folder_path = "./output/" + current_time + "/"
+        if self.save_log_folder_path == "auto":
+            self.save_log_folder_path = "./logs/" + current_time + "/"
+
+        if self.save_result_folder_path is not None:
+            os.makedirs(self.save_result_folder_path, exist_ok=True)
+        if self.save_log_folder_path is not None:
+            self.logger.setLogFolder(self.save_log_folder_path)
+        return True
 
     def loadMeshFile(
         self,
@@ -83,12 +132,6 @@ class MeshTrainer(BaseTrainer):
         if not os.path.exists(mesh_file_path):
             print("[ERROR][MeshTrainer::loadMeshFile]")
             print("\t mesh file not exist!")
-            print("\t mesh_file_path:", mesh_file_path)
-            return False
-
-        if not self.mesh.loadMesh(mesh_file_path):
-            print("[ERROR][BaseTrainer::loadMeshFile]")
-            print("\t loadMesh failed!")
             print("\t mesh_file_path:", mesh_file_path)
             return False
 
@@ -111,7 +154,7 @@ class MeshTrainer(BaseTrainer):
         ]
 
         sh_params = torch.zeros_like(self.mash.sh_params)
-        sh_params[:, 0] = self.surface_dist / W0[0]
+        sh_params[:, 0] = self.surface_dist / W0
 
         self.mash.loadParams(
             sh_params=sh_params,
@@ -120,12 +163,71 @@ class MeshTrainer(BaseTrainer):
         )
         return True
 
+    def loadParams(
+        self,
+        mask_params: Union[torch.Tensor, np.ndarray],
+        sh_params: Union[torch.Tensor, np.ndarray],
+        ortho_poses: Union[torch.Tensor, np.ndarray],
+        positions: Union[torch.Tensor, np.ndarray],
+    ) -> bool:
+        self.mash.loadParams(mask_params, sh_params, ortho_poses, positions)
+        return True
+
+    def loadBestParams(
+        self,
+        mask_params: Union[torch.Tensor, np.ndarray],
+        sh_params: Union[torch.Tensor, np.ndarray],
+        ortho_poses: Union[torch.Tensor, np.ndarray],
+        positions: Union[torch.Tensor, np.ndarray],
+    ) -> bool:
+        if isinstance(mask_params, np.ndarray):
+            mask_params = torch.from_numpy(mask_params)
+        if isinstance(sh_params, np.ndarray):
+            sh_params = torch.from_numpy(sh_params)
+        if isinstance(ortho_poses, np.ndarray):
+            ortho_poses = torch.from_numpy(ortho_poses)
+        if isinstance(positions, np.ndarray):
+            positions = torch.from_numpy(positions)
+
+        self.best_params_dict["mask_params"] = mask_params
+        self.best_params_dict["sh_params"] = sh_params
+        self.best_params_dict["ortho_poses"] = ortho_poses
+        self.best_params_dict["positions"] = positions
+        return True
+
+    def upperMaskDegree(self) -> bool:
+        if self.mash.mask_degree_max == MAX_MASK_DEGREE:
+            return False
+
+        if not self.mash.updateMaskDegree(self.mash.mask_degree_max + 1):
+            print("[ERROR][BaseTrainer::upperMaskDegree]")
+            print("\t updateMaskDegree failed!")
+            return False
+        return True
+
+    def upperSHDegree(self) -> bool:
+        if self.mash.sh_degree_max == MAX_SH_DEGREE:
+            return False
+
+        if not self.mash.updateSHDegree(self.mash.sh_degree_max + 1):
+            print("[ERROR][BaseTrainer::upperMaskDegree]")
+            print("\t updateSHDegree failed!")
+            return False
+        return True
+
+    def getLr(self) -> bool:
+        return self.optimizer.param_groups[0]["lr"]
+
+    def updateLr(self, lr: float) -> bool:
+        for param_group in self.optimizer.param_groups:
+            param_group["lr"] = lr
+        return True
+
     def trainStep(
         self,
         gt_points: torch.Tensor,
         fit_loss_weight: float,
         coverage_loss_weight: float,
-        boundary_connect_loss_weight: float,
     ) -> Union[dict, None]:
         self.optimizer.zero_grad()
 
@@ -164,12 +266,10 @@ class MeshTrainer(BaseTrainer):
             return None
 
         loss.backward()
-        # torch.cuda.empty_cache()  # 清空反向传播后不再需要的GPU缓存
 
         self.mash.clearNanGrads()
 
         self.optimizer.step()
-        # torch.cuda.empty_cache()  # 清空优化器步骤后不再需要的GPU缓存
 
         chamfer_distance = toNumpy(fit_loss) + toNumpy(coverage_loss)
         self.error = chamfer_distance
@@ -186,10 +286,159 @@ class MeshTrainer(BaseTrainer):
 
         return loss_dict
 
-    def autoTrainMash(
+    def warmUpEpoch(
         self,
-        gt_points_num: int = 400000,
+        epoch_lr: float,
+        gt_points: torch.Tensor,
+        fit_loss_weight: float,
+        coverage_loss_weight: float,
+        train_step_max: int,
     ) -> bool:
+        self.mash.setGradState(True)
+
+        print("[INFO][BaseTrainer::warmUpEpoch]")
+        print(
+            "\t start train epoch :",
+            self.epoch,
+            "with lr : %.4f" % (epoch_lr * 1e3),
+            "* 1e-3...",
+        )
+        pbar = tqdm(total=train_step_max)
+
+        start_step = self.step
+        min_loss = float("inf")
+        min_loss_reached_time = 0
+
+        for i in range(train_step_max):
+            if self.render:
+                if self.step % self.render_freq == 0:
+                    self.renderMash(gt_points)
+
+            current_lr = epoch_lr * (i + 1.0) / train_step_max
+            self.updateLr(current_lr)
+            if self.logger.isValid():
+                self.logger.addScalar("Train/lr", current_lr, self.step)
+
+            loss_dict = self.trainStep(
+                gt_points,
+                fit_loss_weight,
+                coverage_loss_weight,
+            )
+
+            if loss_dict is None:
+                print("[ERROR][BaseTrainer::warmUpEpoch]")
+                print("\t trainStep failed!")
+                return False
+
+            assert isinstance(loss_dict, dict)
+            for key, item in loss_dict.items():
+                self.logger.addScalar(key, item, self.step)
+
+            loss = loss_dict["Train/loss"]
+
+            pbar.set_description("LOSS %.6f" % (loss,))
+
+            # self.autoSavePcd("train", self.save_freq, False)
+            self.autoSaveMash("train", self.save_freq)
+
+            self.step += 1
+            pbar.update(1)
+
+            self.logger.addScalar("Train/patience", self.patience, self.step)
+
+            if self.step >= start_step + train_step_max:
+                break
+
+        self.logger.addScalar("Train/lr", epoch_lr, self.step - 1)
+
+        self.epoch += 1
+        return True
+
+    def trainEpoch(
+        self,
+        epoch_lr: float,
+        gt_points: torch.Tensor,
+        fit_loss_weight: float,
+        coverage_loss_weight: float,
+        train_step_max: Union[int, None] = None,
+    ) -> bool:
+        self.mash.setGradState(True)
+
+        self.updateLr(epoch_lr)
+        if self.logger.isValid():
+            self.logger.addScalar("Train/lr", epoch_lr, self.step)
+
+        print("[INFO][BaseTrainer::trainEpoch]")
+        print(
+            "\t start train epoch :",
+            self.epoch,
+            "with lr : %.4f" % (epoch_lr * 1e3),
+            "* 1e-3...",
+        )
+        if train_step_max is not None:
+            pbar = tqdm(total=train_step_max)
+        else:
+            pbar = tqdm()
+
+        start_step = self.step
+        min_loss = float("inf")
+        min_loss_reached_time = 0
+
+        while True:
+            if self.render:
+                if self.step % self.render_freq == 0:
+                    self.renderMash(gt_points)
+
+            loss_dict = self.trainStep(
+                gt_points,
+                fit_loss_weight,
+                coverage_loss_weight,
+            )
+
+            if loss_dict is None:
+                print("[ERROR][BaseTrainer::trainEpoch]")
+                print("\t trainStep failed!")
+                return False
+
+            assert isinstance(loss_dict, dict)
+            for key, item in loss_dict.items():
+                self.logger.addScalar(key, item, self.step)
+
+            loss = loss_dict["Train/loss"]
+
+            pbar.set_description("LOSS %.6f" % (loss,))
+
+            # self.autoSavePcd("train", self.save_freq, False)
+            self.autoSaveMash("train", self.save_freq)
+
+            self.step += 1
+            pbar.update(1)
+
+            if train_step_max is not None:
+                self.logger.addScalar("Train/patience", self.patience, self.step)
+
+                if self.step >= start_step + train_step_max:
+                    break
+            else:
+                if loss < min_loss:
+                    min_loss = loss
+                    min_loss_reached_time = 0
+                else:
+                    min_loss_reached_time += 1
+
+                self.logger.addScalar(
+                    "Train/patience", self.patience - min_loss_reached_time, self.step
+                )
+
+                if min_loss_reached_time >= self.patience:
+                    break
+
+        self.logger.addScalar("Train/lr", epoch_lr, self.step - 1)
+
+        self.epoch += 1
+        return True
+
+    def autoTrainMash(self) -> bool:
         print("[INFO][MeshTrainer::autoTrainMash]")
         print("\t start auto train SimpleMash...")
         print(
@@ -210,9 +459,7 @@ class MeshTrainer(BaseTrainer):
 
         print("[INFO][MeshTrainer::autoTrainMash]")
         print("\t start warmUpEpoch...")
-        if not self.warmUpEpoch(
-            self.lr, gt_points, 1.0, 0.5, 0.0, self.warmup_step_num
-        ):
+        if not self.warmUpEpoch(self.lr, gt_points, 1.0, 0.5, self.warmup_step_num):
             print("[ERROR][Trainer::autoTrainMash]")
             print("\t warmUpEpoch failed!")
             return False
@@ -227,7 +474,7 @@ class MeshTrainer(BaseTrainer):
             coverage_loss_weight = 0.5 + 0.5 * manifold_loss_weight
 
             if not self.trainEpoch(
-                self.lr, gt_points, fit_loss_weight, coverage_loss_weight, 0
+                self.lr, gt_points, fit_loss_weight, coverage_loss_weight
             ):
                 print("[ERROR][Trainer::autoTrainMash]")
                 print("\t trainEpoch failed!")
@@ -273,4 +520,123 @@ class MeshTrainer(BaseTrainer):
         if self.o3d_viewer is not None:
             self.o3d_viewer.run()
 
+        return True
+
+    def saveMashFile(self, save_mash_file_path: str, overwrite: bool = False) -> bool:
+        createFileFolder(save_mash_file_path)
+
+        sample_mash = self.mash.clone()
+
+        sample_mash.saveParamsFile(save_mash_file_path, overwrite)
+        return True
+
+    def autoSaveMash(
+        self, state_info: str, save_freq: int = 1, add_idx: bool = True
+    ) -> bool:
+        if self.save_result_folder_path is None:
+            return False
+
+        if save_freq <= 0:
+            return False
+
+        if self.save_file_idx % save_freq != 0:
+            if add_idx:
+                self.save_file_idx += 1
+            return False
+
+        save_file_path = (
+            self.save_result_folder_path
+            + "mash/"
+            + str(self.save_file_idx)
+            + "_"
+            + state_info
+            + "_anc-"
+            + str(self.mash.anchor_num)
+            + "_mash.npy"
+        )
+
+        if not self.saveMashFile(save_file_path, True):
+            print("[ERROR][BaseTrainer::autoSaveMash]")
+            print("\t saveMashFile failed!")
+            return False
+
+        if add_idx:
+            self.save_file_idx += 1
+        return True
+
+    def saveAsPcdFile(self, save_pcd_file_path: str, overwrite: bool = False) -> bool:
+        if os.path.exists(save_pcd_file_path):
+            if not overwrite:
+                return True
+
+            removeFile(save_pcd_file_path)
+
+        save_mash = self.mash.clone()
+
+        save_mash.saveAsPcdFile(save_pcd_file_path, overwrite=overwrite)
+        return True
+
+    def autoSavePcd(
+        self, state_info: str, save_freq: int = 1, add_idx: bool = True
+    ) -> bool:
+        if self.save_result_folder_path is None:
+            return False
+
+        if save_freq <= 0:
+            return False
+
+        if self.save_file_idx % save_freq != 0:
+            if add_idx:
+                self.save_file_idx += 1
+            return False
+
+        save_pcd_file_path = (
+            self.save_result_folder_path
+            + "pcd/"
+            + str(self.save_file_idx)
+            + "_"
+            + state_info
+            + "_pcd.ply"
+        )
+
+        if not self.saveAsPcdFile(save_pcd_file_path, overwrite=True):
+            print("[ERROR][BaseTrainer::autoSavePcd]")
+            print("\t saveAsPcdFile failed!")
+            return False
+
+        if add_idx:
+            self.save_file_idx += 1
+        return True
+
+    def renderMash(self, gt_points: torch.Tensor) -> bool:
+        if self.o3d_viewer is None:
+            print("[ERROR][BaseTrainer::renderMash]")
+            print("\t o3d_viewer is None!")
+            return False
+
+        with torch.no_grad():
+            self.o3d_viewer.clearGeometries()
+
+            gt_pcd = getPointCloud(toNumpy(gt_points.squeeze(0)))
+            self.o3d_viewer.addGeometry(gt_pcd)
+
+            detect_points = self.mash.toSamplePoints()
+            pcd = getPointCloud(toNumpy(detect_points))
+            self.o3d_viewer.addGeometry(pcd)
+
+            """
+            for j in range(self.mash.mask_params.shape[0]):
+                view_cone = self.toO3DViewCone(j)
+                self.o3d_viewer.addGeometry(view_cone)
+
+                # inv_sphere = self.toO3DInvSphere(j)
+                # inv_sphere.translate([-30, 0, 0])
+                # self.o3d_viewer.addGeometry(inv_sphere)
+            """
+
+            self.o3d_viewer.update()
+
+            if self.render_init_only:
+                self.o3d_viewer.run()
+                exit()
         return True

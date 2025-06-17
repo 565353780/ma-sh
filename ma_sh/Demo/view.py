@@ -1,6 +1,5 @@
 import sys
 
-sys.path.append("../wn-nc/")
 sys.path.append("../chamfer-distance/")
 
 import os

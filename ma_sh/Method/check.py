@@ -1,7 +1,5 @@
 import torch
 
-from ma_sh.Config.mode import DEBUG
-
 
 def checkShape(source_shape, target_shape):
     if len(source_shape) != len(target_shape):
@@ -27,9 +25,6 @@ def checkFormat(
     shape=None,
     have_grad=None,
 ) -> bool:
-    if not DEBUG:
-        return True
-
     if data.dtype != dtype:
         print("[WARN][check::checkFormat]")
         print("\t dtype not matched!")
