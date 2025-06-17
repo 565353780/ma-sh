@@ -8,10 +8,9 @@ import functools
 import open3d as o3d
 from random import shuffle
 
-from ma_sh.Config.custom_path import toDatasetRootPath
 from ma_sh.Method.data import toNumpy
 from ma_sh.Method.pcd import getPointCloud
-from ma_sh.Model.simple_mash import SimpleMash
+from ma_sh.Model.mash import Mash
 from ma_sh.Module.o3d_viewer import O3DViewer
 
 
@@ -34,7 +33,7 @@ def view_single_mash():
         + "/chLi/Results/ma-sh/MeshTrainer/results/difficult-0/mash/0_final_anc-4096_mash.npy"
     )
 
-    mash = SimpleMash.fromParamsFile(mash_file_path, 40, 40, device="cpu")
+    mash = Mash.fromParamsFile(mash_file_path, 40, 40, device="cpu")
 
     print("start show mash:", mash_file_path)
     mash.renderSamplePoints()
