@@ -95,6 +95,13 @@ class MeshTrainer(BaseTrainer):
         mesh_graph_cutter = MeshGraphCutter(mesh_file_path)
         mesh_graph_cutter.cutMesh(self.mash.anchor_num, points_per_submesh)
 
+        if self.render:
+            print("Render face labels...")
+            mesh_graph_cutter.renderFaceLabels()
+
+            print("Render sub meshes...")
+            mesh_graph_cutter.renderSubMeshSamplePoints()
+
         self.gt_points = mesh_graph_cutter.sub_mesh_sample_points
 
         fps_positions = mesh_graph_cutter.vertices[mesh_graph_cutter.fps_vertex_idxs]
