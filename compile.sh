@@ -6,6 +6,11 @@ fi
 
 export MAX_JOBS=${PROCESSOR_NUM}
 
+export CC=$(which gcc)
+export CXX=$(which g++)
+echo "Using CC: $CC"
+echo "Using CXX: $CXX"
+
 pip uninstall mash-cpp -y
 
 rm -rf ../ma-sh/build

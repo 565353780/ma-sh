@@ -14,7 +14,7 @@ mash_include_dirs = [mash_root_path + "include"]
 
 mash_extra_compile_args = [
     "-O3",
-    "-DCMAKE_BUILD_TYPE Release",
+    "-DCMAKE_BUILD_TYPE=Release",
     "-D_GLIBCXX_USE_CXX11_ABI=0",
     "-DTORCH_USE_CUDA_DSA",
 ]
