@@ -523,8 +523,6 @@ class MeshTrainer(object):
         return True
 
     def saveMashFile(self, save_mash_file_path: str, overwrite: bool = False) -> bool:
-        createFileFolder(save_mash_file_path)
-
         sample_mash = self.mash.clone()
 
         sample_mash.saveParamsFile(save_mash_file_path, overwrite)

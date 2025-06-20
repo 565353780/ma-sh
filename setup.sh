@@ -1,8 +1,12 @@
 cd ..
+git clone https://github.com/565353780/data-convert.git
 git clone https://github.com/565353780/chamfer-distance.git
 git clone https://github.com/565353780/mesh-graph-cut.git
 
-cd chamfer-distance
+cd data-convert
+./setup.sh
+
+cd ../chamfer-distance
 ./setup.sh
 
 cd ../mesh-graph-cut
