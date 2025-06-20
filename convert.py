@@ -1,7 +1,9 @@
 import sys
 
-sys.path.append("../data-convert")
 sys.path.append("../chamfer-distance")
+sys.path.append("../data-convert")
+sys.path.append("../diff-curvature")
+sys.path.append("../mesh-graph-cut")
 sys.path.append("../sdf-generate")
 
 from ma_sh.Demo.pipeline_convertor import demo_convert
