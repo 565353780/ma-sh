@@ -1,9 +1,13 @@
 cd ..
 git clone git@github.com:565353780/data-convert.git
+git clone git@github.com:565353780/sdf-generate.git
 git clone git@github.com:565353780/chamfer-distance.git
 git clone git@github.com:565353780/mesh-graph-cut.git
 
 cd data-convert
+./dev_setup.sh
+
+cd ../sdf-generate
 ./dev_setup.sh
 
 cd ../chamfer-distance

@@ -1,5 +1,15 @@
 git pull
 
+if [ -d "../data-convert/" ]; then
+  cd ../data-convert/
+  git pull
+fi
+
+if [ -d "../sdf-generate/" ]; then
+  cd ../sdf-generate/
+  git pull
+fi
+
 if [ -d "../chamfer-distance/" ]; then
   cd ../chamfer-distance/
   git pull

@@ -4,7 +4,7 @@ sys.path.append("../data-convert")
 sys.path.append("../chamfer-distance")
 sys.path.append("../sdf-generate")
 
-from ma_sh.Demo.Convertor.pipeline_convertor import demo as demo_convert
+from ma_sh.Demo.pipeline_convertor import demo_convert
 
 
 if __name__ == "__main__":
