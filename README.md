@@ -9,23 +9,19 @@
 ```bash
 conda create -n mash python=3.8
 conda activate mash
-./setup.sh
+./setup_all_in_one.sh
 ```
 
 ## Prepare Dataset
 
 ```bash
-1. ./parallel_convert.sh convert_pipeline_pcd.py <parallel-run-num>
-2. ./parallel_convert.sh convert_pipeline_sdf.py <parallel-run-num>
-3. ./convert_mash.sh <gpu-id>
-4. python convert_capture_image.py
-5. python convert_encode_image.py
+5. python convert.py
 ```
 
 ## Fit your custom data
 
 ```bash
-python train.py
+python train_mesh.py
 ```
 
 ## Citation
