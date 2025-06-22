@@ -300,12 +300,7 @@ class MeshTrainer(object):
         self.mash.setGradState(True)
 
         print("[INFO][BaseTrainer::warmUpEpoch]")
-        print(
-            "\t start train epoch :",
-            self.epoch,
-            "with lr : %.4f" % (epoch_lr * 1e3),
-            "* 1e-3...",
-        )
+        print("\t start train epoch :", self.epoch, "with lr :", epoch_lr, "...")
         pbar = tqdm(total=train_step_max)
 
         start_step = self.step
@@ -372,12 +367,7 @@ class MeshTrainer(object):
             self.logger.addScalar("Train/lr", epoch_lr, self.step)
 
         print("[INFO][BaseTrainer::trainEpoch]")
-        print(
-            "\t start train epoch :",
-            self.epoch,
-            "with lr : %.4f" % (epoch_lr * 1e3),
-            "* 1e-3...",
-        )
+        print("\t start train epoch :", self.epoch, "with lr :", epoch_lr, "...")
         if train_step_max is not None:
             pbar = tqdm(total=train_step_max)
         else:
