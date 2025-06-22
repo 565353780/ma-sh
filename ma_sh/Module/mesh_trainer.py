@@ -14,7 +14,7 @@ from ma_sh.Config.constant import W0, EPSILON, MAX_MASK_DEGREE, MAX_SH_DEGREE
 from ma_sh.Method.data import toNumpy
 from ma_sh.Method.pcd import getPointCloud
 from ma_sh.Method.time import getCurrentTime
-from ma_sh.Method.path import createFileFolder, removeFile
+from ma_sh.Method.path import removeFile
 from ma_sh.Model.mash import Mash
 from ma_sh.Module.logger import Logger
 from ma_sh.Module.o3d_viewer import O3DViewer

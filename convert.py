@@ -1,3 +1,4 @@
+import os
 import sys
 
 sys.path.append("../chamfer-distance")
@@ -11,18 +12,14 @@ from ma_sh.Demo.pipeline_convertor import demo_convert
 
 if __name__ == "__main__":
     """
-    source data file path: data_space + rel_data_path
-    processed data file path: output_space (with the same folder tree structure)
-    for example:
-    source data file path: '/opt/dataset/TRELLIS/mesh/category_id/0.glb'
-    its data_space is '/opt/dataset/TRELLIS/mesh/'
-    its rel_base_path is 'category_id/0.glb'
-    the output file paths will just be like:
-        output_space + 'category_id/0.obj'
-        output_space + 'category_id/0.obj'
+    data_space: the root folder of the shape dataset
+    output_space: the root folder of the generated results
+    rel_data_path: data_file_path = data_space + rel_data_path
     """
-    data_space = "/Users/chli/chLi/Dataset/vae-eval/"
-    output_space = "/Users/chli/chLi/Dataset/vae-eval_output/"
-    rel_data_path = "0.glb"
+    data_space = "/home/lichanghao/chLi/Dataset/Objaverse_82K/glbs/"
+    output_space = "/home/lichanghao/chLi/Dataset/Objaverse_82K/"
+    rel_data_path = "000-000/000a00944e294f7a94f95d420fdd45eb.glb"
+    cuda_id = "0"
 
+    os.environ["CUDA_VISIBLE_DEVICES"] = cuda_id
     demo_convert(data_space, output_space, rel_data_path)
