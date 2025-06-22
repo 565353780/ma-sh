@@ -24,30 +24,16 @@ def demo_view_mash(mash_file_path: str) -> bool:
     return True
 
 
-def demo_view_training() -> bool:
+def demo_view_training(mash_folder_path: str, view_freq: int = 1) -> bool:
+    if mash_folder_path[-1] != "/":
+        mash_folder_path += "/"
+
     sample_phi_num = 40
     sample_theta_num = 40
-    view_freq = 4
 
     o3d_viewer = O3DViewer()
     o3d_viewer.createWindow()
 
-    mash_root_folder_path = "./output/"
-
-    mash_folename_list = os.listdir(mash_root_folder_path)
-    mash_folename_list.sort()
-
-    valid_mash_folder_path_list = []
-
-    for mash_folename in mash_folename_list:
-        mash_folder_path = mash_root_folder_path + mash_folename + "/"
-
-        if not os.path.isdir(mash_folder_path) or not os.path.exists(mash_folder_path):
-            continue
-
-        valid_mash_folder_path_list.append(mash_folder_path)
-
-    mash_folder_path = valid_mash_folder_path_list[-1]
     print("start view:", mash_folder_path)
 
     mash_filename_list = os.listdir(mash_folder_path)

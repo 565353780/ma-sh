@@ -63,9 +63,9 @@ class Convertor(BaseConvertor):
             False,
             1,
             False,
-            1,
-            "auto",
-            "auto",
+            -1,
+            None,
+            None,
         )
 
         return trainer
@@ -74,11 +74,6 @@ class Convertor(BaseConvertor):
         start = time()
 
         trainer = self.createTrainer()
-
-        if not trainer.loadMeshFile(source_path, self.points_per_submesh):
-            print("[ERROR][Convertor::convertData]")
-            print("\t loadMeshFile failed!")
-            exit()
 
         try:
             if not trainer.loadMeshFile(source_path, self.points_per_submesh):

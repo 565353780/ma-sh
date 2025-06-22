@@ -3,24 +3,72 @@ import torch
 from ma_sh.Module.Convertor.to_trimesh import Convertor as ToTriMeshConvertor
 from ma_sh.Module.Convertor.to_manifold import Convertor as ToManifoldConvertor
 from ma_sh.Module.Convertor.mesh_to_mash import Convertor as MeshToMashConvertor
+from ma_sh.Module.Convertor.npz_to_manifold import Convertor as NpzToManifoldConvertor
 
 try:
     from ma_sh.Module.Convertor.sample_sdf import Convertor as SampleSDFConvertor
 
     CONVERT_SDF = True
 except Exception as e:
+    """
     print("[ERROR][pipeline_convertor::import]")
     print("\t try import SampleSDFConvertor failed!")
     print("\t maybe current pc do not support pyrender with opengl!")
     print("\t will skip the sdf dataset conversion process!")
     print("\t error:")
     print(e)
+    """
     CONVERT_SDF = False
 
 from data_convert.Module.pipeline_convertor import PipelineConvertor
 
 
-def demo_convert(data_space: str, output_space: str, rel_data_path: str):
+def demo_convert_npz(
+    data_space: str, output_space: str, rel_data_path: str, device: str = "cuda:0"
+):
+    data_type = "." + rel_data_path.split(".")[-1]
+    rel_base_path = rel_data_path[: -len(data_type)]
+
+    npz_to_manifold_convertor = NpzToManifoldConvertor(
+        data_space,
+        output_space + "manifold/",
+        resolution=512,
+        device=device,
+    )
+
+    mesh_to_mash_convertor = MeshToMashConvertor(
+        output_space + "manifold/",
+        output_space + "mash/",
+        anchor_num=8192,
+        mask_degree_max=2,
+        sh_degree_max=2,
+        sample_phi_num=40,
+        sample_theta_num=40,
+        points_per_submesh=1024,
+        dtype=torch.float32,
+        device=device,
+        lr=4.0,
+        min_lr=1e-1,
+        warmup_step_num=80,
+        warmup_epoch=4,
+        factor=0.8,
+        patience=2,
+    )
+
+    mash_pipeline_convertor = PipelineConvertor(
+        [npz_to_manifold_convertor, mesh_to_mash_convertor]
+    )
+
+    mash_data_type_list = [data_type, ".ply", ".npy"]
+    mash_pipeline_convertor.convertOneShape(rel_base_path, mash_data_type_list)
+
+    # mash_pipeline_convertor.convertAll(mash_data_type_list)
+    return True
+
+
+def demo_convert(
+    data_space: str, output_space: str, rel_data_path: str, device: str = "cuda:0"
+):
     data_type = "." + rel_data_path.split(".")[-1]
     rel_base_path = rel_data_path[: -len(data_type)]
 
@@ -41,7 +89,7 @@ def demo_convert(data_space: str, output_space: str, rel_data_path: str):
         sample_theta_num=40,
         points_per_submesh=1024,
         dtype=torch.float32,
-        device="cuda:0",
+        device=device,
         lr=2e-3,
         min_lr=1e-3,
         warmup_step_num=80,

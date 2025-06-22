@@ -4,7 +4,7 @@ import numpy as np
 from time import time
 from tqdm import tqdm
 from typing import Union
-from torch.optim import AdamW
+from torch.optim import SGD
 
 from mesh_graph_cut.Module.mesh_graph_cutter import MeshGraphCutter
 
@@ -16,6 +16,7 @@ from ma_sh.Method.pcd import getPointCloud
 from ma_sh.Method.time import getCurrentTime
 from ma_sh.Method.path import removeFile
 from ma_sh.Model.mash import Mash
+from ma_sh.Module.early_stopping import EarlyStopping
 from ma_sh.Module.logger import Logger
 from ma_sh.Module.o3d_viewer import O3DViewer
 
@@ -78,7 +79,7 @@ class MeshTrainer(object):
             device,
         )
 
-        self.optimizer = AdamW(
+        self.optimizer = SGD(
             [
                 self.mash.mask_params,
                 self.mash.sh_params,
@@ -101,9 +102,7 @@ class MeshTrainer(object):
         self.surface_dist = 1e-4
 
         self.sample_mash_time = 0
-        self.fit_loss_time = 0
-        self.coverage_loss_time = 0
-        self.boundary_connect_loss_time = 0
+        self.chamfer_loss_time = 0
         self.start_time = time()
         self.error = 0
         return
@@ -142,8 +141,8 @@ class MeshTrainer(object):
             print("Render face labels...")
             mesh_graph_cutter.renderFaceLabels()
 
-            print("Render sub meshes...")
-            mesh_graph_cutter.renderSubMeshSamplePoints()
+            # print("Render sub meshes...")
+            # mesh_graph_cutter.renderSubMeshSamplePoints()
 
         self.gt_points = mesh_graph_cutter.sub_mesh_sample_points
 
@@ -239,9 +238,14 @@ class MeshTrainer(object):
         fit_loss = torch.tensor(0.0).type(gt_points.dtype).to(gt_points.device)
         coverage_loss = torch.zeros_like(fit_loss)
 
-        fit_dists2, coverage_dists2 = ChamferDistances.namedAlgo("cuda")(
-            mash_pts, gt_points
-        )[:2]
+        if torch.cuda.is_available() and gt_points.device != "cpu":
+            fit_dists2, coverage_dists2 = ChamferDistances.namedAlgo("cuda")(
+                mash_pts, gt_points
+            )[:2]
+        else:
+            fit_dists2, coverage_dists2 = ChamferDistances.namedAlgo("default")(
+                mash_pts, gt_points
+            )[:2]
 
         fit_dists = torch.sqrt(fit_dists2 + EPSILON)
         coverage_dists = torch.sqrt(coverage_dists2 + EPSILON)
@@ -250,8 +254,7 @@ class MeshTrainer(object):
         coverage_loss = torch.mean(coverage_dists)
 
         spend = time() - start
-        self.fit_loss_time += spend / 2.0
-        self.coverage_loss_time += spend / 2.0
+        self.chamfer_loss_time += spend
 
         weighted_fit_loss = fit_loss_weight * fit_loss
         weighted_coverage_loss = coverage_loss_weight * coverage_loss
@@ -306,8 +309,6 @@ class MeshTrainer(object):
         pbar = tqdm(total=train_step_max)
 
         start_step = self.step
-        min_loss = float("inf")
-        min_loss_reached_time = 0
 
         for i in range(train_step_max):
             if self.render:
@@ -362,6 +363,8 @@ class MeshTrainer(object):
         coverage_loss_weight: float,
         train_step_max: Union[int, None] = None,
     ) -> bool:
+        early_stopping = EarlyStopping(self.patience, 1e-6)
+
         self.mash.setGradState(True)
 
         self.updateLr(epoch_lr)
@@ -433,6 +436,9 @@ class MeshTrainer(object):
                 if min_loss_reached_time >= self.patience:
                     break
 
+            if early_stopping(loss.item()):
+                break
+
         self.logger.addScalar("Train/lr", epoch_lr, self.step - 1)
 
         self.epoch += 1
@@ -453,9 +459,7 @@ class MeshTrainer(object):
         else:
             gt_points_dtype = torch.float32
 
-        gt_points = torch.from_numpy(self.gt_points).to(
-            self.mash.device, dtype=gt_points_dtype
-        )
+        gt_points = self.gt_points.to(self.mash.device, dtype=gt_points_dtype)
 
         print("[INFO][MeshTrainer::autoTrainMash]")
         print("\t start warmUpEpoch...")
@@ -464,45 +468,20 @@ class MeshTrainer(object):
             print("\t warmUpEpoch failed!")
             return False
 
-        print("[INFO][Trainer::autoTrainMash]")
-        print("\t start trainEpoch with adaptive loss...")
-        for i in range(self.warmup_epoch):
-            fit_loss_weight = 1.0
+        if not self.trainEpoch(self.lr, gt_points, 1.0, 0.5):
+            print("[ERROR][Trainer::autoTrainMash]")
+            print("\t trainEpoch failed!")
+            return False
 
-            manifold_loss_weight = i / (self.warmup_epoch - 1)
+        if not self.warmUpEpoch(self.lr, gt_points, 1.0, 1.0, self.warmup_step_num):
+            print("[ERROR][Trainer::autoTrainMash]")
+            print("\t warmUpEpoch failed!")
+            return False
 
-            coverage_loss_weight = 0.5 + 0.5 * manifold_loss_weight
-
-            if not self.trainEpoch(
-                self.lr, gt_points, fit_loss_weight, coverage_loss_weight
-            ):
-                print("[ERROR][Trainer::autoTrainMash]")
-                print("\t trainEpoch failed!")
-                return False
-
-        print("[INFO][Trainer::autoTrainMash]")
-        print("\t start trainEpoch with adaptive lr...")
-        current_lr = self.lr
-        current_finetune_epoch = 1
-
-        while current_lr > self.min_lr:
-            current_lr *= self.factor
-            if current_lr < self.min_lr:
-                current_lr = self.min_lr
-
-            current_finetune_epoch += 1
-
-            fit_loss_weight = 1.0
-            coverage_loss_weight = 1.0
-
-            manifold_loss_weight = 1.0 / current_finetune_epoch
-
-            self.trainEpoch(
-                current_lr, gt_points, fit_loss_weight, coverage_loss_weight, 0
-            )
-
-            if current_lr == self.min_lr:
-                break
+        if not self.trainEpoch(self.lr, gt_points, 1.0, 1.0):
+            print("[ERROR][Trainer::autoTrainMash]")
+            print("\t trainEpoch failed!")
+            return False
 
         # self.autoSavePcd("final", add_idx=False)
         self.autoSaveMash("final")
@@ -512,8 +491,7 @@ class MeshTrainer(object):
         print("[INFO][Trainer::autoTrainMash]")
         print("\t training finished! metrics:")
         print("\t surface sampling:", self.sample_mash_time)
-        print("\t fit loss:", self.fit_loss_time)
-        print("\t coverage loss:", self.coverage_loss_time)
+        print("\t chamfer loss:", self.chamfer_loss_time, "s")
         print("\t total:", total_time)
         print("\t error:", self.error)
 
@@ -636,5 +614,5 @@ class MeshTrainer(object):
 
             if self.render_init_only:
                 self.o3d_viewer.run()
-                exit()
+                # exit()
         return True
