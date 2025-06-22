@@ -7,7 +7,7 @@
 ## Setup
 
 ```bash
-conda create -n mash python=3.8
+conda create -n mash python=3.10
 conda activate mash
 ./setup_all_in_one.sh
 ```
