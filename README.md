@@ -4,6 +4,8 @@
 
 **This repository is the official implementation of *MASH Optimization (<https://arxiv.org/abs/2504.09149>)*.**
 
+![MASH Teaser](https://github.com/565353780/ma-sh/blob/master/assert/representative_image.jpg)
+
 ## Setup
 
 ```bash
@@ -12,16 +14,12 @@ conda activate mash
 ./setup_all_in_one.sh
 ```
 
-## Prepare Dataset
+## Fit your custom data
+
+![MASH Optimization](https://github.com/565353780/ma-sh/blob/master/assert/5_diff_opt.gif)
 
 ```bash
 5. python convert.py
-```
-
-## Fit your custom data
-
-```bash
-python train_mesh.py
 ```
 
 ## Citation
