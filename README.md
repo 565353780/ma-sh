@@ -4,7 +4,7 @@
 
 **This repository is the official implementation of *MASH Optimization (<https://arxiv.org/abs/2504.09149>)*.**
 
-![MASH Teaser](https://github.com/565353780/ma-sh/blob/master/assert/representative_image.jpg)
+![MASH Teaser](https://github.com/565353780/MASH/blob/master/images/representative_image.jpg)
 
 ## Setup
 
@@ -16,7 +16,7 @@ conda activate mash
 
 ## Fit your custom data
 
-![MASH Optimization](https://github.com/565353780/ma-sh/blob/master/assert/5_diff_opt.gif)
+![MASH Optimization](https://github.com/565353780/MASH/blob/master/video/5_diff_opt.gif)
 
 ```bash
 5. python convert.py
