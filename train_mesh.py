@@ -26,12 +26,12 @@ if __name__ == "__main__":
 
         demo_train_mesh(
             shape_data_dict[shape_id],
-            points_per_submesh=4096,
-            anchor_num=4096,
-            mask_degree_max=3,
+            points_per_submesh=1024,
+            anchor_num=8192,
+            mask_degree_max=2,
             sh_degree_max=2,
-            sample_phi_num=64,
-            sample_theta_num=64,
+            sample_phi_num=40,
+            sample_theta_num=40,
             device="cuda:0",
             save_freq=-1,
             save_log_folder_path=save_root_folder_path + "logs/" + shape_id + "/",
