@@ -17,7 +17,8 @@ rm -rf ../ma-sh/build
 rm -rf ../ma-sh/*.egg-info
 rm ../ma-sh/*.so
 
-bear -- python setup.py build_ext --inplace
+# bear -- python setup.py build_ext --inplace
+python setup.py build_ext --inplace
 mv compile_commands.json build
 
 pip install .
