@@ -24,6 +24,30 @@ def demo_view_mash(mash_file_path: str) -> bool:
     return True
 
 
+def demo_view_folder(mash_folder_path: str) -> bool:
+    if mash_folder_path[-1] != "/":
+        mash_folder_path += "/"
+
+    sample_phi_num = 40
+    sample_theta_num = 40
+
+    mash_filename_list = os.listdir(mash_folder_path)
+    mash_filename_list.sort()
+
+    for mash_filename in mash_filename_list:
+        mash_file_path = mash_folder_path + mash_filename
+
+        mash = Mash.fromParamsFile(
+            mash_file_path,
+            sample_phi_num,
+            sample_theta_num,
+        )
+
+        print("start show mash:", mash_file_path)
+        mash.renderSamplePoints()
+    return True
+
+
 def demo_view_training(mash_folder_path: str, view_freq: int = 1) -> bool:
     if mash_folder_path[-1] != "/":
         mash_folder_path += "/"
