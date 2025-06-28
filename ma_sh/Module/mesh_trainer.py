@@ -583,8 +583,8 @@ class MeshTrainer(object):
         with torch.no_grad():
             self.o3d_viewer.clearGeometries()
 
-            gt_pcd = getPointCloud(toNumpy(gt_points.squeeze(0)))
-            self.o3d_viewer.addGeometry(gt_pcd)
+            # gt_pcd = getPointCloud(toNumpy(gt_points.squeeze(0)))
+            # self.o3d_viewer.addGeometry(gt_pcd)
 
             detect_points = self.mash.toSamplePoints()
             pcd = getPointCloud(toNumpy(detect_points))

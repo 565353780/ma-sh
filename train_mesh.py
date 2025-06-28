@@ -12,6 +12,7 @@ if __name__ == "__main__":
         "RobotArm": home + "/chLi/Dataset/RobotArm/Rmk3.obj",
         "Washer": home + "/chLi/Dataset/Washer/BOSCH_WLG.obj",
         "bunny": home + "/chLi/Dataset/Famous/bunny.ply",
+        "bunny-v2": home + "/chLi/Dataset/Famous/bunny-v2.ply",
         "difficult-0": home + "/chLi/Dataset/vae-eval/mesh/000.obj",
         "difficult-1": home + "/chLi/Dataset/vae-eval/mesh/001.obj",
         "difficult-2": home + "/chLi/Dataset/vae-eval/mesh/002.obj",
@@ -21,19 +22,18 @@ if __name__ == "__main__":
 
     save_root_folder_path = home + "/chLi/Results/ma-sh/MeshTrainer/"
 
-    for i in range(5):
-        shape_id = "difficult-" + str(i)
+    shape_id = "bunny-v2"
 
-        demo_train_mesh(
-            shape_data_dict[shape_id],
-            points_per_submesh=1024,
-            anchor_num=8192,
-            mask_degree_max=2,
-            sh_degree_max=2,
-            sample_phi_num=40,
-            sample_theta_num=40,
-            device="cuda:0",
-            save_freq=-1,
-            save_log_folder_path=save_root_folder_path + "logs/" + shape_id + "/",
-            save_result_folder_path=save_root_folder_path + "results/" + shape_id + "/",
-        )
+    demo_train_mesh(
+        shape_data_dict[shape_id],
+        points_per_submesh=1024,
+        anchor_num=400,
+        mask_degree_max=3,
+        sh_degree_max=2,
+        sample_phi_num=40,
+        sample_theta_num=40,
+        device="cpu",
+        save_freq=1,
+        save_log_folder_path=save_root_folder_path + "logs/" + shape_id + "/",
+        save_result_folder_path=save_root_folder_path + "results/" + shape_id + "/",
+    )

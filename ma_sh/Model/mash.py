@@ -14,7 +14,10 @@ from ma_sh.Method.data import toNumpy
 from ma_sh.Method.check import checkShape
 from ma_sh.Method.pcd import getPointCloud
 from ma_sh.Method.render import renderGeometries
-from ma_sh.Method.rotate import compute_rotation_matrix_from_ortho6d
+from ma_sh.Method.rotate import (
+    compute_rotation_matrix_from_ortho6d,
+    toOrthoPosesFromRotateVectors,
+)
 from ma_sh.Method.path import createFileFolder, removeFile, renameFile
 
 
@@ -345,6 +348,11 @@ class Mash(object):
             print("[ERROR][Mash::loadParamsDict]")
             print("\t sh_params not in params dict!")
             return False
+
+        # FIXME: tmp use the old MASH data for archive dataset
+        if "rotate_vectors" in params_dict.keys():
+            rotate_vectors = -1.0 * torch.from_numpy(params_dict["rotate_vectors"])
+            params_dict["ortho_poses"] = toOrthoPosesFromRotateVectors(rotate_vectors)
 
         if "ortho_poses" not in params_dict.keys():
             print("[ERROR][Mash::loadParamsDict]")
