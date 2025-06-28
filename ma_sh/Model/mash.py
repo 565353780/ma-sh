@@ -250,6 +250,13 @@ class Mash(object):
 
         return self.editGrads(edit_fn, anchor_mask)
 
+    def randomInit(self) -> bool:
+        self.mask_params = torch.randn_like(self.mask_params)
+        self.sh_params = torch.randn_like(self.sh_params)
+        self.ortho_poses = torch.randn_like(self.ortho_poses)
+        self.positions = torch.randn_like(self.positions)
+        return True
+
     def loadParams(
         self,
         mask_params: Union[torch.Tensor, np.ndarray, None] = None,
