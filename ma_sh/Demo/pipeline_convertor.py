@@ -23,6 +23,37 @@ except Exception as e:
 from data_convert.Module.pipeline_convertor import PipelineConvertor
 
 
+def demo_convert_mesh(
+    data_space: str, output_space: str, rel_data_path: str, device: str = "cuda:0"
+):
+    data_type = "." + rel_data_path.split(".")[-1]
+    rel_base_path = rel_data_path[: -len(data_type)]
+
+    mesh_to_mash_convertor = MeshToMashConvertor(
+        data_space,
+        output_space + "mash/",
+        anchor_num=8192,
+        mask_degree_max=2,
+        sh_degree_max=2,
+        sample_phi_num=40,
+        sample_theta_num=40,
+        points_per_submesh=1024,
+        dtype=torch.float32,
+        device=device,
+        lr=4.0,
+        min_lr=1e-1,
+        warmup_step_num=80,
+        warmup_epoch=4,
+        factor=0.8,
+        patience=2,
+    )
+
+    mesh_to_mash_convertor.convertOneShape(rel_base_path, data_type, ".npy")
+
+    # mesh_to_mash_convertor.convertAll(mash_data_type_list)
+    return True
+
+
 def demo_convert_npz(
     data_space: str, output_space: str, rel_data_path: str, device: str = "cuda:0"
 ):
@@ -66,7 +97,7 @@ def demo_convert_npz(
     return True
 
 
-def demo_convert(
+def demo_convert_glb(
     data_space: str, output_space: str, rel_data_path: str, device: str = "cuda:0"
 ):
     data_type = "." + rel_data_path.split(".")[-1]
