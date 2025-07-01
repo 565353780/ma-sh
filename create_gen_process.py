@@ -7,7 +7,11 @@ if __name__ == "__main__":
     home = os.environ["HOME"]
     mash_folder_path = home + "/chLi/Dataset/TRELLIS/mash_gen/"
     iter_num = 100
+    device = "cuda:0"
+    cuda_id = "0"
     save_gen_process_folder_path = home + "/chLi/Dataset/TRELLIS/mash_gen_process/"
+
+    os.environ["CUDA_VISIBLE_DEVICES"] = cuda_id
 
     mash_filename_list = os.listdir(mash_folder_path)
 
@@ -19,7 +23,7 @@ if __name__ == "__main__":
 
         mash_file_path = mash_folder_path + mash_filename
 
-        mash = Mash.fromParamsFile(mash_file_path, 10, 10)
+        mash = Mash.fromParamsFile(mash_file_path, 10, 10, device=device)
         mask1 = mash.mask_params.clone()
         sh1 = mash.sh_params.clone()
         p1 = mash.positions.clone()
@@ -46,6 +50,4 @@ if __name__ == "__main__":
             save_gen_process_pcd_file_path = (
                 save_gen_process_folder_path + mash_id + "/" + str(i) + "_train_pcd.ply"
             )
-            mash.saveAsPcdFile(save_gen_process_pcd_file_path, True)
-
-        exit()
+            mash.saveAsPcdFile(save_gen_process_pcd_file_path)
