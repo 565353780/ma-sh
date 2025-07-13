@@ -1,7 +1,6 @@
 import os
 import sys
 
-sys.path.append("../voxel-converter")
 sys.path.append("../chamfer-distance")
 sys.path.append("../data-convert")
 sys.path.append("../diff-curvature")
