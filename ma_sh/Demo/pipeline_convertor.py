@@ -3,7 +3,6 @@ import torch
 from ma_sh.Module.Convertor.to_trimesh import Convertor as ToTriMeshConvertor
 from ma_sh.Module.Convertor.to_manifold import Convertor as ToManifoldConvertor
 from ma_sh.Module.Convertor.mesh_to_mash import Convertor as MeshToMashConvertor
-from ma_sh.Module.Convertor.npz_to_manifold import Convertor as NpzToManifoldConvertor
 
 try:
     from ma_sh.Module.Convertor.sample_sdf import Convertor as SampleSDFConvertor
@@ -19,6 +18,23 @@ except Exception as e:
     print(e)
     """
     CONVERT_SDF = False
+
+try:
+    from ma_sh.Module.Convertor.npz_to_manifold import (
+        Convertor as NpzToManifoldConvertor,
+    )
+
+    CONVERT_NPZ = True
+except Exception as e:
+    """
+    print("[ERROR][pipeline_convertor::import]")
+    print("\t try import NpzToManifoldConvertor failed!")
+    print("\t will skip the npz dataset conversion process!")
+    print("\t error:")
+    print(e)
+    """
+    CONVERT_NPZ = False
+
 
 from data_convert.Module.pipeline_convertor import PipelineConvertor
 
@@ -57,6 +73,11 @@ def demo_convert_mesh(
 def demo_convert_npz(
     data_space: str, output_space: str, rel_data_path: str, device: str = "cuda:0"
 ):
+    if not CONVERT_NPZ:
+        print("[ERROR][pipeline_convertor::demo_convert_npz]")
+        print("\t import NpzToManifoldConvertor failed!")
+        return False
+
     data_type = "." + rel_data_path.split(".")[-1]
     rel_base_path = rel_data_path[: -len(data_type)]
 
