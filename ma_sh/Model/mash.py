@@ -661,10 +661,13 @@ class Mash(object):
         sample_pcd = getPointCloud(sample_points_array)
         return sample_pcd
 
-    def renderSamplePoints(self) -> bool:
+    def renderSamplePoints(self, estimate_normals: bool = False) -> bool:
         sample_pts = toNumpy(self.toSamplePoints()).reshape(-1, 3)
 
         pcd = getPointCloud(sample_pts)
+        if estimate_normals:
+            pcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamKNN(knn=30))
+            pcd.paint_uniform_color([0.5, 0.5, 0.5])
         renderGeometries(pcd)
         return True
 
