@@ -1,4 +1,5 @@
 import torch
+from typing import Union
 
 from ma_sh.Module.Convertor.to_trimesh import Convertor as ToTriMeshConvertor
 from ma_sh.Module.Convertor.to_manifold import Convertor as ToManifoldConvertor
@@ -40,7 +41,28 @@ from data_convert.Module.pipeline_convertor import PipelineConvertor
 
 
 def demo_convert_mesh(
-    data_space: str, output_space: str, rel_data_path: str, device: str = "cuda:0"
+    data_space: str,
+    output_space: str,
+    rel_data_path: str,
+    anchor_num: int = 8192,
+    mask_degree_max: int = 2,
+    sh_degree_max: int = 2,
+    sample_phi_num: int = 40,
+    sample_theta_num: int = 40,
+    points_per_submesh: int = 1024,
+    dtype=torch.float32,
+    device: str = "cuda",
+    lr: float = 4.0,
+    min_lr: float = 1e-1,
+    warmup_step_num: int = 80,
+    factor: float = 0.8,
+    patience: int = 2,
+    render: bool = False,
+    render_freq: int = 1,
+    render_init_only: bool = False,
+    save_freq: int = -1,
+    save_result_folder_path: Union[str, None] = None,
+    save_log_folder_path: Union[str, None] = None,
 ):
     data_type = "." + rel_data_path.split(".")[-1]
     rel_base_path = rel_data_path[: -len(data_type)]
@@ -48,20 +70,25 @@ def demo_convert_mesh(
     mesh_to_mash_convertor = MeshToMashConvertor(
         data_space,
         output_space + "mash/",
-        anchor_num=8192,
-        mask_degree_max=2,
-        sh_degree_max=2,
-        sample_phi_num=40,
-        sample_theta_num=40,
-        points_per_submesh=1024,
-        dtype=torch.float32,
+        anchor_num=anchor_num,
+        mask_degree_max=mask_degree_max,
+        sh_degree_max=sh_degree_max,
+        sample_phi_num=sample_phi_num,
+        sample_theta_num=sample_theta_num,
+        points_per_submesh=points_per_submesh,
+        dtype=dtype,
         device=device,
-        lr=4.0,
-        min_lr=1e-1,
-        warmup_step_num=80,
-        warmup_epoch=4,
-        factor=0.8,
-        patience=2,
+        lr=lr,
+        min_lr=min_lr,
+        warmup_step_num=warmup_step_num,
+        factor=factor,
+        patience=patience,
+        render=render,
+        render_freq=render_freq,
+        render_init_only=render_init_only,
+        save_freq=save_freq,
+        save_result_folder_path=save_result_folder_path,
+        save_log_folder_path=save_log_folder_path,
     )
 
     mesh_to_mash_convertor.convertOneShape(rel_base_path, data_type, ".npy")
@@ -71,7 +98,28 @@ def demo_convert_mesh(
 
 
 def demo_convert_npz(
-    data_space: str, output_space: str, rel_data_path: str, device: str = "cuda:0"
+    data_space: str,
+    output_space: str,
+    rel_data_path: str,
+    anchor_num: int = 8192,
+    mask_degree_max: int = 2,
+    sh_degree_max: int = 2,
+    sample_phi_num: int = 40,
+    sample_theta_num: int = 40,
+    points_per_submesh: int = 1024,
+    dtype=torch.float32,
+    device: str = "cuda",
+    lr: float = 4.0,
+    min_lr: float = 1e-1,
+    warmup_step_num: int = 80,
+    factor: float = 0.8,
+    patience: int = 2,
+    render: bool = False,
+    render_freq: int = 1,
+    render_init_only: bool = False,
+    save_freq: int = -1,
+    save_result_folder_path: Union[str, None] = None,
+    save_log_folder_path: Union[str, None] = None,
 ):
     if not CONVERT_NPZ:
         print("[ERROR][pipeline_convertor::demo_convert_npz]")
@@ -91,20 +139,25 @@ def demo_convert_npz(
     mesh_to_mash_convertor = MeshToMashConvertor(
         output_space + "manifold/",
         output_space + "mash/",
-        anchor_num=8192,
-        mask_degree_max=2,
-        sh_degree_max=2,
-        sample_phi_num=40,
-        sample_theta_num=40,
-        points_per_submesh=1024,
-        dtype=torch.float32,
+        anchor_num=anchor_num,
+        mask_degree_max=mask_degree_max,
+        sh_degree_max=sh_degree_max,
+        sample_phi_num=sample_phi_num,
+        sample_theta_num=sample_theta_num,
+        points_per_submesh=points_per_submesh,
+        dtype=dtype,
         device=device,
-        lr=4.0,
-        min_lr=1e-1,
-        warmup_step_num=80,
-        warmup_epoch=4,
-        factor=0.8,
-        patience=2,
+        lr=lr,
+        min_lr=min_lr,
+        warmup_step_num=warmup_step_num,
+        factor=factor,
+        patience=patience,
+        render=render,
+        render_freq=render_freq,
+        render_init_only=render_init_only,
+        save_freq=save_freq,
+        save_result_folder_path=save_result_folder_path,
+        save_log_folder_path=save_log_folder_path,
     )
 
     mash_pipeline_convertor = PipelineConvertor(
@@ -119,7 +172,28 @@ def demo_convert_npz(
 
 
 def demo_convert_glb(
-    data_space: str, output_space: str, rel_data_path: str, device: str = "cuda:0"
+    data_space: str,
+    output_space: str,
+    rel_data_path: str,
+    anchor_num: int = 8192,
+    mask_degree_max: int = 2,
+    sh_degree_max: int = 2,
+    sample_phi_num: int = 40,
+    sample_theta_num: int = 40,
+    points_per_submesh: int = 1024,
+    dtype=torch.float32,
+    device: str = "cuda",
+    lr: float = 4.0,
+    min_lr: float = 1e-1,
+    warmup_step_num: int = 80,
+    factor: float = 0.8,
+    patience: int = 2,
+    render: bool = False,
+    render_freq: int = 1,
+    render_init_only: bool = False,
+    save_freq: int = -1,
+    save_result_folder_path: Union[str, None] = None,
+    save_log_folder_path: Union[str, None] = None,
 ):
     data_type = "." + rel_data_path.split(".")[-1]
     rel_base_path = rel_data_path[: -len(data_type)]
@@ -134,20 +208,25 @@ def demo_convert_glb(
     mesh_to_mash_convertor = MeshToMashConvertor(
         output_space + "trimesh/",
         output_space + "mash/",
-        anchor_num=4096,
-        mask_degree_max=3,
-        sh_degree_max=2,
-        sample_phi_num=40,
-        sample_theta_num=40,
-        points_per_submesh=1024,
-        dtype=torch.float32,
+        anchor_num=anchor_num,
+        mask_degree_max=mask_degree_max,
+        sh_degree_max=sh_degree_max,
+        sample_phi_num=sample_phi_num,
+        sample_theta_num=sample_theta_num,
+        points_per_submesh=points_per_submesh,
+        dtype=dtype,
         device=device,
-        lr=2e-3,
-        min_lr=1e-3,
-        warmup_step_num=80,
-        warmup_epoch=4,
-        factor=0.8,
-        patience=2,
+        lr=lr,
+        min_lr=min_lr,
+        warmup_step_num=warmup_step_num,
+        factor=factor,
+        patience=patience,
+        render=render,
+        render_freq=render_freq,
+        render_init_only=render_init_only,
+        save_freq=save_freq,
+        save_result_folder_path=save_result_folder_path,
+        save_log_folder_path=save_log_folder_path,
     )
 
     to_manifold_convertor = ToManifoldConvertor(

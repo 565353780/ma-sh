@@ -34,7 +34,6 @@ class MeshTrainer(object):
         lr: float = 2e-3,
         min_lr: float = 1e-3,
         warmup_step_num: int = 80,
-        warmup_epoch: int = 4,
         factor: float = 0.8,
         patience: int = 2,
         render: bool = False,
@@ -47,7 +46,6 @@ class MeshTrainer(object):
         self.lr = lr
         self.min_lr = min_lr
         self.warmup_step_num = warmup_step_num
-        self.warmup_epoch = warmup_epoch
         self.factor = factor
         self.patience = patience
 
@@ -334,7 +332,7 @@ class MeshTrainer(object):
 
             pbar.set_description("LOSS %.6f" % (loss,))
 
-            # self.autoSavePcd("train", self.save_freq, False)
+            self.autoSavePcd("train", self.save_freq, False)
             self.autoSaveMash("train", self.save_freq)
 
             self.step += 1
@@ -401,7 +399,7 @@ class MeshTrainer(object):
 
             pbar.set_description("LOSS %.6f" % (loss,))
 
-            # self.autoSavePcd("train", self.save_freq, False)
+            self.autoSavePcd("train", self.save_freq, False)
             self.autoSaveMash("train", self.save_freq)
 
             self.step += 1

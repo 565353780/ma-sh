@@ -1,5 +1,6 @@
 import torch
 from time import time
+from typing import Union
 
 from ma_sh.Module.mesh_trainer import MeshTrainer
 from data_convert.Module.base_convertor import BaseConvertor
@@ -21,9 +22,14 @@ class Convertor(BaseConvertor):
         lr: float = 2e-3,
         min_lr: float = 1e-3,
         warmup_step_num: int = 80,
-        warmup_epoch: int = 4,
         factor: float = 0.8,
         patience: int = 2,
+        render: bool = False,
+        render_freq: int = 1,
+        render_init_only: bool = False,
+        save_freq: int = -1,
+        save_result_folder_path: Union[str, None] = None,
+        save_log_folder_path: Union[str, None] = None,
     ) -> None:
         super().__init__(source_root_folder_path, target_root_folder_path)
 
@@ -39,10 +45,15 @@ class Convertor(BaseConvertor):
         self.lr = lr
         self.min_lr = min_lr
         self.warmup_step_num = warmup_step_num
-        self.warmup_epoch = warmup_epoch
         self.factor = factor
         self.patience = patience
 
+        self.render = render
+        self.render_freq = render_freq
+        self.render_init_only = render_init_only
+        self.save_freq = save_freq
+        self.save_result_folder_path = save_result_folder_path
+        self.save_log_folder_path = save_log_folder_path
         return
 
     def createTrainer(self) -> MeshTrainer:
@@ -57,15 +68,14 @@ class Convertor(BaseConvertor):
             self.lr,
             self.min_lr,
             self.warmup_step_num,
-            self.warmup_epoch,
             self.factor,
             self.patience,
-            False,
-            1,
-            False,
-            -1,
-            None,
-            None,
+            self.render,
+            self.render_freq,
+            self.render_init_only,
+            self.save_freq,
+            self.save_result_folder_path,
+            self.save_log_folder_path,
         )
 
         return trainer

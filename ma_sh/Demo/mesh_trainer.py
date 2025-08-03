@@ -35,7 +35,6 @@ def demo(
     lr = 2e-3
     min_lr = 1e-3
     warmup_step_num = 80
-    warmup_epoch = 4
     factor = 0.8
     patience = 2
 
@@ -55,7 +54,6 @@ def demo(
         lr,
         min_lr,
         warmup_step_num,
-        warmup_epoch,
         factor,
         patience,
         render,
