@@ -32,8 +32,8 @@ def demo(
     dtype = torch.float32
     # device = "cuda:0"
 
-    lr = 2e-3
-    min_lr = 1e-3
+    lr = 4.0
+    min_lr = 1e-1
     warmup_step_num = 80
     factor = 0.8
     patience = 2

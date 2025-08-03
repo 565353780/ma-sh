@@ -17,7 +17,8 @@ echo "Using CC: $CC"
 echo "Using CXX: $CXX"
 
 pip install -U trimesh matplotlib opencv-python einops \
-  numpy open3d scipy scikit-learn tqdm numba icecream jax
+  numpy open3d scipy scikit-learn tqdm numba icecream jax \
+  tensorboard
 
 pip install torch torchvision torchaudio \
   --index-url https://download.pytorch.org/whl/cu124

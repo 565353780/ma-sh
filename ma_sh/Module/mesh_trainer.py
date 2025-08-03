@@ -103,6 +103,8 @@ class MeshTrainer(object):
         self.chamfer_loss_time = 0
         self.start_time = time()
         self.error = 0
+
+        self.save_pcd = False
         return
 
     def initRecords(self) -> bool:
@@ -471,7 +473,7 @@ class MeshTrainer(object):
             print("\t trainEpoch failed!")
             return False
 
-        # self.autoSavePcd("final", add_idx=False)
+        self.autoSavePcd("final", add_idx=False)
         self.autoSaveMash("final")
 
         total_time = time() - self.start_time
@@ -543,6 +545,9 @@ class MeshTrainer(object):
     def autoSavePcd(
         self, state_info: str, save_freq: int = 1, add_idx: bool = True
     ) -> bool:
+        if not self.save_pcd:
+            return False
+
         if self.save_result_folder_path is None:
             return False
 
