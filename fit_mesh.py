@@ -21,14 +21,17 @@ if __name__ == "__main__":
     }
 
     shape_id = "bunny-v2"
+
+    mesh_file_path = shape_data_dict[shape_id]
     save_root_folder_path = home + "/chLi/Results/ma-sh/MeshTrainer/"
 
     shumei_manifold = home + "/chLi/Dataset/ShuMei/manifold/"
     for obj_file in os.listdir(shumei_manifold):
         shape_id = obj_file.split(".")[0]
+        mesh_file_path = shumei_manifold + obj_file
 
         demo_train_mesh(
-            shape_data_dict[shape_id],
+            mesh_file_path,
             points_per_submesh=1024,
             anchor_num=8192,
             mask_degree_max=2,
