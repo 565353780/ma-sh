@@ -24,5 +24,5 @@ def demo_mash_to_pcd(
         device=device,
     )
 
-    mash_to_pcd_convertor.convertAll(".npy", ".ply", 1.0)
+    mash_to_pcd_convertor.convertAll(".npy", "_pcd.ply", 1.0)
     return True
