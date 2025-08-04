@@ -13,4 +13,4 @@ if __name__ == "__main__":
         depth=8,
     )
 
-    to_manifold_convertor.convertAll()
+    to_manifold_convertor.convertAll(source_data_type, target_data_type, output_freq)

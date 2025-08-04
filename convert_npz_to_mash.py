@@ -1,15 +1,15 @@
 import sys
 
+sys.path.append("../voxel-converter")
 sys.path.append("../chamfer-distance")
 sys.path.append("../data-convert")
 sys.path.append("../diff-curvature")
 sys.path.append("../mesh-graph-cut")
-sys.path.append("../sdf-generate")
 
 import os
 import torch
 
-from ma_sh.Demo.pipeline_convertor import demo_convert_mesh
+from ma_sh.Demo.npz_to_mash import demo_npz_to_mash
 
 
 if __name__ == "__main__":
@@ -18,9 +18,9 @@ if __name__ == "__main__":
     output_space: the root folder of the generated results
     rel_data_path: data_file_path = data_space + rel_data_path
     """
-    data_space = os.environ["HOME"] + "/chLi/Dataset/Famous/"
-    output_space = os.environ["HOME"] + "/chLi/Dataset/Famous/"
-    rel_data_path = "bunny-v2.ply"
+    data_space = os.environ["HOME"] + "/chLi/Dataset/ShuMei/data/"
+    output_space = os.environ["HOME"] + "/chLi/Dataset/ShuMei/"
+    rel_data_path = "0008dc75fb3648f2af4ca8c4d711e53e.npz"
     cuda_id = "0"
 
     anchor_num = 8192
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     save_log_folder_path = None
 
     os.environ["CUDA_VISIBLE_DEVICES"] = cuda_id
-    demo_convert_mesh(
+    demo_npz_to_mash(
         data_space,
         output_space,
         rel_data_path,

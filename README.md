@@ -19,7 +19,7 @@ conda activate mash
 ![MASH Optimization](https://github.com/565353780/MASH/blob/master/video/5_diff_opt.gif)
 
 ```bash
-5. python convert_mesh.py
+5. python convert_mesh_to_mash.py
 ```
 
 ## Citation
