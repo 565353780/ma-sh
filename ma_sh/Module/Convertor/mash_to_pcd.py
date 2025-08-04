@@ -31,5 +31,7 @@ class Convertor(BaseConvertor):
             self.device,
         )
 
-        mash.saveAsPcdFile(target_path)
+        target_pcd_file_path = target_path[:-4] + "_pcd" + target_path[-4:]
+
+        mash.saveAsPcdFile(target_pcd_file_path)
         return True
