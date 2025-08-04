@@ -11,7 +11,6 @@ class Convertor(BaseConvertor):
         target_root_folder_path: str,
         sample_phi_num: int = 40,
         sample_theta_num: int = 40,
-        points_per_submesh: int = 1024,
         dtype=torch.float32,
         device: str = "cuda",
     ) -> None:
@@ -19,7 +18,6 @@ class Convertor(BaseConvertor):
 
         self.sample_phi_num = sample_phi_num
         self.sample_theta_num = sample_theta_num
-        self.points_per_submesh = points_per_submesh
         self.dtype = dtype
         self.device = device
         return

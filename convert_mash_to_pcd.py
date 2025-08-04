@@ -1,11 +1,7 @@
-import sys
-
-sys.path.append("../data-convert")
-
 import os
 import torch
 
-from ma_sh.Demo.pipeline_convertor import demo_mash_to_pcd
+from ma_sh.Demo.mash_to_pcd import demo_mash_to_pcd
 
 
 if __name__ == "__main__":
@@ -13,9 +9,8 @@ if __name__ == "__main__":
     output_space = os.environ["HOME"] + "/chLi/Results/ma-sh/MeshTrainer/pcd/"
     cuda_id = "0"
 
-    sample_phi_num = 40
-    sample_theta_num = 40
-    points_per_submesh = 1024
+    sample_phi_num = 10
+    sample_theta_num = 10
     dtype = torch.float32
     device = "cuda"
 
@@ -25,7 +20,6 @@ if __name__ == "__main__":
         output_space,
         sample_phi_num=sample_phi_num,
         sample_theta_num=sample_theta_num,
-        points_per_submesh=points_per_submesh,
         dtype=dtype,
         device=device,
     )
