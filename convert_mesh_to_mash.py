@@ -10,8 +10,9 @@ if __name__ == "__main__":
     output_space: the root folder of the generated results
     rel_data_path: data_file_path = data_space + rel_data_path
     """
-    data_space = os.environ["HOME"] + "/chLi/Dataset/Famous/"
-    output_space = os.environ["HOME"] + "/chLi/Dataset/Famous/"
+    home = os.environ["HOME"]
+    data_space = home + "/chLi/Dataset/Famous/"
+    output_space = home + "/chLi/Dataset/Famous/"
     rel_data_path = "bunny-v2.ply"
     cuda_id = "0"
 
@@ -34,6 +35,12 @@ if __name__ == "__main__":
     save_freq = -1
     save_result_folder_path = None
     save_log_folder_path = None
+
+    """
+    anchor_num = 2000
+    save_freq = 1
+    save_result_folder_path = home + "/chLi/Results/ma-sh/MeshTrainer/results/bunny-v2/"
+    """
 
     os.environ["CUDA_VISIBLE_DEVICES"] = cuda_id
     demo_mesh_to_mash(
