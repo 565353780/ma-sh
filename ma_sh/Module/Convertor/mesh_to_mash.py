@@ -14,11 +14,12 @@ class Convertor(BaseConvertor):
         anchor_num: int = 400,
         mask_degree_max: int = 3,
         sh_degree_max: int = 2,
+        use_inv: bool = True,
+        dtype=torch.float64,
+        device: str = "cuda",
         sample_phi_num: int = 40,
         sample_theta_num: int = 40,
         points_per_submesh: int = 1024,
-        dtype=torch.float32,
-        device: str = "cuda",
         lr: float = 2e-3,
         min_lr: float = 1e-3,
         warmup_step_num: int = 80,
@@ -36,11 +37,12 @@ class Convertor(BaseConvertor):
         self.anchor_num = anchor_num
         self.mask_degree_max = mask_degree_max
         self.sh_degree_max = sh_degree_max
+        self.use_inv = use_inv
+        self.dtype = dtype
+        self.device = device
         self.sample_phi_num = sample_phi_num
         self.sample_theta_num = sample_theta_num
         self.points_per_submesh = points_per_submesh
-        self.dtype = dtype
-        self.device = device
 
         self.lr = lr
         self.min_lr = min_lr
@@ -61,10 +63,11 @@ class Convertor(BaseConvertor):
             self.anchor_num,
             self.mask_degree_max,
             self.sh_degree_max,
-            self.sample_phi_num,
-            self.sample_theta_num,
+            self.use_inv,
             self.dtype,
             self.device,
+            self.sample_phi_num,
+            self.sample_theta_num,
             self.lr,
             self.min_lr,
             self.warmup_step_num,

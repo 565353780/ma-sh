@@ -15,7 +15,7 @@ from ma_sh.Method.data import toNumpy
 from ma_sh.Method.pcd import getPointCloud
 from ma_sh.Method.time import getCurrentTime
 from ma_sh.Method.path import removeFile
-from ma_sh.Model.mash import Mash
+from ma_sh.Model.simple_mash import SimpleMash as Mash
 from ma_sh.Module.early_stopping import EarlyStopping
 from ma_sh.Module.logger import Logger
 from ma_sh.Module.o3d_viewer import O3DViewer
@@ -27,10 +27,11 @@ class MeshTrainer(object):
         anchor_num: int = 400,
         mask_degree_max: int = 3,
         sh_degree_max: int = 2,
-        sample_phi_num: int = 40,
-        sample_theta_num: int = 40,
+        use_inv: bool = True,
         dtype=torch.float32,
         device: str = "cuda",
+        sample_phi_num: int = 40,
+        sample_theta_num: int = 40,
         lr: float = 2e-3,
         min_lr: float = 1e-3,
         warmup_step_num: int = 80,
@@ -71,10 +72,11 @@ class MeshTrainer(object):
             anchor_num,
             mask_degree_max,
             sh_degree_max,
-            sample_phi_num,
-            sample_theta_num,
+            use_inv,
             dtype,
             device,
+            sample_phi_num,
+            sample_theta_num,
         )
 
         self.optimizer = SGD(

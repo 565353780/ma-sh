@@ -17,9 +17,9 @@ def demo(
     anchor_num: int = 4000,
     mask_degree_max: int = 3,
     sh_degree_max: int = 2,
+    device: str = "cuda:0",
     sample_phi_num: int = 40,
     sample_theta_num: int = 40,
-    device: str = "cuda:0",
     save_freq: int = 1,
     save_log_folder_path: Union[str, None] = "auto",
     save_result_folder_path: Union[str, None] = "auto",
@@ -29,6 +29,7 @@ def demo(
     # sh_degree_max = 2
     # sample_phi_num = 40
     # sample_theta_num = 40
+    use_inv = True
     dtype = torch.float32
     # device = "cuda:0"
 
@@ -47,10 +48,11 @@ def demo(
         anchor_num,
         mask_degree_max,
         sh_degree_max,
-        sample_phi_num,
-        sample_theta_num,
+        use_inv,
         dtype,
         device,
+        sample_phi_num,
+        sample_theta_num,
         lr,
         min_lr,
         warmup_step_num,

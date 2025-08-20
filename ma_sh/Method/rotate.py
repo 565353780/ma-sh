@@ -102,20 +102,6 @@ def compute_rotation_matrix_from_ortho6d(poses):
     return R
 
 
-def toRegularRotateVectors(rotate_vectors: torch.Tensor) -> torch.Tensor:
-    source_dtype = rotate_vectors.dtype
-
-    valid_rotate_vectors = rotate_vectors.type(torch.float64)
-
-    rotate_matrixs = mash_cpp.toRotateMatrixs(valid_rotate_vectors)
-
-    regular_rotate_vectors = mash_cpp.toRotateVectors(rotate_matrixs)
-
-    valid_regular_rotate_vectors = regular_rotate_vectors.type(source_dtype)
-
-    return valid_regular_rotate_vectors
-
-
 def toOrthoPosesFromRotateVectors(rotate_vectors: torch.Tensor) -> torch.Tensor:
     source_dtype = rotate_vectors.dtype
 

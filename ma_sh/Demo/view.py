@@ -1,7 +1,7 @@
 import os
 import functools
 
-from ma_sh.Model.mash import Mash
+from ma_sh.Model.simple_mash import SimpleMash as Mash
 from ma_sh.Module.o3d_viewer import O3DViewer
 
 
@@ -17,7 +17,10 @@ def compare(str_a: str, str_b: str) -> int:
 
 
 def demo_view_mash(mash_file_path: str) -> bool:
-    mash = Mash.fromParamsFile(mash_file_path, 40, 40, device="cpu")
+    mash = Mash.fromParamsFile(mash_file_path, device="cpu")
+    mash.sample_phi_num = 40
+    mash.sample_theta_num = 40
+    mash.updatePreLoadDatas()
 
     print("start show mash:", mash_file_path)
     mash.renderSamplePoints()
@@ -39,9 +42,10 @@ def demo_view_folder(mash_folder_path: str) -> bool:
 
         mash = Mash.fromParamsFile(
             mash_file_path,
-            sample_phi_num,
-            sample_theta_num,
         )
+        mash.sample_phi_num = sample_phi_num
+        mash.sample_theta_num = sample_theta_num
+        mash.updatePreLoadDatas()
 
         print("start show mash:", mash_file_path)
         mash.renderSamplePoints()
@@ -72,9 +76,10 @@ def demo_view_training(mash_folder_path: str, view_freq: int = 1) -> bool:
 
         mash = Mash.fromParamsFile(
             mash_file_path,
-            sample_phi_num,
-            sample_theta_num,
         )
+        mash.sample_phi_num = sample_phi_num
+        mash.sample_theta_num = sample_theta_num
+        mash.updatePreLoadDatas()
 
         pcd = mash.toSamplePcd()
 
