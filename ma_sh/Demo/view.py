@@ -1,7 +1,8 @@
 import os
 import functools
 
-from ma_sh.Model.simple_mash import SimpleMash as Mash
+from ma_sh.Model.simple_mash import SimpleMash
+from ma_sh.Model.mash import Mash
 from ma_sh.Module.o3d_viewer import O3DViewer
 
 
@@ -18,8 +19,13 @@ def compare(str_a: str, str_b: str) -> int:
 
 def demo_view_mash(mash_file_path: str) -> bool:
     mash = Mash.fromParamsFile(mash_file_path, device="cpu")
-    mash.sample_phi_num = 40
-    mash.sample_theta_num = 40
+    if isinstance(mash, SimpleMash):
+        mash.sample_phi_num = 40
+        mash.sample_theta_num = 40
+    else:
+        mash.mask_boundary_sample_num = 90
+        mash.sample_polar_num = 1000
+        mash.sample_point_scale = 0.8
     mash.updatePreLoadDatas()
 
     print("start show mash:", mash_file_path)
@@ -43,8 +49,13 @@ def demo_view_folder(mash_folder_path: str) -> bool:
         mash = Mash.fromParamsFile(
             mash_file_path,
         )
-        mash.sample_phi_num = sample_phi_num
-        mash.sample_theta_num = sample_theta_num
+        if isinstance(mash, SimpleMash):
+            mash.sample_phi_num = sample_phi_num
+            mash.sample_theta_num = sample_theta_num
+        else:
+            mash.mask_boundary_sample_num = 90
+            mash.sample_polar_num = 1000
+            mash.sample_point_scale = 0.8
         mash.updatePreLoadDatas()
 
         print("start show mash:", mash_file_path)
@@ -77,8 +88,13 @@ def demo_view_training(mash_folder_path: str, view_freq: int = 1) -> bool:
         mash = Mash.fromParamsFile(
             mash_file_path,
         )
-        mash.sample_phi_num = sample_phi_num
-        mash.sample_theta_num = sample_theta_num
+        if isinstance(mash, SimpleMash):
+            mash.sample_phi_num = sample_phi_num
+            mash.sample_theta_num = sample_theta_num
+        else:
+            mash.mask_boundary_sample_num = 90
+            mash.sample_polar_num = 1000
+            mash.sample_point_scale = 0.8
         mash.updatePreLoadDatas()
 
         pcd = mash.toSamplePcd()

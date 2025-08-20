@@ -1,5 +1,6 @@
 import numpy as np
 import open3d as o3d
+from math import ceil
 from typing import Union, Tuple
 
 
@@ -30,3 +31,28 @@ def samplePoints(
     if with_color:
         return np.array(pcd.points), np.array(pcd.colors)
     return np.array(pcd.points)
+
+
+def downSample(
+    pcd: o3d.geometry.PointCloud, sample_point_num, try_fps_first: bool = True
+):
+    if sample_point_num < 1:
+        print("[WARN][pcd::downSample]")
+        print("\t sample_point_num < 1!")
+        return None
+
+    if try_fps_first:
+        try:
+            down_sample_pcd = pcd.farthest_point_down_sample(sample_point_num)
+        except KeyboardInterrupt:
+            print("[INFO][pcd::downSample]")
+            print("\t program interrupted by the user (Ctrl+C).")
+            exit()
+        except:
+            every_k_points = ceil(np.asarray(pcd.points).shape[0] / sample_point_num)
+            down_sample_pcd = pcd.uniform_down_sample(every_k_points)
+    else:
+        every_k_points = ceil(np.asarray(pcd.points).shape[0] / sample_point_num)
+        down_sample_pcd = pcd.uniform_down_sample(every_k_points)
+
+    return down_sample_pcd
