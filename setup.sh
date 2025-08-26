@@ -1,19 +1,19 @@
 cd ..
 git clone https://github.com/565353780/data-convert.git
+git clone https://github.com/565353780/mesh-cut.git
 git clone https://github.com/565353780/sdf-generate.git
 git clone https://github.com/565353780/chamfer-distance.git
-git clone https://github.com/565353780/mesh-graph-cut.git
 
 cd data-convert
+./setup.sh
+
+cd ../mesh-cut
 ./setup.sh
 
 cd ../sdf-generate
 ./setup.sh
 
 cd ../chamfer-distance
-./setup.sh
-
-cd ../mesh-graph-cut
 ./setup.sh
 
 cd ../ma-sh

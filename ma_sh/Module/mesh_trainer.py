@@ -6,7 +6,7 @@ from tqdm import tqdm
 from typing import Union
 from torch.optim import SGD
 
-from mesh_graph_cut.Module.mesh_graph_cutter import MeshGraphCutter
+from mesh_cut.Module.average_mesh_cutter import AverageMeshCutter
 
 from chamfer_distance.Module.chamfer_distances import ChamferDistances
 
@@ -128,6 +128,7 @@ class MeshTrainer(object):
     def loadMeshFile(
         self,
         mesh_file_path: str,
+        dist_max: float = 1.0 / 200,
         points_per_submesh: int = 8192,
     ) -> bool:
         if not os.path.exists(mesh_file_path):
@@ -136,23 +137,21 @@ class MeshTrainer(object):
             print("\t mesh_file_path:", mesh_file_path)
             return False
 
-        mesh_graph_cutter = MeshGraphCutter(mesh_file_path)
-        mesh_graph_cutter.cutMesh(self.mash.anchor_num, points_per_submesh)
+        mesh_cutter = AverageMeshCutter(mesh_file_path, dist_max)
+        mesh_cutter.cutMesh(self.mash.anchor_num, points_per_submesh)
 
         if self.render:
             print("Render face labels...")
-            mesh_graph_cutter.renderFaceLabels()
+            mesh_cutter.renderFaceLabels()
 
             # print("Render sub meshes...")
-            # mesh_graph_cutter.renderSubMeshSamplePoints()
+            # mesh_cutter.renderSubMeshSamplePoints()
 
-        self.gt_points = mesh_graph_cutter.sub_mesh_sample_points
+        self.gt_points = mesh_cutter.sub_mesh_sample_points
 
-        fps_positions = mesh_graph_cutter.vertices[mesh_graph_cutter.fps_vertex_idxs]
+        fps_positions = mesh_cutter.vertices[mesh_cutter.fps_vertex_idxs]
 
-        fps_normals = mesh_graph_cutter.vertex_normals[
-            mesh_graph_cutter.fps_vertex_idxs
-        ]
+        fps_normals = mesh_cutter.vertex_normals[mesh_cutter.fps_vertex_idxs]
 
         sh_params = torch.zeros_like(self.mash.sh_params)
         sh_params[:, 0] = self.surface_dist / W0

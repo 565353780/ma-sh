@@ -1,8 +1,9 @@
 import sys
 
+sys.path.append("../mesh-sample")
+sys.path.append("../mesh-cut")
 sys.path.append("../chamfer-distance/")
 sys.path.append("../diff-curvature")
-sys.path.append("../mesh-graph-cut")
 
 import torch
 from typing import Union

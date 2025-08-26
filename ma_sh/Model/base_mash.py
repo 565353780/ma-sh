@@ -93,7 +93,11 @@ class BaseMash(ABC):
     ):
         mask_params = params_dict["mask_params"]
         sh_params = params_dict["sh_params"]
-        use_inv = params_dict["use_inv"]
+        if "use_inv" in params_dict.keys():
+            use_inv = params_dict["use_inv"]
+        else:
+            use_inv = True
+            params_dict["use_inv"] = use_inv
 
         anchor_num = mask_params.shape[0]
         mask_degree_max = int((mask_params.shape[1] - 1) / 2)
