@@ -149,9 +149,12 @@ class MeshTrainer(object):
 
         self.gt_points = mesh_cutter.sub_mesh_sample_points
 
-        fps_positions = mesh_cutter.vertices[mesh_cutter.fps_vertex_idxs]
+        mesh = mesh_cutter.toO3DMesh()
+        mesh.compute_vertex_normals()
 
-        fps_normals = mesh_cutter.vertex_normals[mesh_cutter.fps_vertex_idxs]
+        fps_positions = np.asarray(mesh.vertices)[mesh_cutter.fps_vertex_idxs]
+
+        fps_normals = np.asarray(mesh.vertex_normals)[mesh_cutter.fps_vertex_idxs]
 
         sh_params = torch.zeros_like(self.mash.sh_params)
         sh_params[:, 0] = self.surface_dist / W0

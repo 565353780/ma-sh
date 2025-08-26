@@ -18,28 +18,25 @@ if __name__ == "__main__":
         "difficult-2": home + "/chLi/Dataset/vae-eval/mesh/002.obj",
         "difficult-3": home + "/chLi/Dataset/vae-eval/mesh/003.obj",
         "difficult-4": home + "/chLi/Dataset/vae-eval/mesh/004.obj",
+        "BitAZ": home + "/chLi/Dataset/BitAZ/mesh/BitAZ.ply",
     }
 
-    shape_id = "bunny-v2"
+    # shape_id = "bunny-v2"
+    shape_id = "BitAZ"
 
     mesh_file_path = shape_data_dict[shape_id]
     save_root_folder_path = home + "/chLi/Results/ma-sh/MeshTrainer/"
 
-    shumei_manifold = home + "/chLi/Dataset/ShuMei/manifold/"
-    for obj_file in os.listdir(shumei_manifold):
-        shape_id = obj_file.split(".")[0]
-        mesh_file_path = shumei_manifold + obj_file
-
-        demo_train_mesh(
-            mesh_file_path,
-            points_per_submesh=1024,
-            anchor_num=8192,
-            mask_degree_max=2,
-            sh_degree_max=2,
-            sample_phi_num=40,
-            sample_theta_num=40,
-            device="cuda:0",
-            save_freq=1,
-            save_log_folder_path=save_root_folder_path + "logs/" + shape_id + "/",
-            save_result_folder_path=save_root_folder_path + "results/" + shape_id + "/",
-        )
+    demo_train_mesh(
+        mesh_file_path,
+        points_per_submesh=1024,
+        anchor_num=8192,
+        mask_degree_max=2,
+        sh_degree_max=2,
+        sample_phi_num=40,
+        sample_theta_num=40,
+        device="cpu",
+        save_freq=1,
+        save_log_folder_path=save_root_folder_path + "logs/" + shape_id + "/",
+        save_result_folder_path=save_root_folder_path + "results/" + shape_id + "/",
+    )
