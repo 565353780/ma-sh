@@ -1,6 +1,6 @@
 import torch
 
-from ma_sh.Model.mash import Mash
+from ma_sh.Model.simple_mash import SimpleMash
 from data_convert.Module.base_convertor import BaseConvertor
 
 
@@ -23,13 +23,13 @@ class Convertor(BaseConvertor):
         return
 
     def convertData(self, source_path: str, target_path: str) -> bool:
-        mash = Mash.fromParamsFile(
+        mash = SimpleMash.fromParamsFile(
             source_path,
-            self.sample_phi_num,
-            self.sample_theta_num,
             self.dtype,
             self.device,
         )
+        mash.sample_phi_num = self.sample_phi_num
+        mash.sample_theta_num = self.sample_theta_num
 
         mash.saveAsPcdFile(target_path)
         return True
