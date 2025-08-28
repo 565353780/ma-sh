@@ -21,6 +21,7 @@ if __name__ == "__main__":
     sh_degree_max = 2
     sample_phi_num = 40
     sample_theta_num = 40
+    dist_max = 1.0 / 200
     points_per_submesh = 1024
     dtype = torch.float32
     device = "cuda"
@@ -52,6 +53,7 @@ if __name__ == "__main__":
         sh_degree_max=sh_degree_max,
         sample_phi_num=sample_phi_num,
         sample_theta_num=sample_theta_num,
+        dist_max=dist_max,
         points_per_submesh=points_per_submesh,
         dtype=dtype,
         device=device,

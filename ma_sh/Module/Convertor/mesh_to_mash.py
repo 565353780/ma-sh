@@ -19,6 +19,7 @@ class Convertor(BaseConvertor):
         device: str = "cuda",
         sample_phi_num: int = 40,
         sample_theta_num: int = 40,
+        dist_max: float = 1.0 / 200,
         points_per_submesh: int = 1024,
         lr: float = 2e-3,
         min_lr: float = 1e-3,
@@ -42,6 +43,7 @@ class Convertor(BaseConvertor):
         self.device = device
         self.sample_phi_num = sample_phi_num
         self.sample_theta_num = sample_theta_num
+        self.dist_max = dist_max
         self.points_per_submesh = points_per_submesh
 
         self.lr = lr
@@ -89,7 +91,9 @@ class Convertor(BaseConvertor):
         trainer = self.createTrainer()
 
         try:
-            if not trainer.loadMeshFile(source_path, self.points_per_submesh):
+            if not trainer.loadMeshFile(
+                source_path, self.dist_max, self.points_per_submesh
+            ):
                 print("[ERROR][Convertor::convertData]")
                 print("\t loadMeshFile failed!")
                 return False

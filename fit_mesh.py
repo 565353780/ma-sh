@@ -29,6 +29,7 @@ if __name__ == "__main__":
 
     demo_train_mesh(
         mesh_file_path,
+        dist_max=1.0 / 200,
         points_per_submesh=1024,
         anchor_num=8192,
         mask_degree_max=2,

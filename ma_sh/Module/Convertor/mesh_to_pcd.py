@@ -83,6 +83,11 @@ class Convertor(BaseConvertor):
             points = self.convertMeshToPoints(source_path)
         elif source_type in ["bin"]:
             points = self.convertBinToPoints(source_path)
+        else:
+            print("[ERROR][Convertor::convertData]")
+            print("\t source file type not support!")
+            print('\t only support ".obj", ".ply", ".bin"!')
+            return False
 
         if points is None:
             print("[ERROR][Convertor::convertData]")

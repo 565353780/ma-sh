@@ -14,6 +14,7 @@ from ma_sh.Module.timer import Timer
 
 def demo(
     mesh_file_path: str,
+    dist_max: float = 1.0 / 200,
     points_per_submesh: int = 1024,
     anchor_num: int = 4000,
     mask_degree_max: int = 3,
@@ -69,7 +70,7 @@ def demo(
 
     timer = Timer()
     print("start load GT mesh...")
-    trainer.loadMeshFile(mesh_file_path, points_per_submesh)
+    trainer.loadMeshFile(mesh_file_path, dist_max, points_per_submesh)
 
     print("start optimizing MASH...")
     trainer.autoTrainMash()
