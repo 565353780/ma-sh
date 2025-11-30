@@ -35,4 +35,8 @@ conda activate mash
 }
 ```
 
+## Acknowledgement
+
+Thanks [Ruichen Zheng](https://github.com/Ankbzpx) for his contributions to the visualization scripts at mash-experiment!
+
 ## Enjoy it~
