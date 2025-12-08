@@ -7,7 +7,7 @@ from tqdm import tqdm
 from typing import Union
 from abc import ABC, abstractmethod
 
-from chamfer_distance.Module.cukd_searcher import CUKDSearcher
+#from chamfer_distance.Module.cukd_searcher import CUKDSearcher
 from chamfer_distance.Module.chamfer_distances import ChamferDistances
 
 from ma_sh.Config.constant import W0, EPSILON, MAX_MASK_DEGREE, MAX_SH_DEGREE
@@ -58,7 +58,9 @@ class BaseTrainer(ABC):
         self.mesh = Mesh()
         self.gt_points = None
 
+        '''
         self.searcher = CUKDSearcher()
+        '''
 
         self.initRecords()
 
@@ -326,7 +328,7 @@ class BaseTrainer(ABC):
             fit_dists2, coverage_dists2 = self.searcher.query(mash_pts)[:2]
             """
 
-            fit_dists2, coverage_dists2 = ChamferDistances.namedAlgo("triton")(
+            fit_dists2, coverage_dists2 = ChamferDistances.namedAlgo("cuda")(
                 mash_pts, gt_points
             )[:2]
 
