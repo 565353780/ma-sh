@@ -32,7 +32,7 @@ if __name__ == "__main__":
     warmup_epoch = 4
     factor = 0.8
     patience = 2
-    render = True
+    render = False
     render_freq = 1
     render_init_only = False
     save_freq = -1
