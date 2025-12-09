@@ -17,8 +17,12 @@ def compare(str_a: str, str_b: str) -> int:
     return -1
 
 
-def demo_view_mash(mash_file_path: str) -> bool:
-    mash = SimpleMash.fromParamsFile(mash_file_path, device="cpu")
+def demo_view_mash(mash_file_path: str, is_simple_mash: bool = True) -> bool:
+    if is_simple_mash:
+        mash = SimpleMash.fromParamsFile(mash_file_path, device="cpu")
+    else:
+        mash = Mash.fromParamsFile(mash_file_path, device="cpu")
+
     if isinstance(mash, SimpleMash):
         mash.sample_phi_num = 40
         mash.sample_theta_num = 40

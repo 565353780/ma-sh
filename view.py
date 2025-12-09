@@ -20,9 +20,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="view mash")
 
     parser.add_argument("mash_data_path", help="mash data path")
+    parser.add_argument("--is_mash", action="store_true",
+                    help="use simple mash representation")
     args = parser.parse_args()
 
     mash_data_path = args.mash_data_path
+    is_simple_mash = not args.is_mash
 
     if os.path.isdir(mash_data_path):
         if isTrainingFolder(mash_data_path):
@@ -30,7 +33,7 @@ if __name__ == "__main__":
         else:
             demo_view_folder(mash_data_path)
     elif mash_data_path.endswith(".npy"):
-        demo_view_mash(mash_data_path)
+        demo_view_mash(mash_data_path, is_simple_mash=is_simple_mash)
     else:
         print("[ERROR][view::__main__]")
         print("\t mash data path not valid!")
